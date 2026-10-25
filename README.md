@@ -1,0 +1,55 @@
+# StackPort
+
+macOS-App, die eigene Server und Kundenserver (Hetzner, netcup …) mit ihren Projekten an einem Ort zeigt, gedacht für die Arbeit mit Laravel und WordPress.
+
+**Stack:** Tauri 2 (Rust) · React 19 · TypeScript · Tailwind CSS 4 · shadcn/ui · SQLite
+
+## Funktionen
+
+- Kunden → Projekte → Server, in der Seitenleiste nach Kunden oder nach Servern gruppiert
+- Kunden, Server und Projekte von Hand anlegen, bearbeiten und löschen
+- Favoriten und einklappbare Kundengruppen
+- Backup als JSON exportieren und wiederherstellen
+- SSH-Zugang nur über lokale Keys: die App speichert nur den **Pfad** zum Key und liest die Key-Datei nie
+
+### Geplant
+
+- Server-Check per SSH (PHP, Composer, Node/npm, Datenbank, Webserver, Kapazität …)
+- Deploy-Skripte pro Projekt mit Live-Ausgabe
+- GitHub- und GitLab-Actions pro Projekt
+
+## Entwicklung
+
+Voraussetzungen: Rust (`rustup`), Xcode Command Line Tools, Node 22 (siehe `.nvmrc`).
+
+```bash
+npm install
+npm run tauri dev      # App mit Hot-Reload starten
+npm run tauri build    # StackPort.app bauen → src-tauri/target/release/bundle/macos/
+```
+
+Rust-Tests:
+
+```bash
+cd src-tauri && cargo test
+```
+
+Ohne Tauri läuft die Oberfläche auch im Browser (`npm run dev`, http://localhost:1420). Die Daten landen dann im localStorage statt in SQLite.
+
+## Daten
+
+Die Datenbank liegt unter `~/Library/Application Support/de.spmedia.stackport/stackport.db`. Schema-Migrationen stehen in `src-tauri/src/db.rs` (`MIGRATIONS`) und laufen beim Start automatisch.
+
+## Aufbau
+
+```
+src/                    React-Oberfläche
+  components/           Seitenleiste, Detailansichten, Formulare
+  components/ui/        shadcn/ui-Komponenten
+  hooks/use-store.ts    Daten laden und ändern
+  lib/api.ts            Aufrufe ans Rust-Backend (mit Browser-Fallback)
+src-tauri/src/
+  db.rs                 SQLite, Migrationen, Tests
+  commands.rs           Tauri-Commands für die Oberfläche
+  models.rs             Datentypen
+```

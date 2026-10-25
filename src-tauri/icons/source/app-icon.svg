@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3a55"/>
+      <stop offset="1" stop-color="#0f1626"/>
+    </linearGradient>
+    <linearGradient id="unit" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f6fb"/>
+      <stop offset="1" stop-color="#c9d1e0"/>
+    </linearGradient>
+  </defs>
+  <!-- macOS-Raster: 824er Fläche mit 100 px Rand -->
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)"/>
+  <rect x="100.5" y="100.5" width="823" height="823" rx="184.5" fill="none" stroke="#ffffff" stroke-opacity="0.08"/>
+  <g>
+    <rect x="252" y="262" width="520" height="140" rx="36" fill="url(#unit)"/>
+    <rect x="252" y="442" width="520" height="140" rx="36" fill="url(#unit)"/>
+    <rect x="252" y="622" width="520" height="140" rx="36" fill="url(#unit)"/>
+    <g fill="#9aa6bd">
+      <rect x="300" y="318" width="190" height="28" rx="14"/>
+      <rect x="300" y="498" width="190" height="28" rx="14"/>
+      <rect x="300" y="678" width="190" height="28" rx="14"/>
+    </g>
+    <circle cx="700" cy="332" r="24" fill="#22c55e"/>
+    <circle cx="700" cy="512" r="24" fill="#22c55e"/>
+    <circle cx="700" cy="692" r="24" fill="#f59e0b"/>
+    <circle cx="630" cy="332" r="24" fill="#9aa6bd" fill-opacity="0.6"/>
+    <circle cx="630" cy="512" r="24" fill="#9aa6bd" fill-opacity="0.6"/>
+    <circle cx="630" cy="692" r="24" fill="#9aa6bd" fill-opacity="0.6"/>
+  </g>
+</svg>
