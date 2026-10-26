@@ -40,6 +40,7 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { DeployStatusIcon } from "@/components/deploy-status";
 import { HealthDot } from "@/components/health-dot";
 import { cn } from "@/lib/utils";
 import { providerLabel, serverHealth, stackLabel } from "@/lib/format";
@@ -200,6 +201,7 @@ export function AppSidebar({
                     >
                       <fav.icon />
                       <span className="truncate">{fav.name}</span>
+                      {fav.kind === "project" && <DeployStatusIcon projectId={fav.id} className="ml-auto" />}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -265,9 +267,10 @@ export function AppSidebar({
                                       {stackLabel[project.stack]} · {server?.name ?? "kein Server"}
                                     </span>
                                   </div>
-                                  {server && (
-                                    <HealthDot health={serverHealth(server.facts)} className="ml-auto" />
-                                  )}
+                                  <span className="ml-auto flex items-center gap-1.5">
+                                    <DeployStatusIcon projectId={project.id} />
+                                    {server && <HealthDot health={serverHealth(server.facts)} />}
+                                  </span>
                                 </SidebarMenuButton>
                               </SidebarMenuItem>
                             );
@@ -314,6 +317,7 @@ export function AppSidebar({
                                       onClick={() => onSelect({ kind: "project", id: project.id })}
                                     >
                                       <span className="truncate">{project.domain ?? project.name}</span>
+                                      <DeployStatusIcon projectId={project.id} className="ml-auto" />
                                     </SidebarMenuSubButton>
                                   </SidebarMenuSubItem>
                                 ))}

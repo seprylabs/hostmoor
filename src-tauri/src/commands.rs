@@ -4,7 +4,7 @@ use tauri::{AppHandle, State};
 
 use crate::db::{Db, Table};
 use crate::deploy;
-use crate::models::{Backup, Customer, Deploy, Project, Server, Snapshot};
+use crate::models::{Backup, Customer, Deploy, LastDeploy, Project, Server, Snapshot};
 use crate::check::{self, CheckError};
 use crate::ci::{self, CiResult};
 use crate::ssh::{self, ConnectionResult};
@@ -102,6 +102,11 @@ pub fn set_deploy_script(db: State<Db>, id: String, script: Option<String>) -> C
 #[tauri::command]
 pub fn list_deploys(db: State<Db>, project_id: String) -> CmdResult<Vec<Deploy>> {
     db.deploys(&project_id).map_err(err)
+}
+
+#[tauri::command]
+pub fn last_deploys(db: State<Db>) -> CmdResult<Vec<LastDeploy>> {
+    db.last_deploys().map_err(err)
 }
 
 /// Startet das Deploy-Skript des Projekts auf seinem Server; die Ausgabe kommt als Events

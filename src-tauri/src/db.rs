@@ -3,7 +3,7 @@ use std::sync::Mutex;
 
 use rusqlite::{Connection, params};
 
-use crate::models::{Customer, Deploy, DeployStatus, Project, Server, Snapshot};
+use crate::models::{Customer, Deploy, DeployStatus, LastDeploy, Project, Server, Snapshot};
 
 pub struct Db(Mutex<Connection>);
 
@@ -250,6 +250,23 @@ impl Db {
             .collect()
     }
 
+    /// Je Projekt nur der neueste Deploy
+    pub fn last_deploys(&self) -> rusqlite::Result<Vec<LastDeploy>> {
+        self.conn()
+            .prepare(
+                "SELECT project_id, status, MAX(started_at) FROM deploys GROUP BY project_id",
+            )?
+            .query_map([], |r| {
+                let status: String = r.get(1)?;
+                Ok(LastDeploy {
+                    project_id: r.get(0)?,
+                    status: DeployStatus::parse(&status),
+                    started_at: r.get(2)?,
+                })
+            })?
+            .collect()
+    }
+
     pub fn set_favorite(&self, table: Table, id: &str, favorite: bool) -> rusqlite::Result<()> {
         let sql = format!("UPDATE {} SET favorite = ?1 WHERE id = ?2", table.name());
         self.conn().execute(&sql, params![favorite, id])?;
@@ -444,10 +461,18 @@ mod tests {
             db.insert_deploy(&deploy(&id, "p1", &format!("2026-10-26T10:{i:02}:00Z"))).unwrap();
             db.finish_deploy(&id, DeployStatus::Success, Some(0), 1000, "ok").unwrap();
         }
+        db.insert_deploy(&deploy("d99", "p1", "2026-10-26T11:00:00Z")).unwrap();
+        db.finish_deploy("d99", DeployStatus::Failed, Some(1), 1000, "").unwrap();
+        let last = db.last_deploys().unwrap();
+        assert_eq!(last.len(), 1);
+        assert_eq!(last[0].status, DeployStatus::Failed);
+        assert_eq!(last[0].started_at, "2026-10-26T11:00:00Z");
+
         let list = db.deploys("p1").unwrap();
         assert_eq!(list.len(), DEPLOY_HISTORY as usize);
-        assert_eq!(list[0].id, "d24");
-        assert_eq!(list[0].status, DeployStatus::Success);
+        assert_eq!(list[0].id, "d99");
+        assert_eq!(list[1].id, "d24");
+        assert_eq!(list[1].status, DeployStatus::Success);
         assert_eq!(list[0].duration_ms, Some(1000));
 
         db.delete(Table::Project, "p1").unwrap();

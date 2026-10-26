@@ -95,6 +95,15 @@ pub struct Deploy {
     pub output: String,
 }
 
+/// Letzter Deploy eines Projekts, für den Status in der Seitenleiste
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LastDeploy {
+    pub project_id: String,
+    pub status: DeployStatus,
+    pub started_at: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Snapshot {
     pub customers: Vec<Customer>,

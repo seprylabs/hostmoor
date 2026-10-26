@@ -14,15 +14,10 @@ macOS-App, die eigene Server und Kundenserver (Hetzner, netcup …) mit ihren Pr
 - Verbindungstest mit Einrichtungshilfe (erkannte Ursache plus Befehle zum Selbst-Ausführen)
 - Button „Terminal“: öffnet das Mac-Terminal mit einer SSH-Sitzung, bei Projekten direkt im Projektordner
 - Server-Check auf Knopfdruck: PHP, Composer, Node/npm, Git, WP-CLI, Webserver, Datenbank, Redis, RAM, Platten. Das Skript (`src-tauri/src/check.sh`) liest nur. Das Ergebnis wird lokal gespeichert, nach 30 Tagen als veraltet markiert, und es wird nie automatisch geprüft
-
 - Deploy-Skripte pro Projekt: Vorlagen für Laravel/WordPress, Bestätigung vor dem Start, Live-Ausgabe, Abbrechen, Verlauf der letzten 20 Deploys, macOS-Mitteilung am Ende (wenn das Fenster im Hintergrund ist oder der Deploy länger als eine Minute lief)
-
 - „Alle Server prüfen“ im ⋯-Menü der Seitenleiste (drei Server gleichzeitig, Zusammenfassung am Ende)
 - GitHub Actions und GitLab-Pipelines pro Projekt (auch selbst gehostetes GitLab); Tokens liegen im macOS-Schlüsselbund
-
-### Geplant
-
-- Status in der Seitenleiste
+- Seitenleiste zeigt laufende und fehlgeschlagene Deploys pro Projekt
 
 ## Entwicklung
 

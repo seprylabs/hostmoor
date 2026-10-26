@@ -36,6 +36,7 @@ pub fn run() {
             commands::open_terminal,
             commands::set_deploy_script,
             commands::list_deploys,
+            commands::last_deploys,
             commands::start_deploy,
             commands::cancel_deploy,
             commands::ci_runs,

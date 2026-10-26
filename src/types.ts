@@ -86,6 +86,12 @@ export type CiResult =
   | { kind: "needsToken"; repo: CiRepo; hasToken: boolean }
   | { kind: "error"; repo: CiRepo; message: string };
 
+export interface LastDeploy {
+  projectId: string;
+  status: DeployStatus;
+  startedAt: string;
+}
+
 export interface Snapshot {
   customers: Customer[];
   servers: Server[];

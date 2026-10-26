@@ -1,6 +1,6 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 
-import type { CheckOutcome, CiResult, ConnectionResult, Deploy, Customer, EntityKind, Project, Server, Snapshot } from "@/types";
+import type { CheckOutcome, CiResult, ConnectionResult, Deploy, LastDeploy, Customer, EntityKind, Project, Server, Snapshot } from "@/types";
 
 // Im Browser (npm run dev ohne Tauri) landen die Daten im localStorage,
 // damit sich die Oberfläche auch ohne Rust-Backend ausprobieren lässt.
@@ -140,6 +140,12 @@ export async function setDeployScript(projectId: string, script: string | null):
 export async function listDeploys(projectId: string): Promise<Deploy[]> {
   if (!isTauri()) return [];
   return invoke<Deploy[]>("list_deploys", { projectId });
+}
+
+/** Je Projekt der neueste Deploy, für die Seitenleiste */
+export async function lastDeploys(): Promise<LastDeploy[]> {
+  if (!isTauri()) return [];
+  return invoke<LastDeploy[]>("last_deploys");
 }
 
 /** Startet den Deploy; die Ausgabe kommt über onDeployEvents */
