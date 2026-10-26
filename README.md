@@ -11,10 +11,11 @@ macOS-App, die eigene Server und Kundenserver (Hetzner, netcup …) mit ihren Pr
 - Favoriten und einklappbare Kundengruppen
 - Backup als JSON exportieren und wiederherstellen
 - SSH-Zugang nur über lokale Keys: die App speichert nur den **Pfad** zum Key und liest die Key-Datei nie
+- Verbindungstest mit Einrichtungshilfe (erkannte Ursache plus Befehle zum Selbst-Ausführen)
+- Server-Check auf Knopfdruck: PHP, Composer, Node/npm, Git, WP-CLI, Webserver, Datenbank, Redis, RAM, Platten. Das Skript (`src-tauri/src/check.sh`) liest nur. Das Ergebnis wird lokal gespeichert, nach 30 Tagen als veraltet markiert, und es wird nie automatisch geprüft
 
 ### Geplant
 
-- Server-Check per SSH (PHP, Composer, Node/npm, Datenbank, Webserver, Kapazität …)
 - Deploy-Skripte pro Projekt mit Live-Ausgabe
 - GitHub- und GitLab-Actions pro Projekt
 
@@ -51,5 +52,7 @@ src/                    React-Oberfläche
 src-tauri/src/
   db.rs                 SQLite, Migrationen, Tests
   commands.rs           Tauri-Commands für die Oberfläche
+  ssh.rs                Aufruf des System-ssh, Fehlererkennung
+  check.rs / check.sh   Server-Check: Skript auf dem Server, Auswertung in Rust
   models.rs             Datentypen
 ```

@@ -4,6 +4,7 @@ use tauri::State;
 
 use crate::db::{Db, Table};
 use crate::models::{Backup, Customer, Project, Server, Snapshot};
+use crate::check::{self, CheckError};
 use crate::ssh::{self, ConnectionResult};
 
 type CmdResult<T> = Result<T, String>;
@@ -74,15 +75,42 @@ pub fn import_backup(db: State<Db>, path: PathBuf) -> CmdResult<Snapshot> {
     db.snapshot().map_err(err)
 }
 
-/// Testet, ob sich die App per SSH am Server anmelden kann
-#[tauri::command]
-pub async fn test_connection(db: State<'_, Db>, id: String) -> CmdResult<ConnectionResult> {
-    let server = db
-        .snapshot()
+fn find_server(db: &Db, id: &str) -> CmdResult<Server> {
+    db.snapshot()
         .map_err(err)?
         .servers
         .into_iter()
         .find(|s| s.id == id)
-        .ok_or("Server nicht gefunden")?;
+        .ok_or_else(|| "Server nicht gefunden".into())
+}
+
+/// Testet, ob sich die App per SSH am Server anmelden kann
+#[tauri::command]
+pub async fn test_connection(db: State<'_, Db>, id: String) -> CmdResult<ConnectionResult> {
+    let server = find_server(&db, &id)?;
     Ok(ssh::test_connection(&server).await)
+}
+
+/// Ergebnis von „Jetzt prüfen“: bei Verbindungsproblemen die Ursache, sonst None
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckOutcome {
+    connection_error: Option<ConnectionResult>,
+}
+
+/// Liest PHP, Node, Kapazität usw. per SSH aus und speichert das Ergebnis
+#[tauri::command]
+pub async fn check_server(db: State<'_, Db>, id: String, checked_at: String) -> CmdResult<CheckOutcome> {
+    let server = find_server(&db, &id)?;
+    match check::check_server(&server, checked_at).await {
+        Ok(facts) => {
+            let json = serde_json::to_value(&facts).map_err(err)?;
+            db.set_facts(&id, &json).map_err(err)?;
+            Ok(CheckOutcome { connection_error: None })
+        }
+        Err(CheckError::Connection(result)) => Ok(CheckOutcome {
+            connection_error: Some(result),
+        }),
+        Err(CheckError::Output(message)) => Err(message),
+    }
 }

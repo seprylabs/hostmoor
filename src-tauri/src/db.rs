@@ -154,6 +154,15 @@ impl Db {
         upsert_project(&self.conn(), p)
     }
 
+    /// Speichert das Ergebnis eines Server-Checks
+    pub fn set_facts(&self, server_id: &str, facts: &serde_json::Value) -> rusqlite::Result<bool> {
+        let changed = self.conn().execute(
+            "UPDATE servers SET facts_json = ?1 WHERE id = ?2",
+            params![facts.to_string(), server_id],
+        )?;
+        Ok(changed > 0)
+    }
+
     pub fn set_favorite(&self, table: Table, id: &str, favorite: bool) -> rusqlite::Result<()> {
         let sql = format!("UPDATE {} SET favorite = ?1 WHERE id = ?2", table.name());
         self.conn().execute(&sql, params![favorite, id])?;

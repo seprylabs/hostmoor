@@ -12,7 +12,7 @@ use tokio::process::Command;
 use crate::models::Server;
 
 /// Obergrenze für einen Verbindungstest, falls `ssh` trotz ConnectTimeout hängt
-const HARD_TIMEOUT: Duration = Duration::from_secs(25);
+pub const HARD_TIMEOUT: Duration = Duration::from_secs(25);
 const CONNECT_TIMEOUT_SECS: u32 = 8;
 /// Wird vom Server zurückgegeben, wenn Anmeldung und Befehlsausführung klappen
 const OK_MARKER: &str = "stackport-ok";
@@ -145,50 +145,72 @@ fn trim_detail(stderr: &str) -> Option<String> {
     Some(text.chars().take(2000).collect())
 }
 
-pub async fn test_connection(server: &Server) -> ConnectionResult {
+/// Führt `remote_command` per ssh aus und liefert stdout.
+/// Schlägt die Anmeldung fehl, kommt ein `ConnectionResult` mit der erkannten Ursache zurück.
+pub async fn run(server: &Server, remote_command: &str, limit: Duration) -> Result<String, ConnectionResult> {
     let started = Instant::now();
-    let done = |status, detail: Option<String>| ConnectionResult {
+    let fail = |status, detail: Option<String>| ConnectionResult {
         status,
         detail,
         duration_ms: started.elapsed().as_millis() as u64,
     };
 
-    if let Err(message) = validate(server) {
-        return done(ConnectionStatus::InvalidConfig, Some(message));
-    }
+    validate(server).map_err(|message| fail(ConnectionStatus::InvalidConfig, Some(message)))?;
     if let Some(key) = &server.ssh_key_path {
         // Nur prüfen, ob es die Datei gibt; gelesen wird sie nicht
         if !expand_home(key).exists() {
-            return done(
+            return Err(fail(
                 ConnectionStatus::KeyNotFound,
                 Some(format!("Datei nicht gefunden: {key}")),
-            );
+            ));
         }
     }
 
     let mut cmd = Command::new("ssh");
     cmd.args(ssh_args(server))
-        .arg(format!("echo {OK_MARKER}"))
+        .arg(remote_command)
         .stdin(std::process::Stdio::null())
         .kill_on_drop(true);
 
-    let output = match tokio::time::timeout(HARD_TIMEOUT, cmd.output()).await {
-        Err(_) => return done(ConnectionStatus::Timeout, None),
+    let output = match tokio::time::timeout(limit, cmd.output()).await {
+        Err(_) => return Err(fail(ConnectionStatus::Timeout, None)),
         Ok(Err(e)) => {
-            return done(
+            return Err(fail(
                 ConnectionStatus::Unknown,
                 Some(format!("ssh konnte nicht gestartet werden: {e}")),
-            );
+            ));
         }
         Ok(Ok(output)) => output,
     };
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
-    if output.status.success() && stdout.contains(OK_MARKER) {
-        done(ConnectionStatus::Ok, None)
-    } else {
-        done(classify(&stderr), trim_detail(&stderr))
+    // 255 = Fehler von ssh selbst; andere Codes kommen vom Befehl auf dem Server
+    if output.status.code() == Some(255) || output.status.code().is_none() {
+        return Err(fail(classify(&stderr), trim_detail(&stderr)));
+    }
+    Ok(String::from_utf8_lossy(&output.stdout).into_owned())
+}
+
+/// Für die Shell auf dem Server in einfache Anführungszeichen setzen
+pub fn shell_quote(s: &str) -> String {
+    format!("'{}'", s.replace('\'', "'\\''"))
+}
+
+pub async fn test_connection(server: &Server) -> ConnectionResult {
+    let started = Instant::now();
+    let result = run(server, &format!("echo {OK_MARKER}"), HARD_TIMEOUT).await;
+    match result {
+        Ok(stdout) if stdout.contains(OK_MARKER) => ConnectionResult {
+            status: ConnectionStatus::Ok,
+            detail: None,
+            duration_ms: started.elapsed().as_millis() as u64,
+        },
+        Ok(stdout) => ConnectionResult {
+            status: ConnectionStatus::Unknown,
+            detail: trim_detail(&format!("Unerwartete Antwort vom Server: {stdout}")),
+            duration_ms: started.elapsed().as_millis() as u64,
+        },
+        Err(result) => result,
     }
 }
 
@@ -289,6 +311,12 @@ mod tests {
         for (stderr, expected) in cases {
             assert_eq!(classify(stderr), expected, "{stderr}");
         }
+    }
+
+    #[test]
+    fn quotes_for_remote_shell() {
+        assert_eq!(shell_quote("echo hi"), "'echo hi'");
+        assert_eq!(shell_quote("it's"), "'it'\\''s'");
     }
 
     #[test]

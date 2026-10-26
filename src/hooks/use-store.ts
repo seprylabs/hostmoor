@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import * as api from "@/lib/api";
-import type { Customer, EntityKind, Project, Server, Snapshot } from "@/types";
+import type { ConnectionResult, Customer, EntityKind, Project, Server, Snapshot } from "@/types";
 
 const empty: Snapshot = { customers: [], servers: [], projects: [] };
 
@@ -58,6 +58,21 @@ export function useStore() {
       } catch (e) {
         toast.error("Export fehlgeschlagen", { description: String(e) });
       }
+    },
+    /** Liefert bei Verbindungsproblemen die Ursache, damit die Einrichtungshilfe sie anzeigen kann */
+    checkServer: async (id: string): Promise<ConnectionResult | null> => {
+      try {
+        const { connectionError } = await api.checkServer(id);
+        if (connectionError) {
+          toast.error("Keine Verbindung zum Server", { description: "Details und Hilfe stehen unter „Verbindung“." });
+          return connectionError;
+        }
+        await reload();
+        toast.success("Server geprüft");
+      } catch (e) {
+        toast.error("Prüfung fehlgeschlagen", { description: String(e) });
+      }
+      return null;
     },
     importBackup: (path: string) => mutate(() => api.importBackup(path), "Backup wiederhergestellt"),
   };

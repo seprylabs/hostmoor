@@ -1,6 +1,6 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 
-import type { ConnectionResult, Customer, EntityKind, Project, Server, Snapshot } from "@/types";
+import type { CheckOutcome, ConnectionResult, Customer, EntityKind, Project, Server, Snapshot } from "@/types";
 
 // Im Browser (npm run dev ohne Tauri) landen die Daten im localStorage,
 // damit sich die Oberfläche auch ohne Rust-Backend ausprobieren lässt.
@@ -127,4 +127,10 @@ export async function importBackup(path: string): Promise<void> {
 export async function testConnection(serverId: string): Promise<ConnectionResult> {
   if (!isTauri()) throw new Error("Der Verbindungstest ist nur in der App möglich, nicht im Browser.");
   return invoke<ConnectionResult>("test_connection", { id: serverId });
+}
+
+/** Liest PHP, Node, Kapazität usw. per SSH aus; das Ergebnis wird beim Server gespeichert */
+export async function checkServer(serverId: string): Promise<CheckOutcome> {
+  if (!isTauri()) throw new Error("Der Server-Check ist nur in der App möglich, nicht im Browser.");
+  return invoke<CheckOutcome>("check_server", { id: serverId, checkedAt: new Date().toISOString() });
 }

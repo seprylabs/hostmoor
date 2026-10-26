@@ -1,10 +1,8 @@
-import { useState } from "react";
 import { CircleAlert, CircleCheck, Copy, Loader2, Plug, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { testConnection } from "@/lib/api";
 import { connectionHelp } from "@/lib/ssh-help";
 import { cn } from "@/lib/utils";
 import type { ConnectionResult, Server } from "@/types";
@@ -15,20 +13,16 @@ const toneStyle = {
   error: { icon: CircleAlert, className: "text-red-500" },
 } as const;
 
-export function ConnectionPanel({ server }: { server: Server }) {
-  const [result, setResult] = useState<ConnectionResult | null>(null);
-  const [running, setRunning] = useState(false);
+interface Props {
+  server: Server;
+  /** Letztes Ergebnis, vom Verbindungstest oder von „Jetzt prüfen“ */
+  result: ConnectionResult | null;
+  running: boolean;
+  disabled?: boolean;
+  onTest: () => void;
+}
 
-  const run = async () => {
-    setRunning(true);
-    try {
-      setResult(await testConnection(server.id));
-    } catch (e) {
-      toast.error("Test nicht möglich", { description: String(e) });
-    } finally {
-      setRunning(false);
-    }
-  };
+export function ConnectionPanel({ server, result, running, disabled, onTest }: Props) {
 
   const help = result && connectionHelp(result.status, server);
   const tone = help && toneStyle[help.tone];
@@ -37,7 +31,7 @@ export function ConnectionPanel({ server }: { server: Server }) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Verbindung</CardTitle>
-        <Button size="sm" variant="outline" onClick={run} disabled={running}>
+        <Button size="sm" variant="outline" onClick={onTest} disabled={running || disabled}>
           {running ? <Loader2 className="animate-spin" /> : <Plug />}
           {running ? "Teste …" : "Verbindung testen"}
         </Button>

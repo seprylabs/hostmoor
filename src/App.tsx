@@ -112,10 +112,12 @@ function App() {
               )}
               {server && (
                 <ServerDetail
+                  key={server.id}
                   server={server}
                   customer={customers.find((c) => c.id === server.customerId)}
                   projects={projects.filter((p) => p.serverId === server.id)}
                   onSelect={setSelection}
+                  onCheck={() => store.checkServer(server.id)}
                   onEdit={() => setEditor({ kind: "server", initial: server })}
                   onToggleFavorite={() => store.setFavorite("server", server.id, !server.favorite)}
                   onDelete={() => {

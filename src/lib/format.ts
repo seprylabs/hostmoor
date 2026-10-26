@@ -43,6 +43,27 @@ export function formatDateTime(iso: string): string {
   });
 }
 
+/** Ab diesem Alter gelten Server-Daten als veraltet */
+export const STALE_AFTER_DAYS = 30;
+
+export function ageInDays(iso: string): number {
+  return (Date.now() - new Date(iso).getTime()) / 86_400_000;
+}
+
+const relative = new Intl.RelativeTimeFormat("de", { numeric: "auto" });
+
+/** "gerade eben", "vor 5 Minuten", "gestern", "vor 3 Tagen" … */
+export function formatRelative(iso: string): string {
+  const seconds = (new Date(iso).getTime() - Date.now()) / 1000;
+  const abs = Math.abs(seconds);
+  if (abs < 60) return "gerade eben";
+  if (abs < 3_600) return relative.format(Math.round(seconds / 60), "minute");
+  if (abs < 86_400) return relative.format(Math.round(seconds / 3_600), "hour");
+  if (abs < 30 * 86_400) return relative.format(Math.round(seconds / 86_400), "day");
+  if (abs < 365 * 86_400) return relative.format(Math.round(seconds / (30 * 86_400)), "month");
+  return relative.format(Math.round(seconds / (365 * 86_400)), "year");
+}
+
 export function sshTarget(server: { host: string; port: number; sshUser?: string | null }): string {
   const user = server.sshUser ? `${server.sshUser}@` : "";
   const port = server.port !== 22 ? `:${server.port}` : "";

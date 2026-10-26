@@ -1,3 +1,4 @@
+mod check;
 mod commands;
 mod db;
 mod models;
@@ -27,6 +28,7 @@ pub fn run() {
             commands::export_backup,
             commands::import_backup,
             commands::test_connection,
+            commands::check_server,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -96,3 +96,8 @@ export interface ConnectionResult {
   detail?: string | null;
   durationMs: number;
 }
+
+/** Ergebnis von „Jetzt prüfen“; gesetzt, wenn keine Verbindung zustande kam */
+export interface CheckOutcome {
+  connectionError?: ConnectionResult | null;
+}

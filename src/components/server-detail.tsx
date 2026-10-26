@@ -1,4 +1,6 @@
-import { KeyRound, Plus, RefreshCw, Server as ServerIcon, Terminal } from "lucide-react";
+import { useState } from "react";
+import { Clock, KeyRound, Loader2, Plus, RefreshCw, Server as ServerIcon, Terminal } from "lucide-react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,22 +9,67 @@ import { FactRow, NotesCard, UsageBar } from "@/components/fact";
 import { ConnectionPanel } from "@/components/connection-panel";
 import { DetailActions } from "@/components/detail-actions";
 import { HealthDot } from "@/components/health-dot";
-import { formatDateTime, formatUptime, providerLabel, serverHealth, sshTarget, stackLabel } from "@/lib/format";
-import type { Customer, Project, Selection, Server } from "@/types";
+import { testConnection } from "@/lib/api";
+import {
+  ageInDays,
+  formatDateTime,
+  formatRelative,
+  formatUptime,
+  providerLabel,
+  serverHealth,
+  sshTarget,
+  STALE_AFTER_DAYS,
+  stackLabel,
+} from "@/lib/format";
+import { cn } from "@/lib/utils";
+import type { ConnectionResult, Customer, Project, Selection, Server } from "@/types";
 
 interface Props {
   server: Server;
   customer?: Customer;
   projects: Project[];
   onSelect: (selection: Selection) => void;
+  /** Startet den Server-Check; liefert bei Verbindungsproblemen die Ursache */
+  onCheck: () => Promise<ConnectionResult | null>;
   onEdit: () => void;
   onToggleFavorite: () => void;
   onDelete: () => void;
   onAddProject: () => void;
 }
 
-export function ServerDetail({ server, customer, projects, onSelect, onEdit, onToggleFavorite, onDelete, onAddProject }: Props) {
+export function ServerDetail({ server, customer, projects, onSelect, onCheck, onEdit, onToggleFavorite, onDelete, onAddProject }: Props) {
   const facts = server.facts;
+  const stale = facts ? ageInDays(facts.checkedAt) > STALE_AFTER_DAYS : false;
+
+  // Ergebnis gilt nur für die aktuellen Zugangsdaten; nach dem Bearbeiten verfällt es
+  const connectionKey = `${server.host}|${server.port}|${server.sshUser}|${server.sshKeyPath}`;
+  const [connection, setConnection] = useState<{ key: string; result: ConnectionResult | null }>({
+    key: connectionKey,
+    result: null,
+  });
+  const connectionResult = connection.key === connectionKey ? connection.result : null;
+  const [busy, setBusy] = useState<"test" | "check" | null>(null);
+
+  const runTest = async () => {
+    setBusy("test");
+    try {
+      setConnection({ key: connectionKey, result: await testConnection(server.id) });
+    } catch (e) {
+      toast.error("Test nicht möglich", { description: String(e) });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const runCheck = async () => {
+    setBusy("check");
+    try {
+      // Bei Erfolg altes Fehlerergebnis ausblenden, sonst Hilfe anzeigen
+      setConnection({ key: connectionKey, result: await onCheck() });
+    } finally {
+      setBusy(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -54,29 +101,40 @@ export function ServerDetail({ server, customer, projects, onSelect, onEdit, onT
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="flex gap-2">
-            {/* Wird am Schluss an den SSH-Check angebunden */}
-            <Button size="sm" disabled title="Kommt mit dem SSH-Check">
-              <RefreshCw /> Jetzt prüfen
+            <Button size="sm" onClick={runCheck} disabled={busy !== null}>
+              {busy === "check" ? <Loader2 className="animate-spin" /> : <RefreshCw />}
+              {busy === "check" ? "Prüfe …" : "Jetzt prüfen"}
             </Button>
             <DetailActions favorite={server.favorite} onToggleFavorite={onToggleFavorite} onEdit={onEdit} onDelete={onDelete} />
           </div>
-          <span className="text-muted-foreground text-xs">
-            {facts ? `Geprüft: ${formatDateTime(facts.checkedAt)}` : "Noch nie geprüft"}
-          </span>
+          {facts ? (
+            <span
+              className={cn("flex items-center gap-1 text-xs", stale ? "text-amber-600 dark:text-amber-500" : "text-muted-foreground")}
+              title={`Geprüft am ${formatDateTime(facts.checkedAt)}`}
+            >
+              {stale && <Clock className="size-3" />}
+              Stand: {formatRelative(facts.checkedAt)}
+              {stale && " · evtl. veraltet"}
+            </span>
+          ) : (
+            <span className="text-muted-foreground text-xs">Noch nie geprüft</span>
+          )}
         </div>
       </header>
 
-      {/* key: altes Ergebnis verwerfen, sobald sich Server oder Zugangsdaten ändern */}
       <ConnectionPanel
-        key={`${server.id}|${server.host}|${server.port}|${server.sshUser}|${server.sshKeyPath}`}
         server={server}
+        result={connectionResult}
+        running={busy === "test"}
+        disabled={busy !== null}
+        onTest={runTest}
       />
 
       {!facts ? (
         <Card>
           <CardContent className="text-muted-foreground py-10 text-center text-sm">
-            Für diesen Server liegen noch keine Daten vor. Sobald der SSH-Check fertig ist, erscheinen
-            hier PHP, Node, Kapazität usw.
+            Für diesen Server liegen noch keine Daten vor. Mit „Jetzt prüfen“ liest StackPort PHP, Node,
+            Kapazität usw. aus. Auf dem Server wird dabei nichts verändert.
           </CardContent>
         </Card>
       ) : (
@@ -137,8 +195,8 @@ export function ServerDetail({ server, customer, projects, onSelect, onEdit, onT
               {facts.php && (
                 <>
                   <FactRow label="Installiert" value={facts.php.installed.join(", ")} />
-                  <FactRow label="memory_limit" value={facts.php.memoryLimit} />
-                  <FactRow label="upload_max_filesize" value={facts.php.uploadMaxFilesize} />
+                  <FactRow label="memory_limit (CLI)" value={facts.php.memoryLimit} />
+                  <FactRow label="upload_max_filesize (CLI)" value={facts.php.uploadMaxFilesize} />
                   <div className="flex flex-wrap gap-1 pt-2">
                     {facts.php.extensions.map((ext) => (
                       <Badge key={ext} variant="outline" className="font-mono">

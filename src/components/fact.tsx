@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { percent } from "@/lib/format";
 
-/** Eine Zeile "Bezeichnung … Wert"; fehlende Werte werden als "nicht installiert" angezeigt */
+/** Eine Zeile "Bezeichnung … Wert"; fehlende Werte werden als "nicht gefunden" angezeigt */
 export function FactRow({ label, value }: { label: string; value?: ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-4 py-1.5 text-sm">
@@ -12,7 +12,7 @@ export function FactRow({ label, value }: { label: string; value?: ReactNode }) 
       {value ? (
         <span className="font-mono text-right">{value}</span>
       ) : (
-        <span className="text-muted-foreground/60 italic">nicht installiert</span>
+        <span className="text-muted-foreground/60 italic">nicht gefunden</span>
       )}
     </div>
   );
