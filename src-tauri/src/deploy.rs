@@ -11,6 +11,7 @@ use std::time::{Duration, Instant};
 
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
+use tauri_plugin_notification::NotificationExt;
 use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
 use tokio::process::Command;
 use tokio::sync::{mpsc, oneshot};
@@ -21,6 +22,8 @@ use crate::ssh;
 
 /// Obergrenze für einen Deploy, danach wird abgebrochen
 const DEPLOY_TIMEOUT: Duration = Duration::from_secs(30 * 60);
+/// Ab dieser Dauer gibt es eine Mitteilung, auch wenn das Fenster im Vordergrund ist
+const NOTIFY_AFTER: Duration = Duration::from_secs(60);
 /// Gespeicherte Ausgabe pro Deploy (das Ende ist wichtiger als der Anfang)
 const MAX_OUTPUT_CHARS: usize = 200_000;
 
@@ -118,6 +121,7 @@ pub fn start(
 
     let app = app.clone();
     let (id, project_id) = (deploy.id.clone(), deploy.project_id.clone());
+    let (project_name, server_name) = (project.name.clone(), server.name.clone());
     tauri::async_runtime::spawn(async move {
         let started = Instant::now();
         let (status, exit_code, output) = run(&app, &id, args, cancel_rx).await;
@@ -129,6 +133,7 @@ pub fn start(
         {
             eprintln!("Deploy {id} konnte nicht gespeichert werden: {e}");
         }
+        notify(&app, &project_name, &server_name, status, started.elapsed());
         let _ = app.emit(
             "deploy-finished",
             FinishedEvent {
@@ -140,6 +145,32 @@ pub fn start(
     });
 
     Ok(deploy)
+}
+
+/// macOS-Mitteilung, wenn man gerade nicht hinschaut oder der Deploy lange gedauert hat
+fn notify(app: &AppHandle, project: &str, server: &str, status: DeployStatus, took: Duration) {
+    let focused = app
+        .get_webview_window("main")
+        .and_then(|w| w.is_focused().ok())
+        .unwrap_or(false);
+    if status == DeployStatus::Cancelled || (focused && took < NOTIFY_AFTER) {
+        return;
+    }
+    let title = match status {
+        DeployStatus::Success => format!("✔ {project} deployt"),
+        _ => format!("✖ Deploy von {project} fehlgeschlagen"),
+    };
+    let secs = took.as_secs();
+    let duration = if secs < 60 { format!("{secs} s") } else { format!("{} min {} s", secs / 60, secs % 60) };
+    if let Err(e) = app
+        .notification()
+        .builder()
+        .title(title)
+        .body(format!("{server} · {duration}"))
+        .show()
+    {
+        eprintln!("Mitteilung konnte nicht angezeigt werden: {e}");
+    }
 }
 
 /// Bricht den laufenden Deploy eines Projekts ab; false, wenn keiner läuft
