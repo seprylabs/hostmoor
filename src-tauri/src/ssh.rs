@@ -196,6 +196,78 @@ pub fn shell_quote(s: &str) -> String {
     format!("'{}'", s.replace('\'', "'\\''"))
 }
 
+/// Nur quoten, wenn nötig, damit der Befehl im Terminal lesbar bleibt
+fn quote_arg(arg: &str) -> String {
+    let plain = !arg.is_empty()
+        && arg
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | '/' | '@' | ':' | '=' | '[' | ']'));
+    if plain { arg.to_string() } else { shell_quote(arg) }
+}
+
+/// ssh-Befehl für ein interaktives Terminal. Anders als beim Check ohne BatchMode:
+/// Dort darfst du Passphrase oder Host-Bestätigung selbst eingeben.
+/// Mit `dir` wechselt die Sitzung auf dem Server direkt in diesen Ordner.
+pub fn interactive_command(server: &Server, dir: Option<&str>) -> Result<String, String> {
+    validate(server)?;
+    let mut args: Vec<String> = vec!["ssh".into()];
+    if dir.is_some() {
+        // Terminal anfordern, obwohl ein Befehl mitgegeben wird
+        args.push("-t".into());
+    }
+    args.push("-p".into());
+    args.push(server.port.to_string());
+    if let Some(key) = &server.ssh_key_path {
+        args.push("-i".into());
+        args.push(expand_home(key).to_string_lossy().into_owned());
+        args.push("-o".into());
+        args.push("IdentitiesOnly=yes".into());
+    }
+    args.push("--".into());
+    args.push(match &server.ssh_user {
+        Some(user) => format!("{user}@{}", server.host),
+        None => server.host.clone(),
+    });
+    if let Some(dir) = dir {
+        // ~/… auf dem Server auflösen lassen, Rest sicher quoten
+        let target = match dir.strip_prefix("~/") {
+            Some(rest) => format!("~/{}", shell_quote(rest)),
+            None => shell_quote(dir),
+        };
+        args.push(format!("cd {target} && exec \"$SHELL\" -l"));
+    }
+    Ok(args.iter().map(|a| quote_arg(a)).collect::<Vec<_>>().join(" "))
+}
+
+/// Öffnet das Standard-Terminal des Macs mit einer SSH-Sitzung.
+/// Dafür wird eine kurzlebige .command-Datei angelegt, die sich beim Start selbst löscht;
+/// so braucht die App keine Berechtigung, das Terminal fernzusteuern.
+pub fn open_terminal(server: &Server, dir: Option<&str>) -> Result<(), String> {
+    use std::os::unix::fs::PermissionsExt;
+
+    let command = interactive_command(server, dir)?;
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or_default();
+    let path = std::env::temp_dir().join(format!("stackport-{stamp}.command"));
+    let script = format!(
+        "#!/bin/sh\nrm -f \"$0\"\nprintf '%s\\n\\n' {}\nexec {command}\n",
+        shell_quote(&format!("StackPort: {} ({})", server.name, server.host)),
+    );
+    std::fs::write(&path, script).map_err(|e| e.to_string())?;
+    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o700)).map_err(|e| e.to_string())?;
+    let status = std::process::Command::new("open")
+        .arg(&path)
+        .status()
+        .map_err(|e| e.to_string())?;
+    if !status.success() {
+        let _ = std::fs::remove_file(&path);
+        return Err("Das Terminal konnte nicht geöffnet werden.".into());
+    }
+    Ok(())
+}
+
 pub async fn test_connection(server: &Server) -> ConnectionResult {
     let started = Instant::now();
     let result = run(server, &format!("echo {OK_MARKER}"), HARD_TIMEOUT).await;
@@ -311,6 +383,25 @@ mod tests {
         for (stderr, expected) in cases {
             assert_eq!(classify(stderr), expected, "{stderr}");
         }
+    }
+
+    #[test]
+    fn interactive_command_is_quoted() {
+        let home = std::env::var("HOME").unwrap();
+        let cmd = interactive_command(&server(), None).unwrap();
+        assert_eq!(
+            cmd,
+            format!("ssh -p 2222 -i {home}/.ssh/test_key -o IdentitiesOnly=yes -- deploy@203.0.113.10")
+        );
+        assert!(!cmd.contains("BatchMode"));
+
+        let cmd = interactive_command(&server(), Some("/var/www/my shop")).unwrap();
+        assert!(cmd.starts_with("ssh -t "));
+        assert!(cmd.ends_with(r#"deploy@203.0.113.10 'cd '\''/var/www/my shop'\'' && exec "$SHELL" -l'"#), "{cmd}");
+
+        let mut bad = server();
+        bad.host = "-oProxyCommand=x".into();
+        assert!(interactive_command(&bad, None).is_err());
     }
 
     #[test]

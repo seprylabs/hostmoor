@@ -129,6 +129,12 @@ export async function testConnection(serverId: string): Promise<ConnectionResult
   return invoke<ConnectionResult>("test_connection", { id: serverId });
 }
 
+/** Öffnet das Terminal mit einer SSH-Sitzung; mit `dir` direkt in diesem Ordner auf dem Server */
+export async function openTerminal(serverId: string, dir?: string | null): Promise<void> {
+  if (!isTauri()) throw new Error("Das Terminal lässt sich nur aus der App öffnen, nicht im Browser.");
+  await invoke("open_terminal", { id: serverId, dir: dir ?? null });
+}
+
 /** Liest PHP, Node, Kapazität usw. per SSH aus; das Ergebnis wird beim Server gespeichert */
 export async function checkServer(serverId: string): Promise<CheckOutcome> {
   if (!isTauri()) throw new Error("Der Server-Check ist nur in der App möglich, nicht im Browser.");

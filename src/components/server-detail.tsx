@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FactRow, NotesCard, UsageBar } from "@/components/fact";
 import { ConnectionPanel } from "@/components/connection-panel";
 import { DetailActions } from "@/components/detail-actions";
+import { TerminalButton } from "@/components/terminal-button";
 import { HealthDot } from "@/components/health-dot";
 import { testConnection } from "@/lib/api";
 import {
@@ -101,6 +102,7 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="flex gap-2">
+            <TerminalButton serverId={server.id} />
             <Button size="sm" onClick={runCheck} disabled={busy !== null}>
               {busy === "check" ? <Loader2 className="animate-spin" /> : <RefreshCw />}
               {busy === "check" ? "Prüfe …" : "Jetzt prüfen"}

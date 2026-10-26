@@ -91,6 +91,13 @@ pub async fn test_connection(db: State<'_, Db>, id: String) -> CmdResult<Connect
     Ok(ssh::test_connection(&server).await)
 }
 
+/// Öffnet das Terminal mit einer SSH-Sitzung, optional direkt im Projektordner
+#[tauri::command]
+pub fn open_terminal(db: State<Db>, id: String, dir: Option<String>) -> CmdResult<()> {
+    let server = find_server(&db, &id)?;
+    ssh::open_terminal(&server, dir.as_deref().filter(|d| !d.trim().is_empty()))
+}
+
 /// Ergebnis von „Jetzt prüfen“: bei Verbindungsproblemen die Ursache, sonst None
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]

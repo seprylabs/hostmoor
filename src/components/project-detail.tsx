@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DetailActions } from "@/components/detail-actions";
+import { TerminalButton } from "@/components/terminal-button";
 import { FactRow, NotesCard } from "@/components/fact";
 import { HealthDot } from "@/components/health-dot";
 import { providerLabel, serverHealth, sshTarget, stackLabel } from "@/lib/format";
@@ -49,7 +50,10 @@ export function ProjectDetail({ project, customer, server, onSelect, onEdit, onT
             )}
           </div>
         </div>
-        <DetailActions favorite={project.favorite} onToggleFavorite={onToggleFavorite} onEdit={onEdit} onDelete={onDelete} />
+        <div className="flex gap-2">
+          {server && <TerminalButton serverId={server.id} dir={project.path} />}
+          <DetailActions favorite={project.favorite} onToggleFavorite={onToggleFavorite} onEdit={onEdit} onDelete={onDelete} />
+        </div>
       </header>
 
       <div className="grid gap-4 lg:grid-cols-2">

@@ -29,6 +29,7 @@ pub fn run() {
             commands::import_backup,
             commands::test_connection,
             commands::check_server,
+            commands::open_terminal,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
