@@ -4,6 +4,7 @@ use tauri::State;
 
 use crate::db::{Db, Table};
 use crate::models::{Backup, Customer, Project, Server, Snapshot};
+use crate::ssh::{self, ConnectionResult};
 
 type CmdResult<T> = Result<T, String>;
 
@@ -71,4 +72,17 @@ pub fn import_backup(db: State<Db>, path: PathBuf) -> CmdResult<Snapshot> {
     }
     db.replace_all(&backup.data).map_err(err)?;
     db.snapshot().map_err(err)
+}
+
+/// Testet, ob sich die App per SSH am Server anmelden kann
+#[tauri::command]
+pub async fn test_connection(db: State<'_, Db>, id: String) -> CmdResult<ConnectionResult> {
+    let server = db
+        .snapshot()
+        .map_err(err)?
+        .servers
+        .into_iter()
+        .find(|s| s.id == id)
+        .ok_or("Server nicht gefunden")?;
+    Ok(ssh::test_connection(&server).await)
 }

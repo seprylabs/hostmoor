@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FactRow, NotesCard, UsageBar } from "@/components/fact";
+import { ConnectionPanel } from "@/components/connection-panel";
 import { DetailActions } from "@/components/detail-actions";
 import { HealthDot } from "@/components/health-dot";
 import { formatDateTime, formatUptime, providerLabel, serverHealth, sshTarget, stackLabel } from "@/lib/format";
@@ -64,6 +65,12 @@ export function ServerDetail({ server, customer, projects, onSelect, onEdit, onT
           </span>
         </div>
       </header>
+
+      {/* key: altes Ergebnis verwerfen, sobald sich Server oder Zugangsdaten ändern */}
+      <ConnectionPanel
+        key={`${server.id}|${server.host}|${server.port}|${server.sshUser}|${server.sshKeyPath}`}
+        server={server}
+      />
 
       {!facts ? (
         <Card>

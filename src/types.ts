@@ -75,3 +75,24 @@ export interface ServerFacts {
 }
 
 export type Selection = { kind: EntityKind; id: string };
+
+export type ConnectionStatus =
+  | "ok"
+  | "unknownHost"
+  | "hostKeyChanged"
+  | "authFailed"
+  | "keyNotFound"
+  | "keyPermissions"
+  | "dnsFailed"
+  | "refused"
+  | "timeout"
+  | "unreachable"
+  | "invalidConfig"
+  | "unknown";
+
+export interface ConnectionResult {
+  status: ConnectionStatus;
+  /** Originalausgabe von ssh */
+  detail?: string | null;
+  durationMs: number;
+}

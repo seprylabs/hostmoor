@@ -1,6 +1,7 @@
 mod commands;
 mod db;
 mod models;
+mod ssh;
 
 use tauri::Manager;
 
@@ -25,6 +26,7 @@ pub fn run() {
             commands::set_favorite,
             commands::export_backup,
             commands::import_backup,
+            commands::test_connection,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
