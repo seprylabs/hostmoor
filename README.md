@@ -17,9 +17,11 @@ macOS-App, die eigene Server und Kundenserver (Hetzner, netcup …) mit ihren Pr
 
 - Deploy-Skripte pro Projekt: Vorlagen für Laravel/WordPress, Bestätigung vor dem Start, Live-Ausgabe, Abbrechen, Verlauf der letzten 20 Deploys
 
+- GitHub Actions und GitLab-Pipelines pro Projekt (auch selbst gehostetes GitLab); Tokens liegen im macOS-Schlüsselbund
+
 ### Geplant
 
-- GitHub- und GitLab-Actions pro Projekt
+- „Alle Server prüfen“, Benachrichtigung nach langen Deploys
 
 ## Entwicklung
 
@@ -57,5 +59,6 @@ src-tauri/src/
   ssh.rs                Aufruf des System-ssh, Fehlererkennung
   check.rs / check.sh   Server-Check: Skript auf dem Server, Auswertung in Rust
   deploy.rs             Deploys: ssh im Hintergrund, Ausgabe als Events
+  ci.rs                 GitHub-/GitLab-API, Tokens im Schlüsselbund
   models.rs             Datentypen
 ```

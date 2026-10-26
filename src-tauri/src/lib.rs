@@ -1,4 +1,5 @@
 mod check;
+mod ci;
 mod commands;
 mod deploy;
 mod db;
@@ -36,6 +37,8 @@ pub fn run() {
             commands::list_deploys,
             commands::start_deploy,
             commands::cancel_deploy,
+            commands::ci_runs,
+            commands::set_ci_token,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

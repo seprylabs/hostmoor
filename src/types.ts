@@ -56,6 +56,36 @@ export interface Deploy {
   output: string;
 }
 
+export type CiForge = "github" | "gitlab";
+
+export interface CiRepo {
+  forge: CiForge;
+  host: string;
+  path: string;
+  webUrl: string;
+}
+
+export type CiRunStatus = "queued" | "running" | "success" | "failed" | "cancelled" | "skipped" | "manual" | "other";
+
+export interface CiRun {
+  id: number;
+  title: string;
+  branch?: string | null;
+  sha?: string | null;
+  status: CiRunStatus;
+  event?: string | null;
+  actor?: string | null;
+  url: string;
+  createdAt: string;
+  updatedAt?: string | null;
+}
+
+export type CiResult =
+  | { kind: "ok"; repo: CiRepo; runs: CiRun[]; hasToken: boolean }
+  | { kind: "noRepo" }
+  | { kind: "needsToken"; repo: CiRepo; hasToken: boolean }
+  | { kind: "error"; repo: CiRepo; message: string };
+
 export interface Snapshot {
   customers: Customer[];
   servers: Server[];

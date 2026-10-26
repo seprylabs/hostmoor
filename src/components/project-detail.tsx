@@ -1,8 +1,9 @@
-import { ExternalLink, GitBranch, Globe, Workflow } from "lucide-react";
+import { ExternalLink, GitBranch, Globe } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CiPanel } from "@/components/ci-panel";
 import { DeployPanel } from "@/components/deploy-panel";
 import { DetailActions } from "@/components/detail-actions";
 import { TerminalButton } from "@/components/terminal-button";
@@ -120,18 +121,7 @@ export function ProjectDetail({
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-2">
-              <Workflow className="text-muted-foreground size-4" />
-              <CardTitle>GitHub / GitLab Actions</CardTitle>
-              <Badge variant="outline" className="ml-auto">bald</Badge>
-            </CardHeader>
-            <CardContent className="text-muted-foreground text-sm">
-              Letzte Pipeline-Läufe des verknüpften Repositorys.
-            </CardContent>
-          </Card>
-        </div>
+        <CiPanel project={project} onEditProject={onEdit} />
       </div>
 
       <DeployPanel project={project} server={server} onEditProject={onEdit} onSaveScript={onSaveDeployScript} />

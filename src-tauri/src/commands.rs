@@ -6,6 +6,7 @@ use crate::db::{Db, Table};
 use crate::deploy;
 use crate::models::{Backup, Customer, Deploy, Project, Server, Snapshot};
 use crate::check::{self, CheckError};
+use crate::ci::{self, CiResult};
 use crate::ssh::{self, ConnectionResult};
 
 type CmdResult<T> = Result<T, String>;
@@ -133,6 +134,27 @@ pub fn start_deploy(
 #[tauri::command]
 pub fn cancel_deploy(app: AppHandle, project_id: String) -> bool {
     deploy::cancel(&app, &project_id)
+}
+
+/// Letzte Pipeline-Läufe zur Repo-URL des Projekts
+#[tauri::command]
+pub async fn ci_runs(db: State<'_, Db>, project_id: String) -> CmdResult<CiResult> {
+    let repo_url = db
+        .snapshot()
+        .map_err(err)?
+        .projects
+        .into_iter()
+        .find(|p| p.id == project_id)
+        .ok_or("Projekt nicht gefunden")?
+        .repo_url
+        .unwrap_or_default();
+    Ok(ci::runs(&repo_url).await)
+}
+
+/// Speichert den Token für einen Host im Schlüsselbund; leer = entfernen
+#[tauri::command]
+pub fn set_ci_token(host: String, token: Option<String>) -> CmdResult<()> {
+    ci::set_token(&host, token.as_deref())
 }
 
 /// Öffnet das Terminal mit einer SSH-Sitzung, optional direkt im Projektordner

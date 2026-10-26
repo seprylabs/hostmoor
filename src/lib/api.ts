@@ -1,6 +1,6 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 
-import type { CheckOutcome, ConnectionResult, Deploy, Customer, EntityKind, Project, Server, Snapshot } from "@/types";
+import type { CheckOutcome, CiResult, ConnectionResult, Deploy, Customer, EntityKind, Project, Server, Snapshot } from "@/types";
 
 // Im Browser (npm run dev ohne Tauri) landen die Daten im localStorage,
 // damit sich die Oberfläche auch ohne Rust-Backend ausprobieren lässt.
@@ -172,6 +172,27 @@ export async function onDeployEvents(handlers: DeployEvents): Promise<() => void
     offOutput();
     offFinished();
   };
+}
+
+/** Letzte Pipeline-Läufe (GitHub Actions / GitLab CI) zur Repo-URL des Projekts */
+export async function ciRuns(projectId: string): Promise<CiResult> {
+  if (!isTauri()) throw new Error("Pipelines lassen sich nur in der App laden, nicht im Browser.");
+  return invoke<CiResult>("ci_runs", { projectId });
+}
+
+/** Speichert den Token im macOS-Schlüsselbund; null entfernt ihn */
+export async function setCiToken(host: string, token: string | null): Promise<void> {
+  await invoke("set_ci_token", { host, token });
+}
+
+/** Öffnet einen Link im Standardbrowser */
+export async function openExternal(url: string): Promise<void> {
+  if (!isTauri()) {
+    window.open(url, "_blank", "noopener");
+    return;
+  }
+  const { openUrl } = await import("@tauri-apps/plugin-opener");
+  await openUrl(url);
 }
 
 /** Öffnet das Terminal mit einer SSH-Sitzung; mit `dir` direkt in diesem Ordner auf dem Server */
