@@ -92,6 +92,14 @@ export interface CiRun {
   updatedAt?: string | null;
 }
 
+/** Stand der Hintergrund-Abfrage je Projekt */
+export interface ProjectCi {
+  projectId: string;
+  active: CiRun[];
+  latest?: CiRunStatus | null;
+  latestAt?: string | null;
+}
+
 export type CiResult =
   | { kind: "ok"; repo: CiRepo; runs: CiRun[]; hasToken: boolean }
   | { kind: "noRepo" }

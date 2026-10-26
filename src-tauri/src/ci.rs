@@ -88,7 +88,14 @@ pub enum RunStatus {
     Other,
 }
 
-#[derive(Debug, Clone, Serialize)]
+impl RunStatus {
+    /// Wartet oder läuft noch
+    pub fn is_active(self) -> bool {
+        matches!(self, Self::Queued | Self::Running)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct CiRun {
     pub id: u64,
@@ -232,25 +239,25 @@ fn encode_path(path: &str) -> String {
         .collect()
 }
 
-pub async fn runs(repo_url: &str) -> CiResult {
-    let Some(repo) = parse_repo_url(repo_url) else {
-        return CiResult::NoRepo;
-    };
-    let token = match token(&repo.host) {
-        Ok(token) => token,
-        Err(message) => return CiResult::Error { repo, message },
-    };
-    let has_token = token.is_some();
-
-    let client = match reqwest::Client::builder()
+pub fn client() -> Result<reqwest::Client, String> {
+    reqwest::Client::builder()
         .user_agent(USER_AGENT)
         .timeout(Duration::from_secs(15))
         .build()
-    {
-        Ok(client) => client,
-        Err(e) => return CiResult::Error { repo, message: e.to_string() },
-    };
+        .map_err(|e| e.to_string())
+}
 
+/// Ergebnis einer einzelnen Abfrage
+pub enum Fetch {
+    Fresh { runs: Vec<CiRun>, etag: Option<String> },
+    /// Seit der letzten Abfrage (ETag) unverändert; zählt bei GitHub nicht aufs Limit
+    NotModified,
+    NeedsToken,
+    Error(String),
+}
+
+/// Fragt die letzten Läufe ab; mit `etag` nur, wenn sich seitdem etwas geändert hat
+pub async fn fetch(client: &reqwest::Client, repo: &Repo, token: Option<&str>, etag: Option<&str>) -> Fetch {
     let request = match repo.forge {
         Forge::Github => {
             let url = format!(
@@ -261,7 +268,7 @@ pub async fn runs(repo_url: &str) -> CiResult {
                 .get(url)
                 .header("Accept", "application/vnd.github+json")
                 .header("X-GitHub-Api-Version", "2022-11-28");
-            match &token {
+            match token {
                 Some(t) => req.bearer_auth(t),
                 None => req,
             }
@@ -273,44 +280,49 @@ pub async fn runs(repo_url: &str) -> CiResult {
                 encode_path(&repo.path)
             );
             let req = client.get(url);
-            match &token {
+            match token {
                 Some(t) => req.header("PRIVATE-TOKEN", t),
                 None => req,
             }
         }
     };
+    let request = match etag {
+        Some(etag) => request.header("If-None-Match", etag),
+        None => request,
+    };
 
     let response = match request.send().await {
         Ok(r) => r,
         Err(e) => {
-            let message = if e.is_timeout() {
+            return Fetch::Error(if e.is_timeout() {
                 format!("{} antwortet nicht.", repo.host)
             } else if e.is_connect() {
                 format!("Keine Verbindung zu {}.", repo.host)
             } else {
                 e.to_string()
-            };
-            return CiResult::Error { repo, message };
+            });
         }
     };
 
     let status = response.status().as_u16();
+    if status == 304 {
+        return Fetch::NotModified;
+    }
     // Private Repos ohne Berechtigung melden GitHub und GitLab als 404
-    if status == 401 || status == 404 || (status == 403 && has_token) {
-        return CiResult::NeedsToken { repo, has_token };
+    if status == 401 || status == 404 || (status == 403 && token.is_some()) {
+        return Fetch::NeedsToken;
     }
     if status == 403 {
-        return CiResult::Error {
-            repo,
-            message: "Zu viele Anfragen ohne Token. Mit Token ist das Limit deutlich höher.".into(),
-        };
+        return Fetch::Error("Zu viele Anfragen ohne Token. Mit Token ist das Limit deutlich höher.".into());
     }
     if !response.status().is_success() {
-        return CiResult::Error {
-            repo,
-            message: format!("Unerwartete Antwort ({status})."),
-        };
+        return Fetch::Error(format!("Unerwartete Antwort ({status})."));
     }
+    let etag = response
+        .headers()
+        .get("etag")
+        .and_then(|v| v.to_str().ok())
+        .map(String::from);
 
     let runs = match repo.forge {
         Forge::Github => response.json::<GithubRuns>().await.map(|r| {
@@ -350,11 +362,32 @@ pub async fn runs(repo_url: &str) -> CiResult {
     };
 
     match runs {
-        Ok(runs) => CiResult::Ok { repo, runs, has_token },
-        Err(e) => CiResult::Error {
-            repo,
-            message: format!("Antwort nicht lesbar: {e}"),
-        },
+        Ok(runs) => Fetch::Fresh { runs, etag },
+        Err(e) => Fetch::Error(format!("Antwort nicht lesbar: {e}")),
+    }
+}
+
+/// Für die Projektansicht: Repo erkennen, Token holen, abfragen
+pub async fn runs(repo_url: &str) -> CiResult {
+    let Some(repo) = parse_repo_url(repo_url) else {
+        return CiResult::NoRepo;
+    };
+    let token = match token(&repo.host) {
+        Ok(token) => token,
+        Err(message) => return CiResult::Error { repo, message },
+    };
+    let has_token = token.is_some();
+    let client = match client() {
+        Ok(client) => client,
+        Err(message) => return CiResult::Error { repo, message },
+    };
+
+    match fetch(&client, &repo, token.as_deref(), None).await {
+        Fetch::Fresh { runs, .. } => CiResult::Ok { repo, runs, has_token },
+        Fetch::NeedsToken => CiResult::NeedsToken { repo, has_token },
+        Fetch::Error(message) => CiResult::Error { repo, message },
+        // Ohne ETag kann das nicht vorkommen
+        Fetch::NotModified => CiResult::Ok { repo, runs: Vec::new(), has_token },
     }
 }
 
@@ -440,5 +473,20 @@ mod live {
             }
             other => panic!("{other:?}"),
         }
+    }
+
+    /// Manuell: cargo test -- --ignored live_etag
+    #[tokio::test]
+    #[ignore]
+    async fn live_etag_not_modified() {
+        let repo = super::parse_repo_url("https://github.com/tauri-apps/tauri").unwrap();
+        let client = super::client().unwrap();
+        let super::Fetch::Fresh { etag: Some(etag), .. } = super::fetch(&client, &repo, None, None).await else {
+            panic!("kein ETag");
+        };
+        assert!(matches!(
+            super::fetch(&client, &repo, None, Some(&etag)).await,
+            super::Fetch::NotModified
+        ));
     }
 }

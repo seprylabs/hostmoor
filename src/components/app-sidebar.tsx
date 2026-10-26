@@ -11,6 +11,7 @@ import {
   Search,
   Server as ServerIcon,
   Star,
+  Workflow,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -40,8 +41,9 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { DeployStatusIcon } from "@/components/deploy-status";
+import { ProjectStatusIcons } from "@/components/deploy-status";
 import { HealthDot } from "@/components/health-dot";
+import { useActiveRuns } from "@/hooks/use-ci-overview";
 import { cn } from "@/lib/utils";
 import { providerLabel, serverHealth, stackLabel } from "@/lib/format";
 import type { Customer, EntityKind, Project, Selection, Server } from "@/types";
@@ -88,6 +90,7 @@ export function AppSidebar({
   onCheckAll,
   checkAll,
 }: Props) {
+  const activeRuns = useActiveRuns();
   const [groupBy, setGroupBy] = useState<GroupBy>("customer");
   const [query, setQuery] = useState("");
   const [collapsed, setCollapsed] = useState(loadCollapsed);
@@ -186,6 +189,37 @@ export function AppSidebar({
           </p>
         )}
 
+        {activeRuns.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>
+              <Workflow className="mr-1.5 size-3 animate-pulse text-violet-500" /> Läuft gerade
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {activeRuns.map(({ projectId, run }) => (
+                  <SidebarMenuItem key={`${projectId}-${run.id}`}>
+                    <SidebarMenuButton
+                      isActive={isSelected("project", projectId)}
+                      onClick={() => onSelect({ kind: "project", id: projectId })}
+                      className="h-auto py-1.5"
+                      title={run.title}
+                    >
+                      <div className="flex min-w-0 flex-col">
+                        <span className="truncate">{projects.find((p) => p.id === projectId)?.name ?? "Projekt"}</span>
+                        <span className="text-muted-foreground truncate text-xs">
+                          {run.status === "queued" ? "Wartet · " : ""}
+                          {run.title}
+                          {run.branch && ` · ${run.branch}`}
+                        </span>
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
         {favorites.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel>
@@ -201,7 +235,7 @@ export function AppSidebar({
                     >
                       <fav.icon />
                       <span className="truncate">{fav.name}</span>
-                      {fav.kind === "project" && <DeployStatusIcon projectId={fav.id} className="ml-auto" />}
+                      {fav.kind === "project" && <ProjectStatusIcons projectId={fav.id} className="ml-auto" />}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -268,7 +302,7 @@ export function AppSidebar({
                                     </span>
                                   </div>
                                   <span className="ml-auto flex items-center gap-1.5">
-                                    <DeployStatusIcon projectId={project.id} />
+                                    <ProjectStatusIcons projectId={project.id} />
                                     {server && <HealthDot health={serverHealth(server.facts)} />}
                                   </span>
                                 </SidebarMenuButton>
@@ -317,7 +351,7 @@ export function AppSidebar({
                                       onClick={() => onSelect({ kind: "project", id: project.id })}
                                     >
                                       <span className="truncate">{project.domain ?? project.name}</span>
-                                      <DeployStatusIcon projectId={project.id} className="ml-auto" />
+                                      <ProjectStatusIcons projectId={project.id} className="ml-auto" />
                                     </SidebarMenuSubButton>
                                   </SidebarMenuSubItem>
                                 ))}

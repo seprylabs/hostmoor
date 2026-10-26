@@ -7,6 +7,7 @@ use crate::deploy;
 use crate::models::{Backup, Customer, Deploy, LastDeploy, Project, Server, Snapshot};
 use crate::check::{self, CheckError};
 use crate::ci::{self, CiResult};
+use crate::ci_watch::{CiWatch, ProjectCi};
 use crate::ssh::{self, ConnectionResult};
 
 type CmdResult<T> = Result<T, String>;
@@ -34,8 +35,11 @@ pub fn save_server(db: State<Db>, server: Server) -> CmdResult<()> {
 }
 
 #[tauri::command]
-pub fn save_project(db: State<Db>, project: Project) -> CmdResult<()> {
-    db.save_project(&project).map_err(err)
+pub fn save_project(db: State<Db>, watch: State<CiWatch>, project: Project) -> CmdResult<()> {
+    db.save_project(&project).map_err(err)?;
+    // Repo-URL könnte sich geändert haben
+    watch.refresh();
+    Ok(())
 }
 
 #[tauri::command]
@@ -158,8 +162,16 @@ pub async fn ci_runs(db: State<'_, Db>, project_id: String) -> CmdResult<CiResul
 
 /// Speichert den Token für einen Host im Schlüsselbund; leer = entfernen
 #[tauri::command]
-pub fn set_ci_token(host: String, token: Option<String>) -> CmdResult<()> {
-    ci::set_token(&host, token.as_deref())
+pub fn set_ci_token(watch: State<CiWatch>, host: String, token: Option<String>) -> CmdResult<()> {
+    ci::set_token(&host, token.as_deref())?;
+    watch.refresh();
+    Ok(())
+}
+
+/// Aktueller Stand der Hintergrund-Abfrage für die Seitenleiste
+#[tauri::command]
+pub fn ci_overview(watch: State<CiWatch>) -> Vec<ProjectCi> {
+    watch.overview()
 }
 
 /// Öffnet das Terminal mit einer SSH-Sitzung, optional direkt im Projektordner

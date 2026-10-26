@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Ban,
   CircleAlert,
@@ -25,13 +25,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useProjectCi } from "@/hooks/use-ci-overview";
 import { ciRuns, openExternal, setCiToken } from "@/lib/api";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { CiRepo, CiResult, CiRun, CiRunStatus, Project } from "@/types";
-
-/** Solange etwas läuft, so oft nachladen */
-const ACTIVE_REFRESH_MS = 20_000;
 
 const statusStyle: Record<CiRunStatus, { icon: typeof Workflow; label: string; className: string }> = {
   queued: { icon: CircleDashed, label: "Wartet", className: "text-muted-foreground" },
@@ -70,12 +68,15 @@ export function CiPanel({ project, onEditProject }: { project: Project; onEditPr
     load();
   }, [load]);
 
-  const active = result?.kind === "ok" && result.runs.some((r) => r.status === "running" || r.status === "queued");
+  // Die Hintergrund-Abfrage meldet Änderungen; dann die Liste hier nachladen
+  const watched = useProjectCi(project.id);
+  const watchedKey = watched && `${watched.active.map((r) => `${r.id}:${r.status}`).join()}|${watched.latestAt}`;
+  const firstKey = useRef(watchedKey);
   useEffect(() => {
-    if (!active) return;
-    const timer = setInterval(load, ACTIVE_REFRESH_MS);
-    return () => clearInterval(timer);
-  }, [active, load]);
+    if (watchedKey === firstKey.current) return;
+    firstKey.current = watchedKey;
+    load();
+  }, [watchedKey, load]);
 
   const repo = result && result.kind !== "noRepo" ? result.repo : null;
 

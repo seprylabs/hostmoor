@@ -1,5 +1,6 @@
 mod check;
 mod ci;
+mod ci_watch;
 mod commands;
 mod deploy;
 mod db;
@@ -20,6 +21,8 @@ pub fn run() {
             std::fs::create_dir_all(&dir)?;
             app.manage(db::Db::open(&dir.join("stackport.db"))?);
             app.manage(deploy::Running::default());
+            app.manage(ci_watch::CiWatch::default());
+            ci_watch::start(app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -41,6 +44,7 @@ pub fn run() {
             commands::cancel_deploy,
             commands::ci_runs,
             commands::set_ci_token,
+            commands::ci_overview,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

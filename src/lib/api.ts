@@ -1,6 +1,6 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 
-import type { CheckOutcome, CiResult, ConnectionResult, Deploy, LastDeploy, Customer, EntityKind, Project, Server, Snapshot } from "@/types";
+import type { CheckOutcome, CiResult, ProjectCi, ConnectionResult, Deploy, LastDeploy, Customer, EntityKind, Project, Server, Snapshot } from "@/types";
 
 // Im Browser (npm run dev ohne Tauri) landen die Daten im localStorage,
 // damit sich die Oberfläche auch ohne Rust-Backend ausprobieren lässt.
@@ -184,6 +184,19 @@ export async function onDeployEvents(handlers: DeployEvents): Promise<() => void
 export async function ciRuns(projectId: string): Promise<CiResult> {
   if (!isTauri()) throw new Error("Pipelines lassen sich nur in der App laden, nicht im Browser.");
   return invoke<CiResult>("ci_runs", { projectId });
+}
+
+/** Letzter Stand der Hintergrund-Abfrage aller Projekte */
+export async function ciOverview(): Promise<ProjectCi[]> {
+  if (!isTauri()) return [];
+  return invoke<ProjectCi[]>("ci_overview");
+}
+
+/** Meldet sich für Änderungen der Hintergrund-Abfrage an; liefert eine Funktion zum Abmelden */
+export async function onCiUpdate(handler: (overview: ProjectCi[]) => void): Promise<() => void> {
+  if (!isTauri()) return () => {};
+  const { listen } = await import("@tauri-apps/api/event");
+  return listen<ProjectCi[]>("ci-update", (e) => handler(e.payload));
 }
 
 /** Speichert den Token im macOS-Schlüsselbund; null entfernt ihn */

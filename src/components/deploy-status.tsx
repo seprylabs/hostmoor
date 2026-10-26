@@ -1,5 +1,6 @@
-import { CircleAlert, Loader2 } from "lucide-react";
+import { CircleAlert, CircleX, Loader2, Workflow } from "lucide-react";
 
+import { useProjectCi } from "@/hooks/use-ci-overview";
 import { useDeployStatus } from "@/hooks/use-live-deploys";
 import { formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -26,4 +27,37 @@ export function DeployStatusIcon({ projectId, className }: { projectId: string; 
     );
   }
   return null;
+}
+
+/** Kleines Symbol in der Seitenleiste: Pipeline läuft oder letzte fehlgeschlagen */
+export function CiStatusIcon({ projectId, className }: { projectId: string; className?: string }) {
+  const ci = useProjectCi(projectId);
+  if (!ci) return null;
+
+  if (ci.active.length > 0) {
+    return (
+      <span title={`CI läuft: ${ci.active[0].title}`} className={cn("shrink-0", className)}>
+        <Workflow className="size-3.5 animate-pulse text-violet-500" />
+      </span>
+    );
+  }
+  if (ci.latest === "failed") {
+    const when = ci.latestAt ? ` · ${formatRelative(ci.latestAt)}` : "";
+    return (
+      <span title={`Letzte Pipeline fehlgeschlagen${when}`} className={cn("shrink-0", className)}>
+        <CircleX className="size-3.5 text-red-500" />
+      </span>
+    );
+  }
+  return null;
+}
+
+/** Deploy- und CI-Status nebeneinander */
+export function ProjectStatusIcons({ projectId, className }: { projectId: string; className?: string }) {
+  return (
+    <span className={cn("flex shrink-0 items-center gap-1", className)}>
+      <CiStatusIcon projectId={projectId} />
+      <DeployStatusIcon projectId={projectId} />
+    </span>
+  );
 }

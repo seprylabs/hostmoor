@@ -17,6 +17,7 @@ macOS-App, die eigene Server und Kundenserver (Hetzner, netcup …) mit ihren Pr
 - Deploy-Skripte pro Projekt: Vorlagen für Laravel/WordPress, Bestätigung vor dem Start, Live-Ausgabe, Abbrechen, Verlauf der letzten 20 Deploys, macOS-Mitteilung am Ende (wenn das Fenster im Hintergrund ist oder der Deploy länger als eine Minute lief)
 - „Alle Server prüfen“ im ⋯-Menü der Seitenleiste (drei Server gleichzeitig, Zusammenfassung am Ende)
 - GitHub Actions und GitLab-Pipelines pro Projekt (auch selbst gehostetes GitLab); Tokens liegen im macOS-Schlüsselbund
+- Pipelines aller Projekte im Hintergrund (alle 60 s, 15 s solange etwas läuft, per ETag): „Läuft gerade“ in der Seitenleiste und macOS-Mitteilung bei Start, Erfolg und Fehlschlag
 - Seitenleiste zeigt laufende und fehlgeschlagene Deploys pro Projekt
 
 ## Entwicklung
@@ -56,5 +57,6 @@ src-tauri/src/
   check.rs / check.sh   Server-Check: Skript auf dem Server, Auswertung in Rust
   deploy.rs             Deploys: ssh im Hintergrund, Ausgabe als Events
   ci.rs                 GitHub-/GitLab-API, Tokens im Schlüsselbund
+  ci_watch.rs           Hintergrund-Abfrage der Pipelines, Mitteilungen
   models.rs             Datentypen
 ```
