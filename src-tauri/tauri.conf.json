@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "StackPort",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "de.spmedia.stackport",
   "build": {
     "beforeDevCommand": "npm run dev",
