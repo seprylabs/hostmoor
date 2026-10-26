@@ -17,11 +17,12 @@ macOS-App, die eigene Server und Kundenserver (Hetzner, netcup …) mit ihren Pr
 
 - Deploy-Skripte pro Projekt: Vorlagen für Laravel/WordPress, Bestätigung vor dem Start, Live-Ausgabe, Abbrechen, Verlauf der letzten 20 Deploys
 
+- „Alle Server prüfen“ im ⋯-Menü der Seitenleiste (drei Server gleichzeitig, Zusammenfassung am Ende)
 - GitHub Actions und GitLab-Pipelines pro Projekt (auch selbst gehostetes GitLab); Tokens liegen im macOS-Schlüsselbund
 
 ### Geplant
 
-- „Alle Server prüfen“, Benachrichtigung nach langen Deploys
+- Benachrichtigung nach langen Deploys, Status in der Seitenleiste
 
 ## Entwicklung
 

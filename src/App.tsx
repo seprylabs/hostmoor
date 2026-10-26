@@ -76,6 +76,8 @@ function App() {
           onCreate={(kind) => setEditor({ kind })}
           onExport={store.exportBackup}
           onImport={chooseBackup}
+          onCheckAll={store.checkAllServers}
+          checkAll={store.checkAll}
         />
         <SidebarInset className="min-h-0">
           {/* Ziehbereich für das Fenster über dem Inhalt */}

@@ -2,13 +2,19 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import * as api from "@/lib/api";
+import { connectionHelp } from "@/lib/ssh-help";
 import type { ConnectionResult, Customer, EntityKind, Project, Server, Snapshot } from "@/types";
 
 const empty: Snapshot = { customers: [], servers: [], projects: [] };
 
+/** So viele Server werden bei „Alle Server prüfen“ gleichzeitig geprüft */
+const CHECK_ALL_PARALLEL = 3;
+
 export function useStore() {
   const [data, setData] = useState<Snapshot>(empty);
   const [loading, setLoading] = useState(true);
+  /** Fortschritt von „Alle Server prüfen“, null = läuft nicht */
+  const [checkAll, setCheckAll] = useState<{ done: number; total: number } | null>(null);
 
   const reload = useCallback(async () => {
     try {
@@ -61,6 +67,46 @@ export function useStore() {
     },
     setDeployScript: (projectId: string, script: string | null) =>
       mutate(() => api.setDeployScript(projectId, script), "Deploy-Skript gespeichert"),
+    checkAll,
+    /** Prüft alle Server nacheinander (wenige parallel) und fasst das Ergebnis zusammen */
+    checkAllServers: async () => {
+      const servers = data.servers;
+      if (servers.length === 0 || checkAll) return;
+      const failures: string[] = [];
+      let done = 0;
+      setCheckAll({ done, total: servers.length });
+      const toastId = toast.loading(`Prüfe ${servers.length} Server …`);
+
+      const queue = [...servers];
+      const worker = async () => {
+        for (let server = queue.shift(); server; server = queue.shift()) {
+          try {
+            const { connectionError } = await api.checkServer(server.id);
+            if (connectionError) failures.push(`${server.name}: ${connectionHelp(connectionError.status, server).title}`);
+          } catch (e) {
+            failures.push(`${server.name}: ${String(e)}`);
+          }
+          done += 1;
+          setCheckAll({ done, total: servers.length });
+          toast.loading(`Prüfe Server … ${done} von ${servers.length}`, { id: toastId });
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(CHECK_ALL_PARALLEL, servers.length) }, worker));
+      await reload();
+      setCheckAll(null);
+
+      const ok = servers.length - failures.length;
+      if (failures.length === 0) {
+        toast.success(`Alle ${ok} Server geprüft`, { id: toastId });
+      } else {
+        toast.error(`${ok} von ${servers.length} Servern geprüft`, {
+          id: toastId,
+          description: failures.join("\n"),
+          classNames: { description: "whitespace-pre-line" },
+          duration: 15_000,
+        });
+      }
+    },
     /** Liefert bei Verbindungsproblemen die Ursache, damit die Einrichtungshilfe sie anzeigen kann */
     checkServer: async (id: string): Promise<ConnectionResult | null> => {
       try {

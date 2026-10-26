@@ -7,6 +7,7 @@ import {
   Ellipsis,
   Globe,
   Plus,
+  RefreshCw,
   Search,
   Server as ServerIcon,
   Star,
@@ -69,6 +70,9 @@ interface Props {
   onCreate: (kind: EntityKind) => void;
   onExport: () => void;
   onImport: () => void;
+  onCheckAll: () => void;
+  /** Fortschritt von „Alle Server prüfen“, null = läuft nicht */
+  checkAll: { done: number; total: number } | null;
 }
 
 export function AppSidebar({
@@ -80,6 +84,8 @@ export function AppSidebar({
   onCreate,
   onExport,
   onImport,
+  onCheckAll,
+  checkAll,
 }: Props) {
   const [groupBy, setGroupBy] = useState<GroupBy>("customer");
   const [query, setQuery] = useState("");
@@ -148,7 +154,7 @@ export function AppSidebar({
                 <Plus />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-auto min-w-44">
               <DropdownMenuItem onSelect={() => onCreate("customer")}>
                 <Building2 /> Neuer Kunde
               </DropdownMenuItem>
@@ -333,7 +339,12 @@ export function AppSidebar({
               <Ellipsis />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top">
+          <DropdownMenuContent align="end" side="top" className="w-auto min-w-56">
+            <DropdownMenuItem disabled={servers.length === 0 || checkAll !== null} onSelect={onCheckAll}>
+              <RefreshCw className={checkAll ? "animate-spin" : undefined} />
+              {checkAll ? `Prüfe … ${checkAll.done} von ${checkAll.total}` : "Alle Server prüfen"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={onExport}>
               <Download /> Backup exportieren…
             </DropdownMenuItem>
