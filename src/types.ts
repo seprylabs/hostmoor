@@ -1,4 +1,16 @@
-export type Provider = "hetzner" | "netcup" | "ionos" | "digitalocean" | "aws" | "other";
+export type Provider =
+  | "allinkl"
+  | "aws"
+  | "contabo"
+  | "digitalocean"
+  | "domainfactory"
+  | "hetzner"
+  | "hosteurope"
+  | "ionos"
+  | "mittwald"
+  | "netcup"
+  | "strato"
+  | "other";
 
 export type Stack = "laravel" | "wordpress" | "static" | "other";
 

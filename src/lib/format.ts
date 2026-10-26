@@ -1,11 +1,18 @@
 import type { Provider, ServerFacts, Stack } from "@/types";
 
+// Reihenfolge = Reihenfolge im Server-Formular
 export const providerLabel: Record<Provider, string> = {
-  hetzner: "Hetzner",
-  netcup: "netcup",
-  ionos: "IONOS",
-  digitalocean: "DigitalOcean",
+  allinkl: "ALL-INKL.COM",
   aws: "AWS",
+  contabo: "Contabo",
+  digitalocean: "DigitalOcean",
+  domainfactory: "DomainFactory",
+  hetzner: "Hetzner",
+  hosteurope: "Host Europe",
+  ionos: "IONOS",
+  mittwald: "Mittwald",
+  netcup: "netcup",
+  strato: "STRATO",
   other: "Sonstige",
 };
 

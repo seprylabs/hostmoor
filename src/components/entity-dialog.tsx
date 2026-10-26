@@ -6,7 +6,13 @@ import type { Customer, Project, Server } from "@/types";
 
 export type EditorState =
   | { kind: "customer"; initial?: Customer }
-  | { kind: "server"; initial?: Server; defaultCustomerId?: string }
+  | {
+      kind: "server";
+      initial?: Server;
+      defaultCustomerId?: string;
+      /** Neuer Server wird nach dem Speichern direkt diesem Projekt zugeordnet */
+      assignTo?: Project;
+    }
   | { kind: "project"; initial?: Project; defaultCustomerId?: string; defaultServerId?: string };
 
 const titles = {
@@ -48,7 +54,11 @@ export function EntityDialog({ editor, customers, servers, onClose, saveCustomer
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{titles[editor.kind][editor.initial ? 1 : 0]}</DialogTitle>
-            <DialogDescription>{descriptions[editor.kind]}</DialogDescription>
+            <DialogDescription>
+              {editor.kind === "server" && editor.assignTo
+                ? `Wird nach dem Speichern direkt dem Projekt „${editor.assignTo.name}“ zugeordnet.`
+                : descriptions[editor.kind]}
+            </DialogDescription>
           </DialogHeader>
           {editor.kind === "customer" && (
             <CustomerForm initial={editor.initial} onCancel={onClose} onSubmit={submit("customer", saveCustomer)} />

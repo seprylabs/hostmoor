@@ -1,4 +1,4 @@
-import { ExternalLink, GitBranch, Globe } from "lucide-react";
+import { ExternalLink, GitBranch, Globe, Plus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,8 @@ interface Props {
   server?: Server;
   onSelect: (selection: Selection) => void;
   onEdit: () => void;
+  /** Neuen Server anlegen und direkt diesem Projekt zuordnen */
+  onCreateServer: () => void;
   onSaveDeployScript: (script: string | null) => Promise<boolean>;
   onToggleFavorite: () => void;
   onDelete: () => void;
@@ -29,6 +31,7 @@ export function ProjectDetail({
   server,
   onSelect,
   onEdit,
+  onCreateServer,
   onSaveDeployScript,
   onToggleFavorite,
   onDelete,
@@ -113,9 +116,14 @@ export function ProjectDetail({
             ) : (
               <div className="space-y-3">
                 <p className="text-muted-foreground text-sm">Diesem Projekt ist noch kein Server zugeordnet.</p>
-                <Button variant="outline" size="sm" onClick={onEdit}>
-                  Server zuordnen
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={onCreateServer}>
+                    <Plus /> Neuen Server anlegen
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={onEdit}>
+                    Vorhandenen zuordnen
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>

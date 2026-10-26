@@ -151,6 +151,9 @@ function App() {
                   server={servers.find((s) => s.id === project.serverId)}
                   onSelect={setSelection}
                   onEdit={() => setEditor({ kind: "project", initial: project })}
+                  onCreateServer={() =>
+                    setEditor({ kind: "server", defaultCustomerId: project.customerId, assignTo: project })
+                  }
                   onSaveDeployScript={(script) => store.setDeployScript(project.id, script)}
                   onToggleFavorite={() => store.setFavorite("project", project.id, !project.favorite)}
                   onDelete={() => setDeleteRequest({ kind: "project", id: project.id, name: project.name })}
@@ -195,8 +198,14 @@ function App() {
         saveCustomer={store.saveCustomer}
         saveServer={store.saveServer}
         saveProject={store.saveProject}
-        onSaved={(kind, id) => {
+        onSaved={async (kind, id) => {
+          const assignTo = editor?.kind === "server" ? editor.assignTo : undefined;
           setEditor(null);
+          if (assignTo) {
+            // Aus der Projektansicht angelegt: zuordnen und beim Projekt bleiben
+            await store.saveProject({ ...assignTo, serverId: id });
+            return;
+          }
           setSelection({ kind, id });
         }}
       />
