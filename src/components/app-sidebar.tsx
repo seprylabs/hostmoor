@@ -368,9 +368,17 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter className="flex-row items-center justify-between">
-        <span className="text-muted-foreground px-2 text-xs">
-          {customers.length} Kunden · {servers.length} Server
-        </span>
+        <div className="text-muted-foreground flex items-center gap-3 px-2 text-xs tabular-nums">
+          <span className="flex items-center gap-1" title={`${customers.length} Kunden`}>
+            <Building2 className="size-3.5" /> {customers.length}
+          </span>
+          <span className="flex items-center gap-1" title={`${projects.length} Projekte`}>
+            <Globe className="size-3.5" /> {projects.length}
+          </span>
+          <span className="flex items-center gap-1" title={`${servers.length} Server`}>
+            <ServerIcon className="size-3.5" /> {servers.length}
+          </span>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon-sm" aria-label="Weitere Aktionen" title="Weitere Aktionen">
