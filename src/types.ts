@@ -39,6 +39,21 @@ export interface Project {
   repoUrl?: string | null;
   notes?: string | null;
   favorite?: boolean;
+  /** Wird nur in der Deploy-Ansicht bearbeitet */
+  deployScript?: string | null;
+}
+
+export type DeployStatus = "running" | "success" | "failed" | "cancelled" | "interrupted";
+
+export interface Deploy {
+  id: string;
+  projectId: string;
+  serverName: string;
+  startedAt: string;
+  status: DeployStatus;
+  exitCode?: number | null;
+  durationMs?: number | null;
+  output: string;
 }
 
 export interface Snapshot {

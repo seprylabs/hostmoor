@@ -56,7 +56,7 @@ pub fn expand_home(path: &str) -> PathBuf {
 }
 
 /// Einfache Plausibilitätsprüfung, damit Eingaben nicht als ssh-Optionen interpretiert werden
-fn validate(server: &Server) -> Result<(), String> {
+pub fn validate(server: &Server) -> Result<(), String> {
     let ok_host = !server.host.is_empty()
         && !server.host.starts_with('-')
         && server

@@ -3,7 +3,7 @@ use std::sync::Mutex;
 
 use rusqlite::{Connection, params};
 
-use crate::models::{Customer, Project, Server, Snapshot};
+use crate::models::{Customer, Deploy, DeployStatus, Project, Server, Snapshot};
 
 pub struct Db(Mutex<Connection>);
 
@@ -44,7 +44,24 @@ const MIGRATIONS: &[&str] = &[
     ALTER TABLE servers   ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE projects  ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0;
 "#,
+    r#"
+    ALTER TABLE projects ADD COLUMN deploy_script TEXT;
+    CREATE TABLE deploys (
+        id          TEXT PRIMARY KEY,
+        project_id  TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+        server_name TEXT NOT NULL,
+        started_at  TEXT NOT NULL,
+        status      TEXT NOT NULL,
+        exit_code   INTEGER,
+        duration_ms INTEGER,
+        output      TEXT NOT NULL DEFAULT ''
+    );
+    CREATE INDEX deploys_by_project ON deploys(project_id, started_at);
+"#,
 ];
+
+/// So viele Deploys pro Projekt bleiben im Verlauf
+const DEPLOY_HISTORY: i64 = 20;
 
 impl Db {
     pub fn open(path: &Path) -> rusqlite::Result<Self> {
@@ -66,6 +83,11 @@ impl Db {
             tx.pragma_update(None, "user_version", (i + 1) as i64)?;
             tx.commit()?;
         }
+        // Deploys, die beim letzten Beenden der App noch liefen, können nicht mehr fertig werden
+        conn.execute(
+            "UPDATE deploys SET status = 'interrupted' WHERE status = 'running'",
+            [],
+        )?;
         Ok(Self(Mutex::new(conn)))
     }
 
@@ -115,7 +137,7 @@ impl Db {
 
         let projects = conn
             .prepare(
-                "SELECT id, name, customer_id, server_id, stack, domain, path, repo_url, notes, favorite
+                "SELECT id, name, customer_id, server_id, stack, domain, path, repo_url, notes, favorite, deploy_script
                  FROM projects ORDER BY name COLLATE NOCASE",
             )?
             .query_map([], |r| {
@@ -130,6 +152,7 @@ impl Db {
                     repo_url: r.get(7)?,
                     notes: r.get(8)?,
                     favorite: r.get(9)?,
+                    deploy_script: r.get(10)?,
                 })
             })?
             .collect::<Result<_, _>>()?;
@@ -163,6 +186,70 @@ impl Db {
         Ok(changed > 0)
     }
 
+    pub fn set_deploy_script(&self, project_id: &str, script: Option<&str>) -> rusqlite::Result<()> {
+        self.conn().execute(
+            "UPDATE projects SET deploy_script = ?1 WHERE id = ?2",
+            params![script, project_id],
+        )?;
+        Ok(())
+    }
+
+    pub fn insert_deploy(&self, d: &Deploy) -> rusqlite::Result<()> {
+        self.conn().execute(
+            "INSERT INTO deploys (id, project_id, server_name, started_at, status) VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![d.id, d.project_id, d.server_name, d.started_at, d.status.as_str()],
+        )?;
+        Ok(())
+    }
+
+    /// Schließt einen Deploy ab und kürzt den Verlauf auf die letzten Einträge
+    pub fn finish_deploy(
+        &self,
+        id: &str,
+        status: DeployStatus,
+        exit_code: Option<i32>,
+        duration_ms: u64,
+        output: &str,
+    ) -> rusqlite::Result<()> {
+        let conn = self.conn();
+        conn.execute(
+            "UPDATE deploys SET status = ?1, exit_code = ?2, duration_ms = ?3, output = ?4 WHERE id = ?5",
+            params![status.as_str(), exit_code, duration_ms as i64, output, id],
+        )?;
+        conn.execute(
+            "DELETE FROM deploys WHERE project_id = (SELECT project_id FROM deploys WHERE id = ?1)
+               AND id NOT IN (
+                 SELECT id FROM deploys WHERE project_id = (SELECT project_id FROM deploys WHERE id = ?1)
+                 ORDER BY started_at DESC LIMIT ?2)",
+            params![id, DEPLOY_HISTORY],
+        )?;
+        Ok(())
+    }
+
+    /// Neueste zuerst
+    pub fn deploys(&self, project_id: &str) -> rusqlite::Result<Vec<Deploy>> {
+        self.conn()
+            .prepare(
+                "SELECT id, project_id, server_name, started_at, status, exit_code, duration_ms, output
+                 FROM deploys WHERE project_id = ?1 ORDER BY started_at DESC",
+            )?
+            .query_map([project_id], |r| {
+                let status: String = r.get(4)?;
+                let duration: Option<i64> = r.get(6)?;
+                Ok(Deploy {
+                    id: r.get(0)?,
+                    project_id: r.get(1)?,
+                    server_name: r.get(2)?,
+                    started_at: r.get(3)?,
+                    status: DeployStatus::parse(&status),
+                    exit_code: r.get(5)?,
+                    duration_ms: duration.map(|d| d as u64),
+                    output: r.get(7)?,
+                })
+            })?
+            .collect()
+    }
+
     pub fn set_favorite(&self, table: Table, id: &str, favorite: bool) -> rusqlite::Result<()> {
         let sql = format!("UPDATE {} SET favorite = ?1 WHERE id = ?2", table.name());
         self.conn().execute(&sql, params![favorite, id])?;
@@ -192,8 +279,8 @@ impl Db {
         for p in &data.projects {
             upsert_project(&tx, p)?;
             tx.execute(
-                "UPDATE projects SET favorite = ?1 WHERE id = ?2",
-                params![p.favorite, p.id],
+                "UPDATE projects SET favorite = ?1, deploy_script = ?2 WHERE id = ?3",
+                params![p.favorite, p.deploy_script, p.id],
             )?;
         }
         tx.commit()
@@ -316,7 +403,55 @@ mod tests {
             repo_url: None,
             notes: None,
             favorite: false,
+            deploy_script: None,
         }
+    }
+
+    fn deploy(id: &str, project_id: &str, started_at: &str) -> Deploy {
+        Deploy {
+            id: id.into(),
+            project_id: project_id.into(),
+            server_name: "web".into(),
+            started_at: started_at.into(),
+            status: DeployStatus::Running,
+            exit_code: None,
+            duration_ms: None,
+            output: String::new(),
+        }
+    }
+
+    #[test]
+    fn deploy_script_survives_project_save_and_backup() {
+        let db = Db::open_in_memory().unwrap();
+        db.save_customer(&customer("c1")).unwrap();
+        db.save_project(&project("p1", "c1", None)).unwrap();
+        db.set_deploy_script("p1", Some("git pull")).unwrap();
+        // Speichern über das Formular (ohne Skript) darf es nicht löschen
+        db.save_project(&project("p1", "c1", None)).unwrap();
+        let snap = db.snapshot().unwrap();
+        assert_eq!(snap.projects[0].deploy_script.as_deref(), Some("git pull"));
+        db.replace_all(&snap).unwrap();
+        assert_eq!(db.snapshot().unwrap().projects[0].deploy_script.as_deref(), Some("git pull"));
+    }
+
+    #[test]
+    fn deploy_history_is_trimmed_and_removed_with_project() {
+        let db = Db::open_in_memory().unwrap();
+        db.save_customer(&customer("c1")).unwrap();
+        db.save_project(&project("p1", "c1", None)).unwrap();
+        for i in 0..25 {
+            let id = format!("d{i:02}");
+            db.insert_deploy(&deploy(&id, "p1", &format!("2026-10-26T10:{i:02}:00Z"))).unwrap();
+            db.finish_deploy(&id, DeployStatus::Success, Some(0), 1000, "ok").unwrap();
+        }
+        let list = db.deploys("p1").unwrap();
+        assert_eq!(list.len(), DEPLOY_HISTORY as usize);
+        assert_eq!(list[0].id, "d24");
+        assert_eq!(list[0].status, DeployStatus::Success);
+        assert_eq!(list[0].duration_ms, Some(1000));
+
+        db.delete(Table::Project, "p1").unwrap();
+        assert!(db.deploys("p1").unwrap().is_empty());
     }
 
     #[test]

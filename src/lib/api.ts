@@ -1,6 +1,6 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 
-import type { CheckOutcome, ConnectionResult, Customer, EntityKind, Project, Server, Snapshot } from "@/types";
+import type { CheckOutcome, ConnectionResult, Deploy, Customer, EntityKind, Project, Server, Snapshot } from "@/types";
 
 // Im Browser (npm run dev ohne Tauri) landen die Daten im localStorage,
 // damit sich die Oberfläche auch ohne Rust-Backend ausprobieren lässt.
@@ -127,6 +127,51 @@ export async function importBackup(path: string): Promise<void> {
 export async function testConnection(serverId: string): Promise<ConnectionResult> {
   if (!isTauri()) throw new Error("Der Verbindungstest ist nur in der App möglich, nicht im Browser.");
   return invoke<ConnectionResult>("test_connection", { id: serverId });
+}
+
+export async function setDeployScript(projectId: string, script: string | null): Promise<void> {
+  if (isTauri()) return invoke("set_deploy_script", { id: projectId, script });
+  browserUpdate((d) => {
+    const project = d.projects.find((p) => p.id === projectId);
+    if (project) project.deployScript = script?.trim() ? script : null;
+  });
+}
+
+export async function listDeploys(projectId: string): Promise<Deploy[]> {
+  if (!isTauri()) return [];
+  return invoke<Deploy[]>("list_deploys", { projectId });
+}
+
+/** Startet den Deploy; die Ausgabe kommt über onDeployEvents */
+export async function startDeploy(projectId: string, deployId: string): Promise<Deploy> {
+  if (!isTauri()) throw new Error("Deploys sind nur in der App möglich, nicht im Browser.");
+  return invoke<Deploy>("start_deploy", { projectId, deployId, startedAt: new Date().toISOString() });
+}
+
+export async function cancelDeploy(projectId: string): Promise<boolean> {
+  return invoke<boolean>("cancel_deploy", { projectId });
+}
+
+export interface DeployEvents {
+  onOutput: (deployId: string, line: string) => void;
+  onFinished: (deployId: string, projectId: string, status: Deploy["status"]) => void;
+}
+
+/** Abonniert die Live-Ausgabe aller Deploys; liefert eine Funktion zum Abmelden */
+export async function onDeployEvents(handlers: DeployEvents): Promise<() => void> {
+  if (!isTauri()) return () => {};
+  const { listen } = await import("@tauri-apps/api/event");
+  const offOutput = await listen<{ deployId: string; line: string }>("deploy-output", (e) =>
+    handlers.onOutput(e.payload.deployId, e.payload.line),
+  );
+  const offFinished = await listen<{ deployId: string; projectId: string; status: Deploy["status"] }>(
+    "deploy-finished",
+    (e) => handlers.onFinished(e.payload.deployId, e.payload.projectId, e.payload.status),
+  );
+  return () => {
+    offOutput();
+    offFinished();
+  };
 }
 
 /** Öffnet das Terminal mit einer SSH-Sitzung; mit `dir` direkt in diesem Ordner auf dem Server */

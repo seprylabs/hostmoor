@@ -15,9 +15,10 @@ macOS-App, die eigene Server und Kundenserver (Hetzner, netcup …) mit ihren Pr
 - Button „Terminal“: öffnet das Mac-Terminal mit einer SSH-Sitzung, bei Projekten direkt im Projektordner
 - Server-Check auf Knopfdruck: PHP, Composer, Node/npm, Git, WP-CLI, Webserver, Datenbank, Redis, RAM, Platten. Das Skript (`src-tauri/src/check.sh`) liest nur. Das Ergebnis wird lokal gespeichert, nach 30 Tagen als veraltet markiert, und es wird nie automatisch geprüft
 
+- Deploy-Skripte pro Projekt: Vorlagen für Laravel/WordPress, Bestätigung vor dem Start, Live-Ausgabe, Abbrechen, Verlauf der letzten 20 Deploys
+
 ### Geplant
 
-- Deploy-Skripte pro Projekt mit Live-Ausgabe
 - GitHub- und GitLab-Actions pro Projekt
 
 ## Entwicklung
@@ -55,5 +56,6 @@ src-tauri/src/
   commands.rs           Tauri-Commands für die Oberfläche
   ssh.rs                Aufruf des System-ssh, Fehlererkennung
   check.rs / check.sh   Server-Check: Skript auf dem Server, Auswertung in Rust
+  deploy.rs             Deploys: ssh im Hintergrund, Ausgabe als Events
   models.rs             Datentypen
 ```

@@ -43,6 +43,56 @@ pub struct Project {
     pub notes: Option<String>,
     #[serde(default)]
     pub favorite: bool,
+    /// Wird nur über die Deploy-Ansicht geändert, nicht über das Projekt-Formular
+    #[serde(default)]
+    pub deploy_script: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum DeployStatus {
+    Running,
+    Success,
+    Failed,
+    Cancelled,
+    /// App wurde während des Deploys beendet
+    Interrupted,
+}
+
+impl DeployStatus {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Running => "running",
+            Self::Success => "success",
+            Self::Failed => "failed",
+            Self::Cancelled => "cancelled",
+            Self::Interrupted => "interrupted",
+        }
+    }
+
+    pub fn parse(s: &str) -> Self {
+        match s {
+            "running" => Self::Running,
+            "success" => Self::Success,
+            "cancelled" => Self::Cancelled,
+            "interrupted" => Self::Interrupted,
+            _ => Self::Failed,
+        }
+    }
+}
+
+/// Ein Eintrag im Deploy-Verlauf eines Projekts
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Deploy {
+    pub id: String,
+    pub project_id: String,
+    pub server_name: String,
+    pub started_at: String,
+    pub status: DeployStatus,
+    pub exit_code: Option<i32>,
+    pub duration_ms: Option<u64>,
+    pub output: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

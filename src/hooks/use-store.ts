@@ -59,6 +59,8 @@ export function useStore() {
         toast.error("Export fehlgeschlagen", { description: String(e) });
       }
     },
+    setDeployScript: (projectId: string, script: string | null) =>
+      mutate(() => api.setDeployScript(projectId, script), "Deploy-Skript gespeichert"),
     /** Liefert bei Verbindungsproblemen die Ursache, damit die Einrichtungshilfe sie anzeigen kann */
     checkServer: async (id: string): Promise<ConnectionResult | null> => {
       try {

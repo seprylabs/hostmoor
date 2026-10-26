@@ -1,5 +1,6 @@
 mod check;
 mod commands;
+mod deploy;
 mod db;
 mod models;
 mod ssh;
@@ -16,6 +17,7 @@ pub fn run() {
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
             app.manage(db::Db::open(&dir.join("stackport.db"))?);
+            app.manage(deploy::Running::default());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -30,6 +32,10 @@ pub fn run() {
             commands::test_connection,
             commands::check_server,
             commands::open_terminal,
+            commands::set_deploy_script,
+            commands::list_deploys,
+            commands::start_deploy,
+            commands::cancel_deploy,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

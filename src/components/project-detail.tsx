@@ -1,8 +1,9 @@
-import { ExternalLink, GitBranch, Globe, Rocket, Workflow } from "lucide-react";
+import { ExternalLink, GitBranch, Globe, Workflow } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DeployPanel } from "@/components/deploy-panel";
 import { DetailActions } from "@/components/detail-actions";
 import { TerminalButton } from "@/components/terminal-button";
 import { FactRow, NotesCard } from "@/components/fact";
@@ -16,11 +17,21 @@ interface Props {
   server?: Server;
   onSelect: (selection: Selection) => void;
   onEdit: () => void;
+  onSaveDeployScript: (script: string | null) => Promise<boolean>;
   onToggleFavorite: () => void;
   onDelete: () => void;
 }
 
-export function ProjectDetail({ project, customer, server, onSelect, onEdit, onToggleFavorite, onDelete }: Props) {
+export function ProjectDetail({
+  project,
+  customer,
+  server,
+  onSelect,
+  onEdit,
+  onSaveDeployScript,
+  onToggleFavorite,
+  onDelete,
+}: Props) {
   const facts = server?.facts;
 
   return (
@@ -112,16 +123,6 @@ export function ProjectDetail({ project, customer, server, onSelect, onEdit, onT
         <div className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center gap-2">
-              <Rocket className="text-muted-foreground size-4" />
-              <CardTitle>Deploy</CardTitle>
-              <Badge variant="outline" className="ml-auto">bald</Badge>
-            </CardHeader>
-            <CardContent className="text-muted-foreground text-sm">
-              Deploy-Skript per SSH auf Knopfdruck ausführen, mit Live-Ausgabe.
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-2">
               <Workflow className="text-muted-foreground size-4" />
               <CardTitle>GitHub / GitLab Actions</CardTitle>
               <Badge variant="outline" className="ml-auto">bald</Badge>
@@ -132,6 +133,8 @@ export function ProjectDetail({ project, customer, server, onSelect, onEdit, onT
           </Card>
         </div>
       </div>
+
+      <DeployPanel project={project} server={server} onEditProject={onEdit} onSaveScript={onSaveDeployScript} />
 
       {project.notes && <NotesCard notes={project.notes} />}
     </div>

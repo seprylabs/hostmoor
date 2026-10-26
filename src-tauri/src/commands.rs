@@ -1,9 +1,10 @@
 use std::path::PathBuf;
 
-use tauri::State;
+use tauri::{AppHandle, State};
 
 use crate::db::{Db, Table};
-use crate::models::{Backup, Customer, Project, Server, Snapshot};
+use crate::deploy;
+use crate::models::{Backup, Customer, Deploy, Project, Server, Snapshot};
 use crate::check::{self, CheckError};
 use crate::ssh::{self, ConnectionResult};
 
@@ -89,6 +90,49 @@ fn find_server(db: &Db, id: &str) -> CmdResult<Server> {
 pub async fn test_connection(db: State<'_, Db>, id: String) -> CmdResult<ConnectionResult> {
     let server = find_server(&db, &id)?;
     Ok(ssh::test_connection(&server).await)
+}
+
+#[tauri::command]
+pub fn set_deploy_script(db: State<Db>, id: String, script: Option<String>) -> CmdResult<()> {
+    let script = script.filter(|s| !s.trim().is_empty());
+    db.set_deploy_script(&id, script.as_deref()).map_err(err)
+}
+
+#[tauri::command]
+pub fn list_deploys(db: State<Db>, project_id: String) -> CmdResult<Vec<Deploy>> {
+    db.deploys(&project_id).map_err(err)
+}
+
+/// Startet das Deploy-Skript des Projekts auf seinem Server; die Ausgabe kommt als Events
+#[tauri::command]
+pub fn start_deploy(
+    app: AppHandle,
+    db: State<Db>,
+    project_id: String,
+    deploy_id: String,
+    started_at: String,
+) -> CmdResult<Deploy> {
+    let snapshot = db.snapshot().map_err(err)?;
+    let project = snapshot
+        .projects
+        .into_iter()
+        .find(|p| p.id == project_id)
+        .ok_or("Projekt nicht gefunden")?;
+    let server_id = project
+        .server_id
+        .as_deref()
+        .ok_or("Dem Projekt ist kein Server zugeordnet.")?;
+    let server = snapshot
+        .servers
+        .into_iter()
+        .find(|s| s.id == server_id)
+        .ok_or("Server nicht gefunden")?;
+    deploy::start(&app, &project, &server, deploy_id, started_at)
+}
+
+#[tauri::command]
+pub fn cancel_deploy(app: AppHandle, project_id: String) -> bool {
+    deploy::cancel(&app, &project_id)
 }
 
 /// Öffnet das Terminal mit einer SSH-Sitzung, optional direkt im Projektordner

@@ -143,11 +143,13 @@ function App() {
               )}
               {project && (
                 <ProjectDetail
+                  key={project.id}
                   project={project}
                   customer={customers.find((c) => c.id === project.customerId)}
                   server={servers.find((s) => s.id === project.serverId)}
                   onSelect={setSelection}
                   onEdit={() => setEditor({ kind: "project", initial: project })}
+                  onSaveDeployScript={(script) => store.setDeployScript(project.id, script)}
                   onToggleFavorite={() => store.setFavorite("project", project.id, !project.favorite)}
                   onDelete={() => setDeleteRequest({ kind: "project", id: project.id, name: project.name })}
                 />
