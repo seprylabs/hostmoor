@@ -13,7 +13,7 @@ export function DeployStatusIcon({ projectId, className }: { projectId: string; 
   if (deploy.status === "running") {
     return (
       <span title="Deploy läuft" className={cn("shrink-0", className)}>
-        <Loader2 className="size-3.5 animate-spin text-sky-500" />
+        <Loader2 className="size-3.5 animate-spin text-info" />
       </span>
     );
   }
@@ -22,7 +22,7 @@ export function DeployStatusIcon({ projectId, className }: { projectId: string; 
     const label = deploy.status === "failed" ? "Letzter Deploy fehlgeschlagen" : "Letzter Deploy unterbrochen";
     return (
       <span title={`${label}${when}`} className={cn("shrink-0", className)}>
-        <CircleAlert className={cn("size-3.5", deploy.status === "failed" ? "text-red-500" : "text-amber-500")} />
+        <CircleAlert className={cn("size-3.5", deploy.status === "failed" ? "text-danger" : "text-warning")} />
       </span>
     );
   }
@@ -37,7 +37,7 @@ export function CiStatusIcon({ projectId, className }: { projectId: string; clas
   if (ci.active.length > 0) {
     return (
       <span title={`CI läuft: ${ci.active[0].title}`} className={cn("shrink-0", className)}>
-        <Workflow className="size-3.5 animate-pulse text-violet-500" />
+        <Workflow className="size-3.5 animate-pulse text-ci" />
       </span>
     );
   }
@@ -45,7 +45,7 @@ export function CiStatusIcon({ projectId, className }: { projectId: string; clas
     const when = ci.latestAt ? ` · ${formatRelative(ci.latestAt)}` : "";
     return (
       <span title={`Letzte Pipeline fehlgeschlagen${when}`} className={cn("shrink-0", className)}>
-        <CircleX className="size-3.5 text-red-500" />
+        <CircleX className="size-3.5 text-danger" />
       </span>
     );
   }

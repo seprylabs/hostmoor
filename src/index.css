@@ -16,6 +16,13 @@
     --color-sidebar-primary: var(--sidebar-primary);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar: var(--sidebar);
+    --color-success: var(--success);
+    --color-warning: var(--warning);
+    --color-danger: var(--danger);
+    --color-info: var(--info);
+    --color-ci: var(--ci);
+    --color-terminal: var(--terminal);
+    --color-terminal-foreground: var(--terminal-foreground);
     --color-chart-5: var(--chart-5);
     --color-chart-4: var(--chart-4);
     --color-chart-3: var(--chart-3);
@@ -48,73 +55,106 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * Farbsystem: kühle Grautöne passend zum Navy des App-Icons, Tiefblau als einziger Akzent.
+ * Status-Farben (success, warning, danger, info, ci) und die Terminal-Ausgabe haben eigene Tokens,
+ * damit Komponenten keine festen Tailwind-Farben brauchen.
+ */
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
+    --background: oklch(0.985 0.003 255);
+    --foreground: oklch(0.21 0.02 262);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
+    --card-foreground: oklch(0.21 0.02 262);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --popover-foreground: oklch(0.21 0.02 262);
+    --primary: oklch(0.573 0.199 261.8);
+    --primary-foreground: oklch(0.99 0 0);
+    --secondary: oklch(0.96 0.006 255);
+    --secondary-foreground: oklch(0.27 0.02 262);
+    --muted: oklch(0.96 0.006 255);
+    --muted-foreground: oklch(0.53 0.018 258);
+    --accent: oklch(0.955 0.012 258);
+    --accent-foreground: oklch(0.27 0.02 262);
+    --destructive: oklch(0.577 0.215 27.3);
+    --border: oklch(0.915 0.007 255);
+    --input: oklch(0.89 0.008 255);
+    --ring: oklch(0.573 0.199 261.8 / 55%);
+    --chart-1: oklch(0.573 0.199 261.8);
+    --chart-2: oklch(0.627 0.17 149.2);
+    --chart-3: oklch(0.769 0.165 70.1);
+    --chart-4: oklch(0.599 0.23 286.2);
+    --chart-5: oklch(0.577 0.215 27.3);
+    --radius: 0.5rem;
+    --sidebar: oklch(0.968 0.005 255);
+    --sidebar-foreground: oklch(0.27 0.02 262);
+    --sidebar-primary: oklch(0.573 0.199 261.8);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.573 0.199 261.8 / 12%);
+    --sidebar-accent-foreground: oklch(0.47 0.19 262);
+    --sidebar-border: oklch(0.9 0.007 255);
+    --sidebar-ring: oklch(0.573 0.199 261.8 / 55%);
+
+    --success: oklch(0.627 0.17 149.2);
+    --warning: oklch(0.7 0.16 62);
+    --danger: oklch(0.577 0.215 27.3);
+    --info: oklch(0.573 0.199 261.8);
+    --ci: oklch(0.56 0.23 286);
+    --terminal: oklch(0.2 0.03 265);
+    --terminal-foreground: oklch(0.93 0.01 255);
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --background: oklch(0.18 0.018 262);
+    --foreground: oklch(0.96 0.005 255);
+    --card: oklch(0.215 0.02 262);
+    --card-foreground: oklch(0.96 0.005 255);
+    --popover: oklch(0.235 0.02 262);
+    --popover-foreground: oklch(0.96 0.005 255);
+    --primary: oklch(0.658 0.182 260.7);
+    --primary-foreground: oklch(0.177 0.034 269.6);
+    --secondary: oklch(0.27 0.02 262);
+    --secondary-foreground: oklch(0.96 0.005 255);
+    --muted: oklch(0.26 0.018 262);
+    --muted-foreground: oklch(0.7 0.015 258);
+    --accent: oklch(0.28 0.025 262);
+    --accent-foreground: oklch(0.96 0.005 255);
+    --destructive: oklch(0.711 0.166 22.2);
+    --border: oklch(1 0 0 / 9%);
+    --input: oklch(1 0 0 / 14%);
+    --ring: oklch(0.658 0.182 260.7 / 55%);
+    --chart-1: oklch(0.658 0.182 260.7);
+    --chart-2: oklch(0.723 0.192 149.6);
+    --chart-3: oklch(0.769 0.165 70.1);
+    --chart-4: oklch(0.709 0.159 293.5);
+    --chart-5: oklch(0.711 0.166 22.2);
+    --sidebar: oklch(0.2 0.02 262);
+    --sidebar-foreground: oklch(0.9 0.008 255);
+    --sidebar-primary: oklch(0.658 0.182 260.7);
+    --sidebar-primary-foreground: oklch(0.177 0.034 269.6);
+    --sidebar-accent: oklch(0.658 0.182 260.7 / 18%);
+    --sidebar-accent-foreground: oklch(0.8 0.12 258);
+    --sidebar-border: oklch(1 0 0 / 8%);
+    --sidebar-ring: oklch(0.658 0.182 260.7 / 55%);
+
+    --success: oklch(0.723 0.192 149.6);
+    --warning: oklch(0.769 0.165 70.1);
+    --danger: oklch(0.711 0.166 22.2);
+    --info: oklch(0.658 0.182 260.7);
+    --ci: oklch(0.709 0.159 293.5);
+    --terminal: oklch(0.14 0.02 265);
+    --terminal-foreground: oklch(0.93 0.01 255);
+}
+
+/* In der App scheint der Desktop durch die Seitenleiste (macOS-Vibrancy); im Browser bleibt sie deckend */
+html.vibrancy,
+html.vibrancy body {
+    background: transparent;
+}
+html.vibrancy {
+    --sidebar: oklch(0.97 0.004 255 / 55%);
+}
+html.vibrancy.dark {
+    --sidebar: oklch(0.2 0.02 262 / 55%);
 }
 
 @layer base {

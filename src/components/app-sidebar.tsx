@@ -192,7 +192,7 @@ export function AppSidebar({
         {activeRuns.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel>
-              <Workflow className="mr-1.5 size-3 animate-pulse text-violet-500" /> Läuft gerade
+              <Workflow className="mr-1.5 size-3 animate-pulse text-ci" /> Läuft gerade
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>

@@ -15,7 +15,7 @@ export function DetailActions({ favorite, onToggleFavorite, onEdit, onDelete }: 
   return (
     <div className="flex gap-2">
       <Button variant="outline" size="icon-sm" onClick={onToggleFavorite} title={favoriteLabel} aria-label={favoriteLabel}>
-        <Star className={cn(favorite && "fill-amber-400 text-amber-400")} />
+        <Star className={cn(favorite && "fill-warning text-warning")} />
       </Button>
       <Button variant="outline" size="sm" onClick={onEdit}>
         <Pencil /> Bearbeiten

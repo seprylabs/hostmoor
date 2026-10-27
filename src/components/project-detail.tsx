@@ -44,7 +44,7 @@ export function ProjectDetail({
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Globe className="text-muted-foreground size-5" />
-            <h1 className="text-2xl font-semibold">{project.name}</h1>
+            <h1 className="text-[22px] font-semibold tracking-tight">{project.name}</h1>
             <Badge variant="secondary">{stackLabel[project.stack]}</Badge>
           </div>
           <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-sm">

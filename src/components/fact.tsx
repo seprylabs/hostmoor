@@ -38,7 +38,7 @@ export function UsageBar({
           {used} / {total} {unit} <span className="text-muted-foreground">({pct} %)</span>
         </span>
       </div>
-      <Progress value={pct} className={pct >= 85 ? "[&>*]:bg-amber-500" : undefined} />
+      <Progress value={pct} className={pct >= 85 ? "[&>*]:bg-warning" : undefined} />
     </div>
   );
 }

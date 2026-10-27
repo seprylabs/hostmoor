@@ -2,8 +2,8 @@ import { cn } from "@/lib/utils";
 import type { Health } from "@/lib/format";
 
 const color: Record<Health, string> = {
-  ok: "bg-emerald-500",
-  warn: "bg-amber-500",
+  ok: "bg-success",
+  warn: "bg-warning",
   unknown: "bg-muted-foreground/40",
 };
 

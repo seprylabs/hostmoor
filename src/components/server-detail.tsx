@@ -78,7 +78,7 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <ServerIcon className="text-muted-foreground size-5" />
-            <h1 className="text-2xl font-semibold">{server.name}</h1>
+            <h1 className="text-[22px] font-semibold tracking-tight">{server.name}</h1>
             <HealthDot health={serverHealth(facts)} />
           </div>
           <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
@@ -111,7 +111,7 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
           </div>
           {facts ? (
             <span
-              className={cn("flex items-center gap-1 text-xs", stale ? "text-amber-600 dark:text-amber-500" : "text-muted-foreground")}
+              className={cn("flex items-center gap-1 text-xs", stale ? "text-warning" : "text-muted-foreground")}
               title={`Geprüft am ${formatDateTime(facts.checkedAt)}`}
             >
               {stale && <Clock className="size-3" />}

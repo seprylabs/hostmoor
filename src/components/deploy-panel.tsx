@@ -33,11 +33,11 @@ import { cn } from "@/lib/utils";
 import type { Deploy, DeployStatus, Project, Server } from "@/types";
 
 const statusStyle: Record<DeployStatus, { icon: typeof Rocket; label: string; className: string }> = {
-  running: { icon: Loader2, label: "Läuft", className: "text-sky-500 animate-spin" },
-  success: { icon: CircleCheck, label: "Erfolgreich", className: "text-emerald-500" },
-  failed: { icon: CircleAlert, label: "Fehlgeschlagen", className: "text-red-500" },
+  running: { icon: Loader2, label: "Läuft", className: "text-info animate-spin" },
+  success: { icon: CircleCheck, label: "Erfolgreich", className: "text-success" },
+  failed: { icon: CircleAlert, label: "Fehlgeschlagen", className: "text-danger" },
   cancelled: { icon: Ban, label: "Abgebrochen", className: "text-muted-foreground" },
-  interrupted: { icon: CircleSlash, label: "Unterbrochen (App beendet)", className: "text-amber-500" },
+  interrupted: { icon: CircleSlash, label: "Unterbrochen (App beendet)", className: "text-warning" },
 };
 
 function formatDuration(ms?: number | null) {
@@ -253,7 +253,7 @@ function LiveOutput({ lines, status }: { lines: string[]; status: DeployStatus }
       </p>
       <pre
         ref={ref}
-        className="h-72 overflow-auto rounded-md bg-zinc-950 p-3 font-mono text-xs leading-relaxed text-zinc-100"
+        className="h-72 overflow-auto rounded-md bg-terminal p-3 font-mono text-xs leading-relaxed text-terminal-foreground"
       >
         {lines.length === 0 ? "Verbinde …" : lines.join("\n")}
       </pre>
@@ -282,7 +282,7 @@ function HistoryRow({ deploy }: { deploy: Deploy }) {
         </span>
       </button>
       {open && (
-        <pre className="mt-1 mb-2 max-h-72 overflow-auto rounded-md bg-zinc-950 p-3 font-mono text-xs leading-relaxed text-zinc-100">
+        <pre className="mt-1 mb-2 max-h-72 overflow-auto rounded-md bg-terminal p-3 font-mono text-xs leading-relaxed text-terminal-foreground">
           {deploy.output || "Keine Ausgabe gespeichert."}
         </pre>
       )}

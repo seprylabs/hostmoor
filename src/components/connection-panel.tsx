@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 import type { ConnectionResult, Server } from "@/types";
 
 const toneStyle = {
-  ok: { icon: CircleCheck, className: "text-emerald-500" },
-  warn: { icon: TriangleAlert, className: "text-amber-500" },
-  error: { icon: CircleAlert, className: "text-red-500" },
+  ok: { icon: CircleCheck, className: "text-success" },
+  warn: { icon: TriangleAlert, className: "text-warning" },
+  error: { icon: CircleAlert, className: "text-danger" },
 } as const;
 
 interface Props {

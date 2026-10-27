@@ -33,12 +33,12 @@ import type { CiRepo, CiResult, CiRun, CiRunStatus, Project } from "@/types";
 
 const statusStyle: Record<CiRunStatus, { icon: typeof Workflow; label: string; className: string }> = {
   queued: { icon: CircleDashed, label: "Wartet", className: "text-muted-foreground" },
-  running: { icon: Loader2, label: "Läuft", className: "text-sky-500 animate-spin" },
-  success: { icon: CircleCheck, label: "Erfolgreich", className: "text-emerald-500" },
-  failed: { icon: CircleAlert, label: "Fehlgeschlagen", className: "text-red-500" },
+  running: { icon: Loader2, label: "Läuft", className: "text-info animate-spin" },
+  success: { icon: CircleCheck, label: "Erfolgreich", className: "text-success" },
+  failed: { icon: CircleAlert, label: "Fehlgeschlagen", className: "text-danger" },
   cancelled: { icon: Ban, label: "Abgebrochen", className: "text-muted-foreground" },
   skipped: { icon: CircleDot, label: "Übersprungen", className: "text-muted-foreground" },
-  manual: { icon: CirclePause, label: "Wartet auf Freigabe", className: "text-amber-500" },
+  manual: { icon: CirclePause, label: "Wartet auf Freigabe", className: "text-warning" },
   other: { icon: CircleDot, label: "Unbekannt", className: "text-muted-foreground" },
 };
 
@@ -143,7 +143,7 @@ export function CiPanel({ project, onEditProject }: { project: Project; onEditPr
           </div>
         )}
 
-        {result?.kind === "error" && <p className="text-red-500">{result.message}</p>}
+        {result?.kind === "error" && <p className="text-danger">{result.message}</p>}
 
         {result?.kind === "ok" &&
           (result.runs.length === 0 ? (
@@ -271,7 +271,7 @@ function TokenDialog({
           </div>
           <DialogFooter>
             {hasToken && (
-              <Button variant="ghost" className="text-red-500 sm:mr-auto" onClick={() => save(null)} disabled={saving}>
+              <Button variant="ghost" className="text-danger sm:mr-auto" onClick={() => save(null)} disabled={saving}>
                 Token entfernen
               </Button>
             )}

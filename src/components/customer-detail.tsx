@@ -29,7 +29,7 @@ export function CustomerDetail({ customer, projects, servers, onSelect, onEdit, 
       <header className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-2">
           <Building2 className="text-muted-foreground size-5" />
-          <h1 className="text-2xl font-semibold">{customer.name}</h1>
+          <h1 className="text-[22px] font-semibold tracking-tight">{customer.name}</h1>
         </div>
         <DetailActions favorite={customer.favorite} onToggleFavorite={onToggleFavorite} onEdit={onEdit} onDelete={onDelete} />
       </header>
