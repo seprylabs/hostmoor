@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Bereitet eine Amp-Orb (Debian 12) vor: npm-Abhängigkeiten, Rust und die
+# Linux-Bibliotheken, die Tauri zum Bauen braucht. Läuft bei jedem Start erneut
+# und muss daher schnell und wiederholbar sein.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+step() { echo "==> $1"; SECONDS=0; }
+done_step() { echo "    fertig in ${SECONDS}s"; }
+
+step "Systempakete für Tauri"
+packages=(build-essential pkg-config libssl-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev)
+missing=()
+for p in "${packages[@]}"; do
+  dpkg -s "$p" >/dev/null 2>&1 || missing+=("$p")
+done
+if ((${#missing[@]})); then
+  sudo apt-get update -qq
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "${missing[@]}"
+fi
+done_step
+
+step "Rust"
+if [ ! -x "$HOME/.cargo/bin/cargo" ]; then
+  curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+fi
+# Der Installer kann die Umgebung dieses Skripts nicht ändern
+# shellcheck disable=SC1091
+source "$HOME/.cargo/env"
+done_step
+
+step "npm ci"
+npm ci --no-audit --no-fund
+done_step
+
+step "cargo check (wärmt den Build-Cache für spätere Prüfungen und Tests)"
+cargo check --manifest-path src-tauri/Cargo.toml --tests --quiet
+done_step

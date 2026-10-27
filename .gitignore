@@ -25,3 +25,6 @@ dist-ssr
 
 # Projekt nutzt npm
 pnpm-lock.yaml
+
+# Amp-Orb
+.amp/portals/
