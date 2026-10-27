@@ -1,0 +1,45 @@
+# Baut bei jedem Tag (z. B. v0.3.0) eine macOS-App und hängt sie als DMG an ein GitHub-Release.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - run: npm ci
+
+      # Universal-Build: läuft auf Apple Silicon und Intel
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: StackPort ${{ github.ref_name }}
+          releaseBody: |
+            Die App ist nicht signiert. Nach dem Installieren einmalig im Terminal ausführen:
+            `xattr -cr /Applications/StackPort.app`
+          releaseDraft: false
+          prerelease: false
+          args: --target universal-apple-darwin
