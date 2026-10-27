@@ -7,6 +7,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 const KEYCHAIN_SERVICE: &str = "de.spmedia.stackport.ci";
 const RUNS_PER_PAGE: u32 = 10;
 const USER_AGENT: &str = concat!("StackPort/", env!("CARGO_PKG_VERSION"));
@@ -126,9 +127,11 @@ pub enum CiResult {
 // --- Schlüsselbund ---------------------------------------------------------
 
 /// errSecItemNotFound: kein Eintrag vorhanden
+#[cfg(target_os = "macos")]
 const ERR_NOT_FOUND: i32 = -25300;
 
 /// Ok(None) = kein Token hinterlegt; Err = Schlüsselbund verweigert oder Fehler
+#[cfg(target_os = "macos")]
 pub fn token(host: &str) -> Result<Option<String>, String> {
     match security_framework::passwords::get_generic_password(KEYCHAIN_SERVICE, host) {
         Ok(bytes) => Ok(String::from_utf8(bytes).ok().filter(|t| !t.is_empty())),
@@ -141,6 +144,7 @@ pub fn token(host: &str) -> Result<Option<String>, String> {
     }
 }
 
+#[cfg(target_os = "macos")]
 pub fn set_token(host: &str, token: Option<&str>) -> Result<(), String> {
     match token.map(str::trim).filter(|t| !t.is_empty()) {
         Some(token) => {
@@ -158,6 +162,17 @@ pub fn set_token(host: &str, token: Option<&str>) -> Result<(), String> {
             Ok(())
         }
     }
+}
+
+// Außerhalb von macOS (z. B. für cargo check und Tests in Linux-Sandboxen) gibt es keinen Schlüsselbund
+#[cfg(not(target_os = "macos"))]
+pub fn token(_host: &str) -> Result<Option<String>, String> {
+    Ok(None)
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn set_token(_host: &str, _token: Option<&str>) -> Result<(), String> {
+    Err("Tokens lassen sich nur unter macOS im Schlüsselbund speichern.".into())
 }
 
 // --- API -------------------------------------------------------------------
