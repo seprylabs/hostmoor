@@ -100,6 +100,8 @@ impl RunStatus {
 pub struct CiRun {
     pub id: u64,
     pub title: String,
+    /// Name des GitHub-Workflows; GitLab kennt das nicht
+    pub workflow: Option<String>,
     pub branch: Option<String>,
     pub sha: Option<String>,
     pub status: RunStatus,
@@ -330,7 +332,8 @@ pub async fn fetch(client: &reqwest::Client, repo: &Repo, token: Option<&str>, e
                 .into_iter()
                 .map(|run| CiRun {
                     id: run.id,
-                    title: run.display_title.or(run.name).unwrap_or_else(|| "Workflow".into()),
+                    title: run.display_title.or_else(|| run.name.clone()).unwrap_or_else(|| "Workflow".into()),
+                    workflow: run.name,
                     branch: run.head_branch,
                     sha: short_sha(run.head_sha),
                     status: github_status(run.status.as_deref(), run.conclusion.as_deref()),
@@ -348,6 +351,7 @@ pub async fn fetch(client: &reqwest::Client, repo: &Repo, token: Option<&str>, e
                 .map(|p| CiRun {
                     id: p.id,
                     title: format!("Pipeline #{}", p.id),
+                    workflow: None,
                     branch: p.git_ref,
                     sha: short_sha(p.sha),
                     status: gitlab_status(&p.status),

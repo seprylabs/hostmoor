@@ -82,6 +82,8 @@ export type CiRunStatus = "queued" | "running" | "success" | "failed" | "cancell
 export interface CiRun {
   id: number;
   title: string;
+  /** Name des GitHub-Workflows; bei GitLab leer */
+  workflow?: string | null;
   branch?: string | null;
   sha?: string | null;
   status: CiRunStatus;

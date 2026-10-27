@@ -149,11 +149,7 @@ export function CiPanel({ project, onEditProject }: { project: Project; onEditPr
           (result.runs.length === 0 ? (
             <p className="text-muted-foreground">Noch keine Läufe.</p>
           ) : (
-            <div className="-mx-2">
-              {result.runs.map((run) => (
-                <RunRow key={run.id} run={run} />
-              ))}
-            </div>
+            <RunList runs={result.runs} />
           ))}
       </CardContent>
 
@@ -170,8 +166,30 @@ export function CiPanel({ project, onEditProject }: { project: Project; onEditPr
   );
 }
 
-function RunRow({ run }: { run: CiRun }) {
+/** Standardmäßig nur der neueste Lauf je Workflow, aufklappbar zur ganzen Liste */
+function RunList({ runs }: { runs: CiRun[] }) {
+  const [showAll, setShowAll] = useState(false);
+  // Neueste zuerst, also gewinnt der erste Lauf je Workflow; GitLab hat keine Workflows und zeigt so die letzte Pipeline
+  const latest = runs.filter((run, i) => runs.findIndex((r) => r.workflow === run.workflow) === i);
+  const hidden = runs.length - latest.length;
+
+  return (
+    <div className="-mx-2">
+      {showAll ? runs.map((run) => <RunRow key={run.id} run={run} />) : latest.map((run) => <RunRow key={run.id} run={run} grouped />)}
+      {hidden > 0 && (
+        <Button size="xs" variant="ghost" className="text-muted-foreground mt-1" onClick={() => setShowAll(!showAll)}>
+          {showAll ? "Nur letzten Lauf je Workflow" : `Alle ${runs.length} Läufe anzeigen`}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function RunRow({ run, grouped }: { run: CiRun; grouped?: boolean }) {
   const style = statusStyle[run.status];
+  // Gruppiert steht der Workflow oben und der Commit-Titel in der Zeile darunter
+  const heading = grouped && run.workflow ? run.workflow : run.title;
+  const details = grouped && run.workflow ? [run.branch, run.title] : [run.branch, run.sha && <span key="sha" className="font-mono">{run.sha}</span>, run.event, run.actor];
   return (
     <button
       onClick={() => openExternal(run.url)}
@@ -180,9 +198,9 @@ function RunRow({ run }: { run: CiRun }) {
     >
       <style.icon className={cn("mt-0.5 size-4 shrink-0", style.className)} />
       <div className="min-w-0 flex-1">
-        <p className="truncate">{run.title}</p>
+        <p className="truncate">{heading}</p>
         <p className="text-muted-foreground truncate text-xs">
-          {[run.branch, run.sha && <span key="sha" className="font-mono">{run.sha}</span>, run.event, run.actor]
+          {details
             .filter(Boolean)
             .flatMap((part, i) => (i === 0 ? [part] : [" · ", part]))}
         </p>

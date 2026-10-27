@@ -40,6 +40,9 @@ const statusStyle: Record<DeployStatus, { icon: typeof Rocket; label: string; cl
   interrupted: { icon: CircleSlash, label: "Unterbrochen (App beendet)", className: "text-warning" },
 };
 
+/** So viele Deploys zeigt der Verlauf, bevor er aufgeklappt wird */
+const HISTORY_PREVIEW = 5;
+
 function formatDuration(ms?: number | null) {
   if (ms == null) return "";
   const seconds = Math.round(ms / 1000);
@@ -62,6 +65,7 @@ export function DeployPanel({ project, server, onEditProject, onSaveScript }: Pr
   const [draft, setDraft] = useState(script);
   const [confirming, setConfirming] = useState(false);
   const [history, setHistory] = useState<Deploy[]>([]);
+  const [showAllHistory, setShowAllHistory] = useState(false);
 
   const reloadHistory = useCallback(async () => {
     try {
@@ -204,9 +208,14 @@ export function DeployPanel({ project, server, onEditProject, onSaveScript }: Pr
         {history.length > 0 && (
           <div className="space-y-1 border-t pt-3">
             <p className="text-muted-foreground pb-1 text-xs font-medium">Verlauf</p>
-            {history.map((d) => (
+            {(showAllHistory ? history : history.slice(0, HISTORY_PREVIEW)).map((d) => (
               <HistoryRow key={d.id} deploy={d} />
             ))}
+            {history.length > HISTORY_PREVIEW && (
+              <Button size="xs" variant="ghost" className="text-muted-foreground -mx-2" onClick={() => setShowAllHistory(!showAllHistory)}>
+                {showAllHistory ? "Weniger anzeigen" : `Ältere anzeigen (${history.length - HISTORY_PREVIEW})`}
+              </Button>
+            )}
           </div>
         )}
       </CardContent>
