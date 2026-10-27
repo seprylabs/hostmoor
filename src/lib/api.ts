@@ -1,6 +1,6 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 
-import type { CheckOutcome, CiResult, ProjectCi, ConnectionResult, Deploy, LastDeploy, Customer, EntityKind, Project, Server, Snapshot } from "@/types";
+import type { CheckOutcome, CiResult, ProjectCi, ConnectionResult, Deploy, LastDeploy, Customer, EntityKind, Project, Server, Snapshot, TerminalApp } from "@/types";
 
 // Im Browser (npm run dev ohne Tauri) landen die Daten im localStorage,
 // damit sich die Oberfläche auch ohne Rust-Backend ausprobieren lässt.
@@ -214,10 +214,17 @@ export async function openExternal(url: string): Promise<void> {
   await openUrl(url);
 }
 
-/** Öffnet das Terminal mit einer SSH-Sitzung; mit `dir` direkt in diesem Ordner auf dem Server */
-export async function openTerminal(serverId: string, dir?: string | null): Promise<void> {
+/** Öffnet das Terminal mit einer SSH-Sitzung; mit `dir` direkt in diesem Ordner auf dem Server.
+ *  `terminal` ist eine ID aus `listTerminals`, null = macOS-Standard */
+export async function openTerminal(serverId: string, dir?: string | null, terminal?: string | null): Promise<void> {
   if (!isTauri()) throw new Error("Das Terminal lässt sich nur aus der App öffnen, nicht im Browser.");
-  await invoke("open_terminal", { id: serverId, dir: dir ?? null });
+  await invoke("open_terminal", { id: serverId, dir: dir ?? null, terminal: terminal ?? null });
+}
+
+/** Installierte Terminal-Apps (Terminal, iTerm2, Ghostty …) */
+export async function listTerminals(): Promise<TerminalApp[]> {
+  if (!isTauri()) return [];
+  return invoke<TerminalApp[]>("list_terminals");
 }
 
 /** Liest PHP, Node, Kapazität usw. per SSH aus; das Ergebnis wird beim Server gespeichert */

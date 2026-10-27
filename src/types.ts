@@ -172,3 +172,9 @@ export interface ConnectionResult {
 export interface CheckOutcome {
   connectionError?: ConnectionResult | null;
 }
+
+/** Installierte Terminal-App, in der SSH-Sitzungen geöffnet werden können */
+export interface TerminalApp {
+  id: string;
+  name: string;
+}

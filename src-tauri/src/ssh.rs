@@ -239,10 +239,10 @@ pub fn interactive_command(server: &Server, dir: Option<&str>) -> Result<String,
     Ok(args.iter().map(|a| quote_arg(a)).collect::<Vec<_>>().join(" "))
 }
 
-/// Öffnet das Standard-Terminal des Macs mit einer SSH-Sitzung.
+/// Öffnet ein Terminal mit einer SSH-Sitzung; `terminal` ist die ID aus `terminal::installed`.
 /// Dafür wird eine kurzlebige .command-Datei angelegt, die sich beim Start selbst löscht;
 /// so braucht die App keine Berechtigung, das Terminal fernzusteuern.
-pub fn open_terminal(server: &Server, dir: Option<&str>) -> Result<(), String> {
+pub fn open_terminal(server: &Server, dir: Option<&str>, terminal: Option<&str>) -> Result<(), String> {
     use std::os::unix::fs::PermissionsExt;
 
     let command = interactive_command(server, dir)?;
@@ -257,15 +257,9 @@ pub fn open_terminal(server: &Server, dir: Option<&str>) -> Result<(), String> {
     );
     std::fs::write(&path, script).map_err(|e| e.to_string())?;
     std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o700)).map_err(|e| e.to_string())?;
-    let status = std::process::Command::new("open")
-        .arg(&path)
-        .status()
-        .map_err(|e| e.to_string())?;
-    if !status.success() {
+    crate::terminal::launch(terminal, &path).inspect_err(|_| {
         let _ = std::fs::remove_file(&path);
-        return Err("Das Terminal konnte nicht geöffnet werden.".into());
-    }
-    Ok(())
+    })
 }
 
 pub async fn test_connection(server: &Server) -> ConnectionResult {

@@ -9,6 +9,7 @@ use crate::check::{self, CheckError};
 use crate::ci::{self, CiResult};
 use crate::ci_watch::{CiWatch, ProjectCi};
 use crate::ssh::{self, ConnectionResult};
+use crate::terminal;
 
 type CmdResult<T> = Result<T, String>;
 
@@ -176,9 +177,15 @@ pub fn ci_overview(watch: State<CiWatch>) -> Vec<ProjectCi> {
 
 /// Öffnet das Terminal mit einer SSH-Sitzung, optional direkt im Projektordner
 #[tauri::command]
-pub fn open_terminal(db: State<Db>, id: String, dir: Option<String>) -> CmdResult<()> {
+pub fn open_terminal(db: State<Db>, id: String, dir: Option<String>, terminal: Option<String>) -> CmdResult<()> {
     let server = find_server(&db, &id)?;
-    ssh::open_terminal(&server, dir.as_deref().filter(|d| !d.trim().is_empty()))
+    ssh::open_terminal(&server, dir.as_deref().filter(|d| !d.trim().is_empty()), terminal.as_deref())
+}
+
+/// Installierte Terminal-Apps für die Auswahl am Terminal-Button
+#[tauri::command]
+pub fn list_terminals() -> Vec<terminal::TerminalApp> {
+    terminal::installed()
 }
 
 /// Ergebnis von „Jetzt prüfen“: bei Verbindungsproblemen die Ursache, sonst None

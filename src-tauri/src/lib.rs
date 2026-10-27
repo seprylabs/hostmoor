@@ -6,6 +6,7 @@ mod deploy;
 mod db;
 mod models;
 mod ssh;
+mod terminal;
 
 use tauri::Manager;
 
@@ -37,6 +38,7 @@ pub fn run() {
             commands::test_connection,
             commands::check_server,
             commands::open_terminal,
+            commands::list_terminals,
             commands::set_deploy_script,
             commands::list_deploys,
             commands::last_deploys,
