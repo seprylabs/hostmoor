@@ -4,6 +4,8 @@ export interface HelpStep {
   text: string;
   /** Befehl zum Kopieren; wird vom Nutzer selbst im Terminal ausgeführt */
   command?: string;
+  /** Key-Pfad, den die App per Knopfdruck beim Server speichern kann */
+  keyPath?: string;
 }
 
 export interface ConnectionHelp {
@@ -103,7 +105,7 @@ export function connectionHelp(status: ConnectionStatus, server: Server): Connec
             text: `Eigenen Key für diesen Server erzeugen. Er landet unter ${key} und funktioniert danach auch ganz normal im Terminal. Hast du schon einen Key, den du nutzen willst, trag stattdessen dessen Pfad im Server-Formular ein.`,
             command: `ssh-keygen -t ed25519 -f ${shellPath(key)} -C ${keyComment(server)}`,
           },
-          { text: `Den Pfad ${key} im Server-Formular unter „SSH-Key“ eintragen und speichern.` },
+          { text: "Diesen Key für den Server übernehmen:", keyPath: key },
         );
       }
       steps.push(

@@ -36,17 +36,19 @@ interface Props {
   onToggleFavorite: () => void;
   onDelete: () => void;
   onAddProject: () => void;
+  onSaveKeyPath: (path: string) => Promise<boolean>;
 }
 
-export function ServerDetail({ server, customer, projects, onSelect, onCheck, onEdit, onToggleFavorite, onDelete, onAddProject }: Props) {
+export function ServerDetail({ server, customer, projects, onSelect, onCheck, onEdit, onToggleFavorite, onDelete, onAddProject, onSaveKeyPath }: Props) {
   const facts = server.facts;
   const stale = facts ? ageInDays(facts.checkedAt) > STALE_AFTER_DAYS : false;
 
   // Ergebnis gilt nur für die aktuellen Zugangsdaten; nach dem Bearbeiten verfällt es
   const connectionKey = `${server.host}|${server.port}|${server.sshUser}|${server.sshKeyPath}`;
-  const [connection, setConnection] = useState<{ key: string; result: ConnectionResult | null }>({
+  const [connection, setConnection] = useState<{ key: string; result: ConnectionResult | null; server: Server }>({
     key: connectionKey,
     result: null,
+    server,
   });
   const connectionResult = connection.key === connectionKey ? connection.result : null;
   const [busy, setBusy] = useState<"test" | "check" | null>(null);
@@ -54,7 +56,7 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
   const runTest = async () => {
     setBusy("test");
     try {
-      setConnection({ key: connectionKey, result: await testConnection(server.id) });
+      setConnection({ key: connectionKey, result: await testConnection(server.id), server });
     } catch (e) {
       toast.error("Test nicht möglich", { description: String(e) });
     } finally {
@@ -62,11 +64,20 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
     }
   };
 
+  // Key-Pfad aus der Anleitung speichern; die Anleitung bleibt bis zum nächsten Test stehen
+  const saveKeyPath = async (path: string) => {
+    const saved = await onSaveKeyPath(path);
+    if (saved) {
+      setConnection((c) => ({ ...c, key: `${server.host}|${server.port}|${server.sshUser}|${path}` }));
+    }
+    return saved;
+  };
+
   const runCheck = async () => {
     setBusy("check");
     try {
       // Bei Erfolg altes Fehlerergebnis ausblenden, sonst Hilfe anzeigen
-      setConnection({ key: connectionKey, result: await onCheck() });
+      setConnection({ key: connectionKey, result: await onCheck(), server });
     } finally {
       setBusy(null);
     }
@@ -127,9 +138,11 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
       <ConnectionPanel
         server={server}
         result={connectionResult}
+        testedServer={connection.server}
         running={busy === "test"}
         disabled={busy !== null}
         onTest={runTest}
+        onSaveKeyPath={saveKeyPath}
       />
 
       {!facts ? (

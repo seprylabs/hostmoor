@@ -17,14 +17,16 @@ interface Props {
   server: Server;
   /** Letztes Ergebnis, vom Verbindungstest oder von „Jetzt prüfen“ */
   result: ConnectionResult | null;
+  /** Stand des Servers beim Test; die Anleitung bleibt so stehen, auch wenn unterwegs der Key-Pfad gespeichert wird */
+  testedServer: Server;
   running: boolean;
   disabled?: boolean;
   onTest: () => void;
+  onSaveKeyPath: (path: string) => Promise<boolean>;
 }
 
-export function ConnectionPanel({ server, result, running, disabled, onTest }: Props) {
-
-  const help = result && connectionHelp(result.status, server);
+export function ConnectionPanel({ server, result, testedServer, running, disabled, onTest, onSaveKeyPath }: Props) {
+  const help = result && connectionHelp(result.status, testedServer);
   const tone = help && toneStyle[help.tone];
 
   return (
@@ -70,12 +72,25 @@ export function ConnectionPanel({ server, result, running, disabled, onTest }: P
                       <div className="min-w-0 flex-1 space-y-1.5">
                         <p>{step.text}</p>
                         {step.command && <CommandLine command={step.command} />}
+                        {step.keyPath && (
+                          <CommandLine command={step.keyPath} copyLabel="Pfad">
+                            {server.sshKeyPath === step.keyPath ? (
+                              <span className="text-success flex items-center gap-1 px-2 text-xs">
+                                <CircleCheck className="size-3.5" /> Gespeichert
+                              </span>
+                            ) : (
+                              <Button size="xs" onClick={() => onSaveKeyPath(step.keyPath!)} disabled={disabled}>
+                                Übernehmen
+                              </Button>
+                            )}
+                          </CommandLine>
+                        )}
                       </div>
                     </li>
                   ))}
                 </ol>
                 <p className="text-muted-foreground text-xs">
-                  Die Befehle führst du selbst im Terminal aus. StackPort richtet nichts automatisch ein.
+                  Die Befehle führst du selbst im Terminal aus. Auf dem Server verändert StackPort nichts.
                 </p>
               </div>
             )}
@@ -95,11 +110,20 @@ export function ConnectionPanel({ server, result, running, disabled, onTest }: P
   );
 }
 
-function CommandLine({ command }: { command: string }) {
+function CommandLine({
+  command,
+  copyLabel = "Befehl",
+  children,
+}: {
+  command: string;
+  copyLabel?: string;
+  /** Weitere Aktion rechts neben dem Kopieren */
+  children?: React.ReactNode;
+}) {
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(command);
-      toast.success("Befehl kopiert");
+      toast.success(`${copyLabel} kopiert`);
     } catch {
       toast.error("Kopieren fehlgeschlagen");
     }
@@ -108,9 +132,10 @@ function CommandLine({ command }: { command: string }) {
   return (
     <div className="bg-muted flex items-center gap-2 rounded-md py-1 pr-1 pl-3">
       <code className="min-w-0 flex-1 overflow-x-auto font-mono text-xs whitespace-nowrap">{command}</code>
-      <Button variant="ghost" size="icon-sm" onClick={copy} title="Kopieren" aria-label="Befehl kopieren">
+      <Button variant="ghost" size="icon-sm" onClick={copy} title="Kopieren" aria-label={`${copyLabel} kopieren`}>
         <Copy />
       </Button>
+      {children}
     </div>
   );
 }

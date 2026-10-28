@@ -120,6 +120,7 @@ function App() {
                   projects={projects.filter((p) => p.serverId === server.id)}
                   onSelect={setSelection}
                   onCheck={() => store.checkServer(server.id)}
+                  onSaveKeyPath={(path) => store.saveServer({ ...server, sshKeyPath: path })}
                   onEdit={() => setEditor({ kind: "server", initial: server })}
                   onToggleFavorite={() => store.setFavorite("server", server.id, !server.favorite)}
                   onDelete={() => {
