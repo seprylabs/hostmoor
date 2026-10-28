@@ -3,6 +3,7 @@ name = "stackport"
 version = "0.2.0"
 description = "Server- und Projektübersicht für Laravel- und WordPress-Entwickler"
 authors = ["spmedia"]
+license = "AGPL-3.0-only"
 edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

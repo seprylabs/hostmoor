@@ -60,3 +60,14 @@ src-tauri/src/
   ci_watch.rs           Hintergrund-Abfrage der Pipelines, Mitteilungen
   models.rs             Datentypen
 ```
+
+## Lizenz
+
+StackPort steht unter der [GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`).
+
+Lizenzen der Abhängigkeiten prüfen:
+
+```bash
+cd src-tauri && cargo deny check licenses      # Rust (cargo install cargo-deny)
+npx license-checker-rseidelsohn --production --summary   # npm
+```
