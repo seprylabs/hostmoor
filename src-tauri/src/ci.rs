@@ -42,7 +42,10 @@ pub fn parse_repo_url(url: &str) -> Option<Repo> {
         (authority.split(':').next()?, path)
     } else if let Some((user_host, path)) = url.split_once(':').filter(|(h, _)| !h.contains('/')) {
         // scp-Form: git@host:pfad
-        (user_host.rsplit_once('@').map_or(user_host, |(_, h)| h), path)
+        (
+            user_host.rsplit_once('@').map_or(user_host, |(_, h)| h),
+            path,
+        )
     } else {
         url.split_once('/')?
     };
@@ -56,12 +59,19 @@ pub fn parse_repo_url(url: &str) -> Option<Repo> {
         .trim_end_matches('/')
         .to_string();
     let segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
-    let valid = |s: &&str| s.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.'));
+    let valid = |s: &&str| {
+        s.chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.'))
+    };
     if host.is_empty() || segments.len() < 2 || !segments.iter().all(valid) {
         return None;
     }
 
-    let forge = if host == "github.com" { Forge::Github } else { Forge::Gitlab };
+    let forge = if host == "github.com" {
+        Forge::Github
+    } else {
+        Forge::Gitlab
+    };
     // GitHub-Repos haben immer genau owner/repo; bei Links wie /tree/main den Rest abschneiden
     let path = match forge {
         Forge::Github => segments[..2].join("/"),
@@ -116,12 +126,22 @@ pub struct CiRun {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase", tag = "kind")]
 pub enum CiResult {
-    Ok { repo: Repo, runs: Vec<CiRun>, has_token: bool },
+    Ok {
+        repo: Repo,
+        runs: Vec<CiRun>,
+        has_token: bool,
+    },
     /// Keine oder unbrauchbare Repo-URL
     NoRepo,
     /// Token fehlt, ist abgelaufen oder hat keine Berechtigung (bei privaten Repos auch 404)
-    NeedsToken { repo: Repo, has_token: bool },
-    Error { repo: Repo, message: String },
+    NeedsToken {
+        repo: Repo,
+        has_token: bool,
+    },
+    Error {
+        repo: Repo,
+        message: String,
+    },
 }
 
 // --- Schlüsselbund ---------------------------------------------------------
@@ -148,8 +168,17 @@ pub fn token(host: &str) -> Result<Option<String>, String> {
 pub fn set_token(host: &str, token: Option<&str>) -> Result<(), String> {
     match token.map(str::trim).filter(|t| !t.is_empty()) {
         Some(token) => {
-            security_framework::passwords::set_generic_password(KEYCHAIN_SERVICE, host, token.as_bytes())
-                .map_err(|e| format!("Token konnte nicht im Schlüsselbund gespeichert werden: {e} (Code {})", e.code()))?;
+            security_framework::passwords::set_generic_password(
+                KEYCHAIN_SERVICE,
+                host,
+                token.as_bytes(),
+            )
+            .map_err(|e| {
+                format!(
+                    "Token konnte nicht im Schlüsselbund gespeichert werden: {e} (Code {})",
+                    e.code()
+                )
+            })?;
             // Gegenprobe, damit ein Problem sofort beim Speichern auffällt und nicht erst beim Laden
             match self::token(host)? {
                 Some(stored) if stored == token => Ok(()),
@@ -237,7 +266,9 @@ fn gitlab_status(status: &str) -> RunStatus {
         "skipped" => RunStatus::Skipped,
         "manual" | "scheduled" => RunStatus::Manual,
         "running" => RunStatus::Running,
-        "created" | "pending" | "preparing" | "waiting_for_resource" | "waiting_for_callback" => RunStatus::Queued,
+        "created" | "pending" | "preparing" | "waiting_for_resource" | "waiting_for_callback" => {
+            RunStatus::Queued
+        }
         _ => RunStatus::Other,
     }
 }
@@ -266,7 +297,10 @@ pub fn client() -> Result<reqwest::Client, String> {
 
 /// Ergebnis einer einzelnen Abfrage
 pub enum Fetch {
-    Fresh { runs: Vec<CiRun>, etag: Option<String> },
+    Fresh {
+        runs: Vec<CiRun>,
+        etag: Option<String>,
+    },
     /// Seit der letzten Abfrage (ETag) unverändert; zählt bei GitHub nicht aufs Limit
     NotModified,
     NeedsToken,
@@ -274,7 +308,12 @@ pub enum Fetch {
 }
 
 /// Fragt die letzten Läufe ab; mit `etag` nur, wenn sich seitdem etwas geändert hat
-pub async fn fetch(client: &reqwest::Client, repo: &Repo, token: Option<&str>, etag: Option<&str>) -> Fetch {
+pub async fn fetch(
+    client: &reqwest::Client,
+    repo: &Repo,
+    token: Option<&str>,
+    etag: Option<&str>,
+) -> Fetch {
     let request = match repo.forge {
         Forge::Github => {
             let url = format!(
@@ -330,7 +369,9 @@ pub async fn fetch(client: &reqwest::Client, repo: &Repo, token: Option<&str>, e
         return Fetch::NeedsToken;
     }
     if status == 403 {
-        return Fetch::Error("Zu viele Anfragen ohne Token. Mit Token ist das Limit deutlich höher.".into());
+        return Fetch::Error(
+            "Zu viele Anfragen ohne Token. Mit Token ist das Limit deutlich höher.".into(),
+        );
     }
     if !response.status().is_success() {
         return Fetch::Error(format!("Unerwartete Antwort ({status})."));
@@ -347,7 +388,10 @@ pub async fn fetch(client: &reqwest::Client, repo: &Repo, token: Option<&str>, e
                 .into_iter()
                 .map(|run| CiRun {
                     id: run.id,
-                    title: run.display_title.or_else(|| run.name.clone()).unwrap_or_else(|| "Workflow".into()),
+                    title: run
+                        .display_title
+                        .or_else(|| run.name.clone())
+                        .unwrap_or_else(|| "Workflow".into()),
                     workflow: run.name,
                     branch: run.head_branch,
                     sha: short_sha(run.head_sha),
@@ -360,24 +404,27 @@ pub async fn fetch(client: &reqwest::Client, repo: &Repo, token: Option<&str>, e
                 })
                 .collect()
         }),
-        Forge::Gitlab => response.json::<Vec<GitlabPipeline>>().await.map(|pipelines| {
-            pipelines
-                .into_iter()
-                .map(|p| CiRun {
-                    id: p.id,
-                    title: format!("Pipeline #{}", p.id),
-                    workflow: None,
-                    branch: p.git_ref,
-                    sha: short_sha(p.sha),
-                    status: gitlab_status(&p.status),
-                    event: p.source,
-                    actor: None,
-                    url: p.web_url,
-                    created_at: p.created_at,
-                    updated_at: p.updated_at,
-                })
-                .collect()
-        }),
+        Forge::Gitlab => response
+            .json::<Vec<GitlabPipeline>>()
+            .await
+            .map(|pipelines| {
+                pipelines
+                    .into_iter()
+                    .map(|p| CiRun {
+                        id: p.id,
+                        title: format!("Pipeline #{}", p.id),
+                        workflow: None,
+                        branch: p.git_ref,
+                        sha: short_sha(p.sha),
+                        status: gitlab_status(&p.status),
+                        event: p.source,
+                        actor: None,
+                        url: p.web_url,
+                        created_at: p.created_at,
+                        updated_at: p.updated_at,
+                    })
+                    .collect()
+            }),
     };
 
     match runs {
@@ -402,11 +449,19 @@ pub async fn runs(repo_url: &str) -> CiResult {
     };
 
     match fetch(&client, &repo, token.as_deref(), None).await {
-        Fetch::Fresh { runs, .. } => CiResult::Ok { repo, runs, has_token },
+        Fetch::Fresh { runs, .. } => CiResult::Ok {
+            repo,
+            runs,
+            has_token,
+        },
         Fetch::NeedsToken => CiResult::NeedsToken { repo, has_token },
         Fetch::Error(message) => CiResult::Error { repo, message },
         // Ohne ETag kann das nicht vorkommen
-        Fetch::NotModified => CiResult::Ok { repo, runs: Vec::new(), has_token },
+        Fetch::NotModified => CiResult::Ok {
+            repo,
+            runs: Vec::new(),
+            has_token,
+        },
     }
 }
 
@@ -424,14 +479,27 @@ mod tests {
         let gh = |p: &str| (Forge::Github, "github.com".to_string(), p.to_string());
         assert_eq!(parsed("git@github.com:owner/repo.git"), gh("owner/repo"));
         assert_eq!(parsed("https://github.com/owner/repo"), gh("owner/repo"));
-        assert_eq!(parsed("https://github.com/owner/repo.git"), gh("owner/repo"));
-        assert_eq!(parsed("https://github.com/owner/repo/tree/main"), gh("owner/repo"));
+        assert_eq!(
+            parsed("https://github.com/owner/repo.git"),
+            gh("owner/repo")
+        );
+        assert_eq!(
+            parsed("https://github.com/owner/repo/tree/main"),
+            gh("owner/repo")
+        );
         assert_eq!(parsed("github.com/owner/repo"), gh("owner/repo"));
-        assert_eq!(parsed("https://user@GitHub.com/owner/repo/"), gh("owner/repo"));
+        assert_eq!(
+            parsed("https://user@GitHub.com/owner/repo/"),
+            gh("owner/repo")
+        );
 
         assert_eq!(
             parsed("git@gitlab.com:agentur/kunde/shop.git"),
-            (Forge::Gitlab, "gitlab.com".into(), "agentur/kunde/shop".into())
+            (
+                Forge::Gitlab,
+                "gitlab.com".into(),
+                "agentur/kunde/shop".into()
+            )
         );
         assert_eq!(
             parsed("ssh://git@git.example.de:2222/team/app.git"),
@@ -445,15 +513,27 @@ mod tests {
 
     #[test]
     fn rejects_unusable_urls() {
-        for url in ["", "shop", "https://github.com/", "https://github.com/onlyowner", "git@github.com:a/b c"] {
+        for url in [
+            "",
+            "shop",
+            "https://github.com/",
+            "https://github.com/onlyowner",
+            "git@github.com:a/b c",
+        ] {
             assert!(parse_repo_url(url).is_none(), "{url}");
         }
     }
 
     #[test]
     fn maps_statuses() {
-        assert_eq!(github_status(Some("completed"), Some("success")), RunStatus::Success);
-        assert_eq!(github_status(Some("completed"), Some("failure")), RunStatus::Failed);
+        assert_eq!(
+            github_status(Some("completed"), Some("success")),
+            RunStatus::Success
+        );
+        assert_eq!(
+            github_status(Some("completed"), Some("failure")),
+            RunStatus::Failed
+        );
         assert_eq!(github_status(Some("in_progress"), None), RunStatus::Running);
         assert_eq!(github_status(Some("queued"), None), RunStatus::Queued);
         assert_eq!(gitlab_status("running"), RunStatus::Running);
@@ -475,7 +555,10 @@ mod tests {
         let runs: GithubRuns = serde_json::from_str(json).unwrap();
         let run = &runs.workflow_runs[0];
         assert_eq!(run.display_title.as_deref(), Some("Fix login"));
-        assert_eq!(github_status(run.status.as_deref(), run.conclusion.as_deref()), RunStatus::Failed);
+        assert_eq!(
+            github_status(run.status.as_deref(), run.conclusion.as_deref()),
+            RunStatus::Failed
+        );
     }
 }
 
@@ -488,7 +571,7 @@ mod live {
         match super::runs("https://github.com/tauri-apps/tauri").await {
             super::CiResult::Ok { runs, .. } => {
                 assert!(!runs.is_empty());
-                println!("{:#?}", &runs[0]);
+                println!("{:#?}", runs[0]);
             }
             other => panic!("{other:?}"),
         }
@@ -500,7 +583,10 @@ mod live {
     async fn live_etag_not_modified() {
         let repo = super::parse_repo_url("https://github.com/tauri-apps/tauri").unwrap();
         let client = super::client().unwrap();
-        let super::Fetch::Fresh { etag: Some(etag), .. } = super::fetch(&client, &repo, None, None).await else {
+        let super::Fetch::Fresh {
+            etag: Some(etag), ..
+        } = super::fetch(&client, &repo, None, None).await
+        else {
             panic!("kein ETag");
         };
         assert!(matches!(

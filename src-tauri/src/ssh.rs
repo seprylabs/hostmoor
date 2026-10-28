@@ -147,7 +147,11 @@ fn trim_detail(stderr: &str) -> Option<String> {
 
 /// Führt `remote_command` per ssh aus und liefert stdout.
 /// Schlägt die Anmeldung fehl, kommt ein `ConnectionResult` mit der erkannten Ursache zurück.
-pub async fn run(server: &Server, remote_command: &str, limit: Duration) -> Result<String, ConnectionResult> {
+pub async fn run(
+    server: &Server,
+    remote_command: &str,
+    limit: Duration,
+) -> Result<String, ConnectionResult> {
     let started = Instant::now();
     let fail = |status, detail: Option<String>| ConnectionResult {
         status,
@@ -199,10 +203,15 @@ pub fn shell_quote(s: &str) -> String {
 /// Nur quoten, wenn nötig, damit der Befehl im Terminal lesbar bleibt
 fn quote_arg(arg: &str) -> String {
     let plain = !arg.is_empty()
-        && arg
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | '/' | '@' | ':' | '=' | '[' | ']'));
-    if plain { arg.to_string() } else { shell_quote(arg) }
+        && arg.chars().all(|c| {
+            c.is_ascii_alphanumeric()
+                || matches!(c, '-' | '_' | '.' | '/' | '@' | ':' | '=' | '[' | ']')
+        });
+    if plain {
+        arg.to_string()
+    } else {
+        shell_quote(arg)
+    }
 }
 
 /// ssh-Befehl für ein interaktives Terminal. Anders als beim Check ohne BatchMode:
@@ -236,13 +245,21 @@ pub fn interactive_command(server: &Server, dir: Option<&str>) -> Result<String,
         };
         args.push(format!("cd {target} && exec \"$SHELL\" -l"));
     }
-    Ok(args.iter().map(|a| quote_arg(a)).collect::<Vec<_>>().join(" "))
+    Ok(args
+        .iter()
+        .map(|a| quote_arg(a))
+        .collect::<Vec<_>>()
+        .join(" "))
 }
 
 /// Öffnet ein Terminal mit einer SSH-Sitzung; `terminal` ist die ID aus `terminal::installed`.
 /// Dafür wird eine kurzlebige .command-Datei angelegt, die sich beim Start selbst löscht;
 /// so braucht die App keine Berechtigung, das Terminal fernzusteuern.
-pub fn open_terminal(server: &Server, dir: Option<&str>, terminal: Option<&str>) -> Result<(), String> {
+pub fn open_terminal(
+    server: &Server,
+    dir: Option<&str>,
+    terminal: Option<&str>,
+) -> Result<(), String> {
     use std::io::Write;
     use std::os::unix::fs::OpenOptionsExt;
 
@@ -393,13 +410,20 @@ mod tests {
         let cmd = interactive_command(&server(), None).unwrap();
         assert_eq!(
             cmd,
-            format!("ssh -p 2222 -i {home}/.ssh/test_key -o IdentitiesOnly=yes -- deploy@203.0.113.10")
+            format!(
+                "ssh -p 2222 -i {home}/.ssh/test_key -o IdentitiesOnly=yes -- deploy@203.0.113.10"
+            )
         );
         assert!(!cmd.contains("BatchMode"));
 
         let cmd = interactive_command(&server(), Some("/var/www/my shop")).unwrap();
         assert!(cmd.starts_with("ssh -t "));
-        assert!(cmd.ends_with(r#"deploy@203.0.113.10 'cd '\''/var/www/my shop'\'' && exec "$SHELL" -l'"#), "{cmd}");
+        assert!(
+            cmd.ends_with(
+                r#"deploy@203.0.113.10 'cd '\''/var/www/my shop'\'' && exec "$SHELL" -l'"#
+            ),
+            "{cmd}"
+        );
 
         let mut bad = server();
         bad.host = "-oProxyCommand=x".into();

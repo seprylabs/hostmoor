@@ -75,7 +75,11 @@ fn summarize(project_id: &str, runs: &[CiRun]) -> ProjectCi {
     let latest = runs.iter().find(|r| !r.status.is_active());
     ProjectCi {
         project_id: project_id.to_string(),
-        active: runs.iter().filter(|r| r.status.is_active()).cloned().collect(),
+        active: runs
+            .iter()
+            .filter(|r| r.status.is_active())
+            .cloned()
+            .collect(),
         latest: latest.map(|r| r.status),
         latest_at: latest.map(|r| r.created_at.clone()),
     }
@@ -114,7 +118,11 @@ pub fn start(app: AppHandle) {
         let Ok(client) = ci::client() else { return };
         loop {
             let any_active = cycle(&app, &client, &mut state).await;
-            let wait = if any_active { ACTIVE_INTERVAL } else { IDLE_INTERVAL };
+            let wait = if any_active {
+                ACTIVE_INTERVAL
+            } else {
+                IDLE_INTERVAL
+            };
             let watch = app.state::<CiWatch>();
             tokio::select! {
                 _ = tokio::time::sleep(wait) => {}
@@ -124,6 +132,9 @@ pub fn start(app: AppHandle) {
     });
 }
 
+/// Projekt-ID und Projektname
+type ProjectRef = (String, String);
+
 /// Eine Runde über alle Repos; true, wenn irgendwo etwas läuft
 async fn cycle(app: &AppHandle, client: &reqwest::Client, state: &mut State) -> bool {
     let Ok(snapshot) = app.state::<Db>().snapshot() else {
@@ -131,7 +142,7 @@ async fn cycle(app: &AppHandle, client: &reqwest::Client, state: &mut State) -> 
     };
 
     // Mehrere Projekte können dasselbe Repo nutzen: einmal abfragen, allen zuordnen
-    let mut repos: Vec<(String, Repo, Vec<(String, String)>)> = Vec::new();
+    let mut repos: Vec<(String, Repo, Vec<ProjectRef>)> = Vec::new();
     for project in &snapshot.projects {
         let Some(repo) = project.repo_url.as_deref().and_then(ci::parse_repo_url) else {
             continue;
@@ -164,10 +175,16 @@ async fn cycle(app: &AppHandle, client: &reqwest::Client, state: &mut State) -> 
                 }
             }
         }
-        let Some((_, runs)) = state.cache.get(key) else { continue };
+        let Some((_, runs)) = state.cache.get(key) else {
+            continue;
+        };
 
         let baseline = state.seen.insert(key.clone());
-        let names = projects.iter().map(|(_, name)| name.as_str()).collect::<Vec<_>>().join(", ");
+        let names = projects
+            .iter()
+            .map(|(_, name)| name.as_str())
+            .collect::<Vec<_>>()
+            .join(", ");
         for run in runs {
             let previous = state.known.insert((key.clone(), run.id), run.status);
             if let Some(change) = change(previous, run.status, baseline) {
@@ -208,8 +225,14 @@ mod tests {
     fn notifies_start_and_result() {
         assert_eq!(change(None, Queued, false), Some(Change::Started));
         assert_eq!(change(Some(Queued), Running, false), None);
-        assert_eq!(change(Some(Running), Success, false), Some(Change::Finished(Success)));
-        assert_eq!(change(Some(Running), Failed, false), Some(Change::Finished(Failed)));
+        assert_eq!(
+            change(Some(Running), Success, false),
+            Some(Change::Finished(Success))
+        );
+        assert_eq!(
+            change(Some(Running), Failed, false),
+            Some(Change::Finished(Failed))
+        );
         // Abgebrochen oder schon bekannt: still
         assert_eq!(change(Some(Running), Cancelled, false), None);
         assert_eq!(change(Some(Success), Success, false), None);
@@ -217,7 +240,10 @@ mod tests {
 
     #[test]
     fn notifies_result_of_run_that_was_missed_while_running() {
-        assert_eq!(change(None, Success, false), Some(Change::Finished(Success)));
+        assert_eq!(
+            change(None, Success, false),
+            Some(Change::Finished(Success))
+        );
         assert_eq!(change(None, Skipped, false), None);
     }
 }
