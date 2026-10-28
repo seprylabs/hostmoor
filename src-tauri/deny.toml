@@ -1,0 +1,18 @@
+# Lizenzprüfung der Rust-Abhängigkeiten: `cargo deny check licenses`
+# Erlaubt sind nur Lizenzen, die mit AGPL-3.0 vereinbar sind.
+
+[graph]
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin"]
+
+[licenses]
+allow = [
+  "AGPL-3.0-only",
+  "MIT",
+  "Apache-2.0",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "ISC",
+  "Zlib",
+  "Unicode-3.0",
+  "MPL-2.0",
+]
