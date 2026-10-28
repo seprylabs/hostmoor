@@ -3,9 +3,11 @@ import {
   ArchiveRestore,
   Building2,
   ChevronRight,
+  CircleDashed,
   Download,
   Ellipsis,
   Globe,
+  Loader2,
   Plus,
   RefreshCw,
   Search,
@@ -189,37 +191,6 @@ export function AppSidebar({
           </p>
         )}
 
-        {activeRuns.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>
-              <Workflow className="mr-1.5 size-3 animate-pulse text-ci" /> Läuft gerade
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {activeRuns.map(({ projectId, run }) => (
-                  <SidebarMenuItem key={`${projectId}-${run.id}`}>
-                    <SidebarMenuButton
-                      isActive={isSelected("project", projectId)}
-                      onClick={() => onSelect({ kind: "project", id: projectId })}
-                      className="h-auto py-1.5"
-                      title={run.title}
-                    >
-                      <div className="flex min-w-0 flex-col">
-                        <span className="truncate">{projects.find((p) => p.id === projectId)?.name ?? "Projekt"}</span>
-                        <span className="text-muted-foreground truncate text-xs">
-                          {run.status === "queued" ? "Wartet · " : ""}
-                          {run.title}
-                          {run.branch && ` · ${run.branch}`}
-                        </span>
-                      </div>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
         {favorites.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel>
@@ -367,39 +338,75 @@ export function AppSidebar({
             })}
       </SidebarContent>
 
-      <SidebarFooter className="flex-row items-center justify-between">
-        <div className="text-muted-foreground flex items-center gap-3 px-2 text-xs tabular-nums">
-          <span className="flex items-center gap-1" title={`${customers.length} Kunden`}>
-            <Building2 className="size-3.5" /> {customers.length}
-          </span>
-          <span className="flex items-center gap-1" title={`${projects.length} Projekte`}>
-            <Globe className="size-3.5" /> {projects.length}
-          </span>
-          <span className="flex items-center gap-1" title={`${servers.length} Server`}>
-            <ServerIcon className="size-3.5" /> {servers.length}
-          </span>
+      <SidebarFooter>
+        {activeRuns.length > 0 && (
+          <div className="bg-sidebar-accent/60 ring-sidebar-border rounded-lg p-1 ring-1">
+            <p className="text-muted-foreground flex items-center gap-1.5 px-2 pt-1 pb-0.5 text-xs font-medium">
+              <Workflow className="text-ci size-3" /> Läuft gerade
+              <span className="ml-auto tabular-nums">{activeRuns.length}</span>
+            </p>
+            <div className="max-h-40 overflow-y-auto">
+              {activeRuns.map(({ projectId, run }) => (
+                <button
+                  key={`${projectId}-${run.id}`}
+                  onClick={() => onSelect({ kind: "project", id: projectId })}
+                  className={cn(
+                    "hover:bg-sidebar-accent flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left",
+                    isSelected("project", projectId) && "bg-sidebar-accent",
+                  )}
+                  title={`${run.title}${run.branch ? ` · ${run.branch}` : ""}`}
+                >
+                  {run.status === "queued" ? (
+                    <CircleDashed className="text-muted-foreground size-3.5 shrink-0" />
+                  ) : (
+                    <Loader2 className="text-ci size-3.5 shrink-0 animate-spin" />
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm">{projects.find((p) => p.id === projectId)?.name ?? "Projekt"}</span>
+                    <span className="text-muted-foreground block truncate text-xs">
+                      {run.status === "queued" ? "Wartet · " : ""}
+                      {run.workflow ?? run.title}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground flex items-center gap-3 px-2 text-xs tabular-nums">
+            <span className="flex items-center gap-1" title={`${customers.length} Kunden`}>
+              <Building2 className="size-3.5" /> {customers.length}
+            </span>
+            <span className="flex items-center gap-1" title={`${projects.length} Projekte`}>
+              <Globe className="size-3.5" /> {projects.length}
+            </span>
+            <span className="flex items-center gap-1" title={`${servers.length} Server`}>
+              <ServerIcon className="size-3.5" /> {servers.length}
+            </span>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon-sm" aria-label="Weitere Aktionen" title="Weitere Aktionen">
+                <Ellipsis />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="w-auto min-w-56">
+              <DropdownMenuItem disabled={servers.length === 0 || checkAll !== null} onSelect={onCheckAll}>
+                <RefreshCw className={checkAll ? "animate-spin" : undefined} />
+                {checkAll ? `Prüfe … ${checkAll.done} von ${checkAll.total}` : "Alle Server prüfen"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={onExport}>
+                <Download /> Backup exportieren…
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={onImport}>
+                <ArchiveRestore /> Backup wiederherstellen…
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm" aria-label="Weitere Aktionen" title="Weitere Aktionen">
-              <Ellipsis />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top" className="w-auto min-w-56">
-            <DropdownMenuItem disabled={servers.length === 0 || checkAll !== null} onSelect={onCheckAll}>
-              <RefreshCw className={checkAll ? "animate-spin" : undefined} />
-              {checkAll ? `Prüfe … ${checkAll.done} von ${checkAll.total}` : "Alle Server prüfen"}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={onExport}>
-              <Download /> Backup exportieren…
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={onImport}>
-              <ArchiveRestore /> Backup wiederherstellen…
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </SidebarFooter>
     </Sidebar>
   );
