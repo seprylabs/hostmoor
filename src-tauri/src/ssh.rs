@@ -261,6 +261,7 @@ pub fn open_terminal(
     terminal: Option<&str>,
 ) -> Result<(), String> {
     use std::io::Write;
+    #[cfg(unix)]
     use std::os::unix::fs::OpenOptionsExt;
 
     let command = interactive_command(server, dir)?;
@@ -275,10 +276,11 @@ pub fn open_terminal(
     );
     // Neu anlegen statt überschreiben: folgt keinem vorab platzierten Symlink,
     // und die Datei ist von Anfang an nur für dich les- und ausführbar
-    std::fs::OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .mode(0o700)
+    let mut options = std::fs::OpenOptions::new();
+    options.write(true).create_new(true);
+    #[cfg(unix)]
+    options.mode(0o700);
+    options
         .open(&path)
         .and_then(|mut file| file.write_all(script.as_bytes()))
         .map_err(|e| e.to_string())?;
