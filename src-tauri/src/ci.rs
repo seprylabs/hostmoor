@@ -422,12 +422,12 @@ mod tests {
     #[test]
     fn parses_common_repo_urls() {
         let gh = |p: &str| (Forge::Github, "github.com".to_string(), p.to_string());
-        assert_eq!(parsed("git@github.com:spmedia/shop.git"), gh("spmedia/shop"));
-        assert_eq!(parsed("https://github.com/spmedia/shop"), gh("spmedia/shop"));
-        assert_eq!(parsed("https://github.com/spmedia/shop.git"), gh("spmedia/shop"));
-        assert_eq!(parsed("https://github.com/spmedia/shop/tree/main"), gh("spmedia/shop"));
-        assert_eq!(parsed("github.com/spmedia/shop"), gh("spmedia/shop"));
-        assert_eq!(parsed("https://user@GitHub.com/spmedia/shop/"), gh("spmedia/shop"));
+        assert_eq!(parsed("git@github.com:owner/repo.git"), gh("owner/repo"));
+        assert_eq!(parsed("https://github.com/owner/repo"), gh("owner/repo"));
+        assert_eq!(parsed("https://github.com/owner/repo.git"), gh("owner/repo"));
+        assert_eq!(parsed("https://github.com/owner/repo/tree/main"), gh("owner/repo"));
+        assert_eq!(parsed("github.com/owner/repo"), gh("owner/repo"));
+        assert_eq!(parsed("https://user@GitHub.com/owner/repo/"), gh("owner/repo"));
 
         assert_eq!(
             parsed("git@gitlab.com:agentur/kunde/shop.git"),
