@@ -17,8 +17,11 @@ const projectOfDeploy = new Map<string, string>();
 /** Letzter abgeschlossener Deploy je Projekt aus der Datenbank */
 let last = new Map<string, LastDeploy>();
 const listeners = new Set<() => void>();
+/** Laufende Deploys aller Projekte; neu berechnet bei jeder Änderung, damit die Referenz stabil bleibt */
+let running: LiveDeploy[] = [];
 
 function notify() {
+  running = [...byProject.values()].filter((d) => d.status === "running");
   listeners.forEach((l) => l());
 }
 
@@ -80,6 +83,12 @@ function subscribe(listener: () => void) {
 export function useLiveDeploy(projectId: string): LiveDeploy | undefined {
   ensureSubscribed();
   return useSyncExternalStore(subscribe, () => byProject.get(projectId));
+}
+
+/** Alle gerade laufenden Deploys, für die Box „Läuft gerade“ */
+export function useRunningDeploys(): LiveDeploy[] {
+  ensureSubscribed();
+  return useSyncExternalStore(subscribe, () => running);
 }
 
 /** Für die Seitenleiste: läuft gerade etwas, sonst Status des letzten Deploys */

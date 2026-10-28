@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import {
+  Activity,
   ArchiveRestore,
   Building2,
   ChevronRight,
@@ -10,6 +11,7 @@ import {
   Loader2,
   Plus,
   RefreshCw,
+  Rocket,
   Search,
   Server as ServerIcon,
   Star,
@@ -46,6 +48,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ProjectStatusIcons } from "@/components/deploy-status";
 import { HealthDot } from "@/components/health-dot";
 import { useActiveRuns } from "@/hooks/use-ci-overview";
+import { useRunningDeploys } from "@/hooks/use-live-deploys";
 import { cn } from "@/lib/utils";
 import { providerLabel, serverHealth, stackLabel } from "@/lib/format";
 import type { Customer, EntityKind, Project, Selection, Server } from "@/types";
@@ -93,6 +96,7 @@ export function AppSidebar({
   checkAll,
 }: Props) {
   const activeRuns = useActiveRuns();
+  const runningDeploys = useRunningDeploys();
   const [groupBy, setGroupBy] = useState<GroupBy>("customer");
   const [query, setQuery] = useState("");
   const [collapsed, setCollapsed] = useState(loadCollapsed);
@@ -133,6 +137,24 @@ export function AppSidebar({
       .filter((s) => s.favorite && matchesServer(s))
       .map((s) => ({ kind: "server" as const, id: s.id, name: s.name, icon: ServerIcon })),
   ].sort((a, b) => a.name.localeCompare(b.name, "de"));
+
+  // Eigene Deploys zuerst, dann CI-Läufe; beide führen zum Projekt
+  const running = [
+    ...runningDeploys.map((d) => {
+      const project = projects.find((p) => p.id === d.projectId);
+      const server = project?.serverId ? serverById.get(project.serverId) : undefined;
+      const label = server ? `Deploy auf ${server.name}` : "Deploy";
+      return { key: `deploy-${d.deployId}`, projectId: d.projectId, deploy: true, queued: false, label, title: label };
+    }),
+    ...activeRuns.map(({ projectId, run }) => ({
+      key: `ci-${projectId}-${run.id}`,
+      projectId,
+      deploy: false,
+      queued: run.status === "queued",
+      label: `${run.status === "queued" ? "Wartet · " : ""}${run.workflow ?? run.title}`,
+      title: `${run.title}${run.branch ? ` · ${run.branch}` : ""}`,
+    })),
+  ];
 
   return (
     <Sidebar>
@@ -339,33 +361,33 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter>
-        {activeRuns.length > 0 && (
+        {running.length > 0 && (
           <div className="bg-sidebar-accent/60 ring-sidebar-border rounded-lg p-1 ring-1">
             <p className="text-muted-foreground flex items-center gap-1.5 px-2 pt-1 pb-0.5 text-xs font-medium">
-              <Workflow className="text-ci size-3" /> Läuft gerade
-              <span className="ml-auto tabular-nums">{activeRuns.length}</span>
+              <Activity className="size-3" /> Läuft gerade
+              <span className="ml-auto tabular-nums">{running.length}</span>
             </p>
             <div className="max-h-40 overflow-y-auto">
-              {activeRuns.map(({ projectId, run }) => (
+              {running.map((item) => (
                 <button
-                  key={`${projectId}-${run.id}`}
-                  onClick={() => onSelect({ kind: "project", id: projectId })}
+                  key={item.key}
+                  onClick={() => onSelect({ kind: "project", id: item.projectId })}
                   className={cn(
                     "hover:bg-sidebar-accent flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left",
-                    isSelected("project", projectId) && "bg-sidebar-accent",
+                    isSelected("project", item.projectId) && "bg-sidebar-accent",
                   )}
-                  title={`${run.title}${run.branch ? ` · ${run.branch}` : ""}`}
+                  title={item.title}
                 >
-                  {run.status === "queued" ? (
+                  {item.queued ? (
                     <CircleDashed className="text-muted-foreground size-3.5 shrink-0" />
                   ) : (
-                    <Loader2 className="text-ci size-3.5 shrink-0 animate-spin" />
+                    <Loader2 className={cn("size-3.5 shrink-0 animate-spin", item.deploy ? "text-info" : "text-ci")} />
                   )}
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm">{projects.find((p) => p.id === projectId)?.name ?? "Projekt"}</span>
-                    <span className="text-muted-foreground block truncate text-xs">
-                      {run.status === "queued" ? "Wartet · " : ""}
-                      {run.workflow ?? run.title}
+                    <span className="block truncate text-sm">{projects.find((p) => p.id === item.projectId)?.name ?? "Projekt"}</span>
+                    <span className="text-muted-foreground flex items-center gap-1 truncate text-xs">
+                      {item.deploy ? <Rocket className="size-3 shrink-0" /> : <Workflow className="size-3 shrink-0" />}
+                      <span className="truncate">{item.label}</span>
                     </span>
                   </span>
                 </button>
