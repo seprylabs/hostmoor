@@ -243,7 +243,8 @@ pub fn interactive_command(server: &Server, dir: Option<&str>) -> Result<String,
 /// Dafür wird eine kurzlebige .command-Datei angelegt, die sich beim Start selbst löscht;
 /// so braucht die App keine Berechtigung, das Terminal fernzusteuern.
 pub fn open_terminal(server: &Server, dir: Option<&str>, terminal: Option<&str>) -> Result<(), String> {
-    use std::os::unix::fs::PermissionsExt;
+    use std::io::Write;
+    use std::os::unix::fs::OpenOptionsExt;
 
     let command = interactive_command(server, dir)?;
     let stamp = std::time::SystemTime::now()
@@ -255,8 +256,15 @@ pub fn open_terminal(server: &Server, dir: Option<&str>, terminal: Option<&str>)
         "#!/bin/sh\nrm -f \"$0\"\nprintf '%s\\n\\n' {}\nexec {command}\n",
         shell_quote(&format!("StackPort: {} ({})", server.name, server.host)),
     );
-    std::fs::write(&path, script).map_err(|e| e.to_string())?;
-    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o700)).map_err(|e| e.to_string())?;
+    // Neu anlegen statt überschreiben: folgt keinem vorab platzierten Symlink,
+    // und die Datei ist von Anfang an nur für dich les- und ausführbar
+    std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(0o700)
+        .open(&path)
+        .and_then(|mut file| file.write_all(script.as_bytes()))
+        .map_err(|e| e.to_string())?;
     crate::terminal::launch(terminal, &path).inspect_err(|_| {
         let _ = std::fs::remove_file(&path);
     })
