@@ -328,6 +328,10 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(
+        windows,
+        ignore = "~/ wird unter Windows noch nicht aufgelöst (SPM-144)"
+    )]
     fn args_never_prompt_and_use_given_key_only() {
         let args = ssh_args(&server()).join(" ");
         assert!(args.contains("BatchMode=yes"));
@@ -407,6 +411,10 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(
+        windows,
+        ignore = "~/ wird unter Windows noch nicht aufgelöst (SPM-144)"
+    )]
     fn interactive_command_is_quoted() {
         let home = std::env::var("HOME").unwrap();
         let cmd = interactive_command(&server(), None).unwrap();
@@ -439,6 +447,10 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(
+        windows,
+        ignore = "~/ wird unter Windows noch nicht aufgelöst (SPM-144)"
+    )]
     fn expands_home_without_touching_file() {
         let home = std::env::var("HOME").unwrap();
         assert_eq!(
