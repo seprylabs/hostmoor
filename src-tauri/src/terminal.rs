@@ -46,7 +46,9 @@ const APPS: &[App] = &[
         name: "Ghostty",
         bundle: "com.mitchellh.ghostty",
         file: "Ghostty.app",
-        launch: Launch::OpenFile,
+        // Beim Öffnen einer Datei fragt Ghostty jedes Mal nach und startet eine Shell im
+        // Temp-Ordner, die nach dem SSH-Ende offen bleibt; mit -e läuft nur das Skript
+        launch: Launch::Args(&["-e"]),
     },
     App {
         id: "wezterm",
