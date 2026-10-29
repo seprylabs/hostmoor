@@ -1,13 +1,12 @@
 //! Pipeline-Läufe von GitHub Actions und GitLab CI.
 //!
-//! Tokens liegen im macOS-Schlüsselbund (ein Eintrag pro Host) und verlassen
+//! Tokens liegen im Schlüsselbund des Systems (ein Eintrag pro Host) und verlassen
 //! den Rust-Teil nie; die Oberfläche erfährt nur, ob einer hinterlegt ist.
 
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
-#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 const KEYCHAIN_SERVICE: &str = "de.spmedia.stackport.ci";
 const RUNS_PER_PAGE: u32 = 10;
 const USER_AGENT: &str = concat!("StackPort/", env!("CARGO_PKG_VERSION"));
@@ -144,44 +143,36 @@ pub enum CiResult {
     },
 }
 
-// --- Schlüsselbund ---------------------------------------------------------
+// --- Credential store --------------------------------------------------------
 
-/// errSecItemNotFound: kein Eintrag vorhanden
-#[cfg(target_os = "macos")]
-const ERR_NOT_FOUND: i32 = -25300;
+fn entry(host: &str) -> Result<keyring::Entry, String> {
+    keyring::Entry::new(KEYCHAIN_SERVICE, host).map_err(|e| store_error(host, e))
+}
 
-/// Ok(None) = kein Token hinterlegt; Err = Schlüsselbund verweigert oder Fehler
-#[cfg(target_os = "macos")]
+fn store_error(host: &str, e: keyring::Error) -> String {
+    tr!(
+        "Could not access the token for {host} in the system keychain ({e}).",
+        "Auf den Token für {host} im Schlüsselbund des Systems konnte nicht zugegriffen werden ({e})."
+    )
+}
+
+/// Ok(None) = no token stored; Err = keychain refused access or is unavailable
 pub fn token(host: &str) -> Result<Option<String>, String> {
-    match security_framework::passwords::get_generic_password(KEYCHAIN_SERVICE, host) {
-        Ok(bytes) => Ok(String::from_utf8(bytes).ok().filter(|t| !t.is_empty())),
-        Err(e) if e.code() == ERR_NOT_FOUND => Ok(None),
-        Err(e) => Err(tr!(
-            "Could not read the token for {host} from the Keychain ({}, code {}).",
-            "Der Token für {host} konnte nicht aus dem Schlüsselbund gelesen werden ({}, Code {}).",
-            e,
-            e.code()
-        )),
+    match entry(host)?.get_password() {
+        Ok(token) => Ok(Some(token).filter(|t| !t.is_empty())),
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(e) => Err(store_error(host, e)),
     }
 }
 
-#[cfg(target_os = "macos")]
 pub fn set_token(host: &str, token: Option<&str>) -> Result<(), String> {
+    let entry = entry(host)?;
     match token.map(str::trim).filter(|t| !t.is_empty()) {
         Some(token) => {
-            security_framework::passwords::set_generic_password(
-                KEYCHAIN_SERVICE,
-                host,
-                token.as_bytes(),
-            )
-            .map_err(|e| {
-                tr!(
-                    "Could not save the token in the Keychain: {e} (code {})",
-                    "Token konnte nicht im Schlüsselbund gespeichert werden: {e} (Code {})",
-                    e.code()
-                )
-            })?;
-            // Gegenprobe, damit ein Problem sofort beim Speichern auffällt und nicht erst beim Laden
+            entry
+                .set_password(token)
+                .map_err(|e| store_error(host, e))?;
+            // Read back, so a problem shows up when saving and not only when loading
             match self::token(host)? {
                 Some(stored) if stored == token => Ok(()),
                 _ => Err(tr!(
@@ -190,26 +181,12 @@ pub fn set_token(host: &str, token: Option<&str>) -> Result<(), String> {
                 )),
             }
         }
-        None => {
-            // Nicht vorhanden ist beim Entfernen kein Fehler
-            let _ = security_framework::passwords::delete_generic_password(KEYCHAIN_SERVICE, host);
-            Ok(())
-        }
+        // Not existing is not an error when removing
+        None => match entry.delete_credential() {
+            Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+            Err(e) => Err(store_error(host, e)),
+        },
     }
-}
-
-// Außerhalb von macOS (z. B. für cargo check und Tests in Linux-Sandboxen) gibt es keinen Schlüsselbund
-#[cfg(not(target_os = "macos"))]
-pub fn token(_host: &str) -> Result<Option<String>, String> {
-    Ok(None)
-}
-
-#[cfg(not(target_os = "macos"))]
-pub fn set_token(_host: &str, _token: Option<&str>) -> Result<(), String> {
-    Err(tr!(
-        "Tokens can only be stored in the macOS Keychain.",
-        "Tokens lassen sich nur unter macOS im Schlüsselbund speichern."
-    ))
 }
 
 // --- API -------------------------------------------------------------------

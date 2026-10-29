@@ -23,7 +23,9 @@ pub fn run() {
         .setup(|app| {
             // System language until the UI sends the user's choice
             i18n::set(None);
-            // ~/Library/Application Support/de.spmedia.stackport/stackport.db
+            // macOS: ~/Library/Application Support/de.spmedia.stackport/stackport.db
+            // Windows: %APPDATA%\de.spmedia.stackport\stackport.db
+            // Linux: ~/.local/share/de.spmedia.stackport/stackport.db
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
             app.manage(db::Db::open(&dir.join("stackport.db"))?);

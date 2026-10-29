@@ -57,6 +57,7 @@ import { HealthDot } from "@/components/health-dot";
 import { useActiveRuns } from "@/hooks/use-ci-overview";
 import { useRunningDeploys } from "@/hooks/use-live-deploys";
 import { applyLanguage, languageSetting, type LanguageSetting } from "@/i18n";
+import { platform } from "@/lib/platform";
 import { cn } from "@/lib/utils";
 import { providerLabel, serverHealth, stackLabel } from "@/lib/format";
 import type { Customer, EntityKind, Project, Selection, Server } from "@/types";
@@ -171,8 +172,8 @@ export function AppSidebar({
 
   return (
     <Sidebar>
-      {/* Platz für die macOS-Ampel, gleichzeitig Fenster-Ziehbereich */}
-      <SidebarHeader data-tauri-drag-region className="gap-3 pt-10">
+      {/* Platz für die macOS-Ampel, gleichzeitig Fenster-Ziehbereich; Windows und Linux haben eine eigene Titelleiste */}
+      <SidebarHeader data-tauri-drag-region className={cn("gap-3", platform === "macos" ? "pt-10" : "pt-3")}>
         <div className="flex gap-2">
           <ToggleGroup
             type="single"

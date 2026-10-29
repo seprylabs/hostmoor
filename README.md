@@ -1,6 +1,6 @@
 # StackPort
 
-macOS-App, die eigene Server und Kundenserver (Hetzner, netcup …) mit ihren Projekten an einem Ort zeigt, gedacht für die Arbeit mit Laravel und WordPress.
+Desktop-App für macOS, Windows und Linux, die eigene Server und Kundenserver (Hetzner, netcup …) mit ihren Projekten an einem Ort zeigt, gedacht für die Arbeit mit Laravel und WordPress.
 
 **Stack:** Tauri 2 (Rust) · React 19 · TypeScript · Tailwind CSS 4 · shadcn/ui · SQLite
 
@@ -12,22 +12,22 @@ macOS-App, die eigene Server und Kundenserver (Hetzner, netcup …) mit ihren Pr
 - Backup als JSON exportieren und wiederherstellen
 - SSH-Zugang nur über lokale Keys: die App speichert nur den **Pfad** zum Key und liest die Key-Datei nie
 - Verbindungstest mit Einrichtungshilfe (erkannte Ursache plus Befehle zum Selbst-Ausführen)
-- Button „Terminal“: öffnet das Mac-Terminal mit einer SSH-Sitzung, bei Projekten direkt im Projektordner
+- Button „Terminal“: öffnet ein Terminal mit einer SSH-Sitzung (macOS: Terminal, iTerm2, Ghostty …; Linux: GNOME Terminal, Konsole …; Windows: Standard-Konsole bzw. Windows Terminal), bei Projekten direkt im Projektordner
 - Server-Check auf Knopfdruck: PHP, Composer, Node/npm, Git, WP-CLI, Webserver, Datenbank, Redis, RAM, Platten. Das Skript (`src-tauri/src/check.sh`) liest nur. Das Ergebnis wird lokal gespeichert, nach 30 Tagen als veraltet markiert, und es wird nie automatisch geprüft
-- Deploy-Skripte pro Projekt: Vorlagen für Laravel/WordPress, Bestätigung vor dem Start, Live-Ausgabe, Abbrechen, Verlauf der letzten 20 Deploys, macOS-Mitteilung am Ende (wenn das Fenster im Hintergrund ist oder der Deploy länger als eine Minute lief)
+- Deploy-Skripte pro Projekt: Vorlagen für Laravel/WordPress, Bestätigung vor dem Start, Live-Ausgabe, Abbrechen, Verlauf der letzten 20 Deploys, Systemmitteilung am Ende (wenn das Fenster im Hintergrund ist oder der Deploy länger als eine Minute lief)
 - „Alle Server prüfen“ im ⋯-Menü der Seitenleiste (drei Server gleichzeitig, Zusammenfassung am Ende)
-- GitHub Actions und GitLab-Pipelines pro Projekt (auch selbst gehostetes GitLab); Tokens liegen im macOS-Schlüsselbund
-- Pipelines aller Projekte im Hintergrund (alle 60 s, 15 s solange etwas läuft, per ETag): „Läuft gerade“ in der Seitenleiste und macOS-Mitteilung bei Start, Erfolg und Fehlschlag
+- GitHub Actions und GitLab-Pipelines pro Projekt (auch selbst gehostetes GitLab); Tokens liegen im Schlüsselbund des Systems (macOS-Schlüsselbund, Windows-Anmeldeinformationsverwaltung, Secret Service unter Linux)
+- Pipelines aller Projekte im Hintergrund (alle 60 s, 15 s solange etwas läuft, per ETag): „Läuft gerade“ in der Seitenleiste und Systemmitteilung bei Start, Erfolg und Fehlschlag
 - Seitenleiste zeigt laufende und fehlgeschlagene Deploys pro Projekt
 
 ## Entwicklung
 
-Voraussetzungen: Rust (`rustup`), Xcode Command Line Tools, Node 22 (siehe `.nvmrc`).
+Voraussetzungen: Rust (`rustup`), Node 22 (siehe `.nvmrc`) und je nach System die [Tauri-Voraussetzungen](https://v2.tauri.app/start/prerequisites/): Xcode Command Line Tools (macOS), Microsoft C++ Build Tools und WebView2 (Windows) bzw. `libwebkit2gtk-4.1-dev` und Co. (Linux). SSH braucht unter Windows den OpenSSH-Client (bei Windows 10 und 11 dabei).
 
 ```bash
 npm install
 npm run tauri dev      # App mit Hot-Reload starten
-npm run tauri build    # StackPort.app bauen → src-tauri/target/release/bundle/macos/
+npm run tauri build    # Installer bauen → src-tauri/target/release/bundle/ (dmg, msi/nsis, AppImage/deb/rpm)
 ```
 
 Rust-Tests:
@@ -40,7 +40,13 @@ Ohne Tauri läuft die Oberfläche auch im Browser (`npm run dev`, http://localho
 
 ## Daten
 
-Die Datenbank liegt unter `~/Library/Application Support/de.spmedia.stackport/stackport.db`. Schema-Migrationen stehen in `src-tauri/src/db.rs` (`MIGRATIONS`) und laufen beim Start automatisch.
+Die Datenbank `stackport.db` liegt im App-Datenordner `de.spmedia.stackport`:
+
+- macOS: `~/Library/Application Support/de.spmedia.stackport/`
+- Windows: `%APPDATA%\de.spmedia.stackport\`
+- Linux: `~/.local/share/de.spmedia.stackport/`
+
+Schema-Migrationen stehen in `src-tauri/src/db.rs` (`MIGRATIONS`) und laufen beim Start automatisch.
 
 ## Aufbau
 

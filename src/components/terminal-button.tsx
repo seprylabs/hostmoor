@@ -17,7 +17,8 @@ import { listTerminals, openTerminal } from "@/lib/api";
 import type { TerminalApp } from "@/types";
 
 const TERMINAL_KEY = "stackport-terminal";
-/** Wert für „macOS-Standard“: die App, die im Finder für .command-Dateien eingestellt ist */
+/** Systemstandard: unter macOS die App, die im Finder für .command-Dateien eingestellt ist,
+ *  unter Linux x-terminal-emulator; Windows kennt nur diesen */
 const DEFAULT = "default";
 
 // Installierte Apps ändern sich selten, einmal pro Start reicht
@@ -43,7 +44,7 @@ export function TerminalButton({ serverId, dir }: { serverId: string; dir?: stri
     loadTerminals().then(setTerminals);
   }, []);
 
-  // Gewählte App deinstalliert → wieder macOS-Standard
+  // Gewählte App deinstalliert → wieder Systemstandard
   const selected = terminals.find((t) => t.id === choice);
   const label = selected?.name ?? "Terminal";
 
@@ -69,37 +70,40 @@ export function TerminalButton({ serverId, dir }: { serverId: string; dir?: stri
       <Button
         size="sm"
         variant="outline"
-        className="rounded-r-none"
+        className={terminals.length > 0 ? "rounded-r-none" : undefined}
         onClick={open}
         title={dir ? t("terminal.button.openTitleInDir", { app: label, dir }) : t("terminal.button.openTitle", { app: label })}
       >
         <SquareTerminal /> {label}
       </Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            size="icon-sm"
-            variant="outline"
-            className="rounded-l-none border-l-0"
-            aria-label={t("terminal.button.chooseApp")}
-            title={t("terminal.button.chooseApp")}
-          >
-            <ChevronDown />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-auto min-w-48">
-          <DropdownMenuLabel>{t("terminal.button.openWith")}</DropdownMenuLabel>
-          <DropdownMenuRadioGroup value={selected?.id ?? DEFAULT} onValueChange={choose}>
-            <DropdownMenuRadioItem value={DEFAULT}>{t("terminal.button.macosDefault")}</DropdownMenuRadioItem>
-            {terminals.length > 0 && <DropdownMenuSeparator />}
-            {terminals.map((t) => (
-              <DropdownMenuRadioItem key={t.id} value={t.id}>
-                {t.name}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* Nichts zur Auswahl (Windows): nur der Knopf */}
+      {terminals.length > 0 && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="icon-sm"
+              variant="outline"
+              className="rounded-l-none border-l-0"
+              aria-label={t("terminal.button.chooseApp")}
+              title={t("terminal.button.chooseApp")}
+            >
+              <ChevronDown />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-auto min-w-48">
+            <DropdownMenuLabel>{t("terminal.button.openWith")}</DropdownMenuLabel>
+            <DropdownMenuRadioGroup value={selected?.id ?? DEFAULT} onValueChange={choose}>
+              <DropdownMenuRadioItem value={DEFAULT}>{t("terminal.button.systemDefault")}</DropdownMenuRadioItem>
+              {terminals.length > 0 && <DropdownMenuSeparator />}
+              {terminals.map((t) => (
+                <DropdownMenuRadioItem key={t.id} value={t.id}>
+                  {t.name}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   );
 }

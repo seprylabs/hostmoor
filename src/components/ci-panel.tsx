@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import { useProjectCi } from "@/hooks/use-ci-overview";
 import { ciRuns, openExternal, setCiToken } from "@/lib/api";
 import { formatDateTime, formatRelative } from "@/lib/format";
+import { platform } from "@/lib/platform";
 import { cn } from "@/lib/utils";
 import type { CiRepo, CiResult, CiRun, CiRunStatus, Project } from "@/types";
 
@@ -274,7 +275,7 @@ function TokenDialog({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("ci.token.title", { host: repo.host })}</DialogTitle>
-            <DialogDescription>{t("ci.token.description", { host: repo.host })}</DialogDescription>
+            <DialogDescription>{t("ci.token.description", { host: repo.host, store: t(`ci.token.store.${platform}`) })}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm">
             <p className="text-muted-foreground">{help.text}</p>

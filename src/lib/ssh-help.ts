@@ -1,5 +1,6 @@
 import i18n from "i18next";
 
+import { platform } from "@/lib/platform";
 import type { ConnectionStatus, Server } from "@/types";
 
 export interface HelpStep {
@@ -19,9 +20,20 @@ export interface ConnectionHelp {
 
 const DEFAULT_KEY = "~/.ssh/id_ed25519";
 
-/** Für die Shell quoten; ein führendes ~/ bleibt frei, damit die Shell es auflöst */
+/** Quotes a path for the user's shell. On macOS/Linux a leading ~/ stays unquoted so the
+ *  shell resolves it; PowerShell on Windows gets $HOME instead, because Windows PowerShell 5
+ *  does not expand ~ for programs like ssh-keygen */
 function shellPath(path: string): string {
-  const quote = (s: string) => (/^[\w./@:+-]+$/.test(s) ? s : `'${s.replace(/'/g, `'\\''`)}'`);
+  const plain = (s: string) => /^[\w./@:+-]+$/.test(s);
+  if (platform === "windows") {
+    const home = path.startsWith("~/");
+    const rest = home ? path.slice(2) : path;
+    if (plain(rest)) return home ? `$HOME/${rest}` : rest;
+    // Double quotes keep $HOME working; `, " and $ in the path are escaped with a backtick
+    const escaped = rest.replace(/[`"$]/g, "`$&");
+    return home ? `"$HOME/${escaped}"` : `"${escaped}"`;
+  }
+  const quote = (s: string) => (plain(s) ? s : `'${s.replace(/'/g, `'\\''`)}'`);
   return path.startsWith("~/") ? `~/${quote(path.slice(2))}` : quote(path);
 }
 
@@ -42,7 +54,9 @@ function suggestedKeyPath(server: Server) {
 
 /** Kommentar im öffentlichen Key, damit man ihn auf dem Server wiedererkennt */
 function keyComment(server: Server) {
-  return `'${`${server.name || server.host} (StackPort)`.replace(/'/g, `'\\''`)}'`;
+  const comment = `${server.name || server.host} (StackPort)`;
+  // PowerShell escapes ' by doubling it, POSIX shells by closing and reopening the quote
+  return `'${comment.replace(/'/g, platform === "windows" ? "''" : `'\\''`)}'`;
 }
 
 function portFlag(server: Server) {
@@ -113,15 +127,24 @@ export function connectionHelp(status: ConnectionStatus, server: Server): Connec
       steps.push(
         {
           text: i18n.t("sshHelp.authFailed.copyId"),
-          command: `ssh-copy-id -i ${shellPath(`${key}.pub`)}${portFlag(server)} ${destination(server)}`,
+          // Windows has no ssh-copy-id; pipe the key into authorized_keys on the server instead
+          command:
+            platform === "windows"
+              ? `Get-Content ${shellPath(`${key}.pub`)} | ssh${portFlag(server)} ${destination(server)} "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"`
+              : `ssh-copy-id -i ${shellPath(`${key}.pub`)}${portFlag(server)} ${destination(server)}`,
         },
         {
-          text: i18n.t("sshHelp.authFailed.pbcopy"),
-          command: `pbcopy < ${shellPath(`${key}.pub`)}`,
+          text: i18n.t(platform === "linux" ? "sshHelp.authFailed.showPublicKey" : "sshHelp.authFailed.pbcopy"),
+          command: {
+            macos: `pbcopy < ${shellPath(`${key}.pub`)}`,
+            windows: `Get-Content ${shellPath(`${key}.pub`)} | Set-Clipboard`,
+            // Clipboard tools differ between X11 and Wayland, so just print it
+            linux: `cat ${shellPath(`${key}.pub`)}`,
+          }[platform],
         },
         {
-          text: i18n.t("sshHelp.authFailed.passphrase"),
-          command: `ssh-add --apple-use-keychain ${shellPath(key)}`,
+          text: i18n.t(platform === "macos" ? "sshHelp.authFailed.passphrase" : "sshHelp.authFailed.passphraseAgent"),
+          command: platform === "macos" ? `ssh-add --apple-use-keychain ${shellPath(key)}` : `ssh-add ${shellPath(key)}`,
         },
         retry,
       );
@@ -141,7 +164,7 @@ export function connectionHelp(status: ConnectionStatus, server: Server): Connec
         title: i18n.t("sshHelp.keyNotFound.title"),
         explanation: i18n.t("sshHelp.keyNotFound.explanation", { key }),
         steps: [
-          { text: i18n.t("sshHelp.keyNotFound.listKeys"), command: "ls ~/.ssh" },
+          { text: i18n.t("sshHelp.keyNotFound.listKeys"), command: platform === "windows" ? "ls $HOME/.ssh" : "ls ~/.ssh" },
           { text: i18n.t("sshHelp.keyNotFound.generateKey"), command: `ssh-keygen -t ed25519 -f ${shellPath(key)} -C ${keyComment(server)}` },
           { text: i18n.t("sshHelp.keyNotFound.copyAndRetry") },
         ],
@@ -152,7 +175,14 @@ export function connectionHelp(status: ConnectionStatus, server: Server): Connec
         tone: "error",
         title: i18n.t("sshHelp.keyPermissions.title"),
         explanation: i18n.t("sshHelp.keyPermissions.explanation"),
-        steps: [{ text: i18n.t("sshHelp.keyPermissions.chmod"), command: `chmod 600 ${shellPath(key)}` }, retry],
+        steps: [
+          {
+            text: i18n.t("sshHelp.keyPermissions.chmod"),
+            command:
+              platform === "windows"
+                ? `icacls ${shellPath(key)} /inheritance:r /grant:r "$($env:USERNAME):F"`
+                : `chmod 600 ${shellPath(key)}`,
+          }, retry],
       };
 
     case "dnsFailed":

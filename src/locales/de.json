@@ -219,7 +219,7 @@
       "title": "Verbindung",
       "testing": "Teste …",
       "test": "Verbindung testen",
-      "intro": "Prüft, ob sich dein Mac per SSH an diesem Server anmelden kann. Es wird nichts auf dem Server verändert.",
+      "intro": "Prüft, ob sich dieser Rechner per SSH an diesem Server anmelden kann. Es wird nichts auf dem Server verändert.",
       "duration": "{{seconds}} s",
       "howToFix": "So behebst du es",
       "saved": "Gespeichert",
@@ -243,7 +243,7 @@
       "openTitleInDir": "SSH-Sitzung in {{app}} öffnen, direkt in {{dir}}",
       "chooseApp": "Terminal-App wählen",
       "openWith": "Öffnen mit",
-      "macosDefault": "macOS-Standard"
+      "systemDefault": "Systemstandard"
     }
   },
   "sshHelp": {
@@ -256,7 +256,7 @@
     },
     "unknownHost": {
       "title": "Server ist noch unbekannt",
-      "explanation": "Dein Mac hat sich mit diesem Server noch nie verbunden. Damit sich niemand als dein Server ausgeben kann, bestätigt die App neue Server nicht automatisch."
+      "explanation": "Dieser Rechner hat sich mit diesem Server noch nie verbunden. Damit sich niemand als dein Server ausgeben kann, bestätigt die App neue Server nicht automatisch."
     },
     "hostKeyChanged": {
       "title": "Achtung: Der Server-Schlüssel hat sich geändert",
@@ -272,7 +272,9 @@
       "useKey": "Diesen Key für den Server übernehmen:",
       "copyId": "Öffentlichen Key auf den Server kopieren. Das fragt einmalig nach dem Server-Passwort:",
       "pbcopy": "Kein Passwort-Login möglich? Dann den öffentlichen Key in die Zwischenablage kopieren und im Panel deines Hosters (bzw. Forge, Plesk …) unter „SSH-Keys“ einfügen:",
-      "passphrase": "Hat dein Key eine Passphrase? Die App kann sie nicht abfragen. Hinterlege sie einmal im macOS-Schlüsselbund:"
+      "passphrase": "Hat dein Key eine Passphrase? Die App kann sie nicht abfragen. Hinterlege sie einmal im macOS-Schlüsselbund:",
+      "showPublicKey": "Kein Passwort-Login möglich? Dann den öffentlichen Key anzeigen, kopieren und im Panel deines Hosters (bzw. Forge, Plesk …) unter „SSH-Keys“ einfügen:",
+      "passphraseAgent": "Hat dein Key eine Passphrase? Die App kann sie nicht abfragen. Füge den Key einmal dem laufenden SSH-Agent hinzu:"
     },
     "keyNotFound": {
       "title": "Key-Datei nicht gefunden",
@@ -356,7 +358,7 @@
     },
     "token": {
       "title": "Token für {{host}}",
-      "description": "Der Token wird im macOS-Schlüsselbund gespeichert, nicht in der StackPort-Datenbank und nicht im Backup. Er gilt für alle Projekte auf {{host}}.",
+      "description": "Der Token wird in der {{store}} gespeichert, nicht in der StackPort-Datenbank und nicht im Backup. Er gilt für alle Projekte auf {{host}}.",
       "helpGithub": "Empfohlen: ein „Fine-grained token“ mit „Actions: Read-only“ für die gewünschten Repos. Gehört das Repo einer Organisation, muss sie als Resource owner gewählt sein, und der Token darf nicht auf Freigabe warten („Pending“). Alternativ geht ein „Token (classic)“ mit dem Scope repo, der darf aber deutlich mehr.",
       "helpGitlab": "Auf {{host}} einen „Personal access token“ mit dem Scope read_api anlegen. Mehr braucht StackPort nicht.",
       "openTokenPage": "Token-Seite öffnen",
@@ -364,7 +366,12 @@
       "placeholder": "Token einfügen",
       "remove": "Token entfernen",
       "saved": "Token im Schlüsselbund gespeichert",
-      "removed": "Token entfernt"
+      "removed": "Token entfernt",
+      "store": {
+        "macos": "Schlüsselbundverwaltung von macOS",
+        "windows": "Windows-Anmeldeinformationsverwaltung",
+        "linux": "Schlüsselverwaltung des Systems (GNOME Keyring oder KWallet)"
+      }
     }
   },
   "deploy": {
