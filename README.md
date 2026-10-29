@@ -61,17 +61,7 @@ StackPort has SSH and deploy access to your servers, so it is built to need as l
 
 Found a vulnerability? Please report it privately, see [SECURITY.md](SECURITY.md).
 
-## How it compares
-
-| | StackPort | Laravel Forge, Ploi | Termius |
-| --- | --- | --- | --- |
-| Works with servers you don't manage | ✓ any server with SSH | provisions and manages its own servers | ✓ |
-| Deploy scripts with live output | ✓ | ✓ | – |
-| Customers and projects | ✓ | sites per server | hosts only |
-| Server check (PHP, database, disks …) | ✓ | partly | – |
-| GitHub Actions / GitLab CI | ✓ | ✓ | – |
-| Runs locally, no account | ✓ | SaaS | account for sync |
-| Open source | ✓ AGPL-3.0 | – | – |
+## Scope
 
 StackPort does not provision servers. It is the overview and toolbox for servers that already exist, including client servers where you only have SSH access.
 

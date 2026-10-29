@@ -41,7 +41,7 @@ StackPort nutzt den `ssh`-Client des Systems, unter Windows den OpenSSH-Client v
 
 Sicherheitslücken bitte vertraulich melden, siehe [SECURITY.md](SECURITY.md).
 
-Entwicklung, Vergleich mit Forge, Ploi und Termius sowie die Roadmap stehen im [englischen README](README.md).
+Entwicklung und Roadmap stehen im [englischen README](README.md).
 
 ## Lizenz
 
