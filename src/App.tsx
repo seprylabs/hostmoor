@@ -19,6 +19,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppSidebar } from "@/components/app-sidebar";
+import { loadSidebarWidth, SidebarResizer } from "@/components/sidebar-resizer";
 import { ConfirmDelete, type DeleteRequest } from "@/components/confirm-delete";
 import { CustomerDetail } from "@/components/customer-detail";
 import { EntityDialog, type EditorState } from "@/components/entity-dialog";
@@ -37,6 +38,7 @@ function App() {
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [deleteRequest, setDeleteRequest] = useState<DeleteRequest | null>(null);
   const [importPath, setImportPath] = useState<string | null>(null);
+  const [sidebarWidth, setSidebarWidth] = useState(loadSidebarWidth);
 
   const chooseBackup = async () => {
     try {
@@ -66,7 +68,11 @@ function App() {
 
   return (
     <TooltipProvider>
-      <SidebarProvider className="h-svh">
+      <SidebarProvider
+        // Ohne Übergang folgt die Sidebar beim Ziehen direkt der Maus
+        className="h-svh [&_[data-slot=sidebar-container]]:transition-none [&_[data-slot=sidebar-gap]]:transition-none"
+        style={{ "--sidebar-width": `${sidebarWidth}px` } as React.CSSProperties}
+      >
         <AppSidebar
           customers={customers}
           servers={servers}
@@ -79,6 +85,7 @@ function App() {
           onCheckAll={store.checkAllServers}
           checkAll={store.checkAll}
         />
+        <SidebarResizer width={sidebarWidth} onResize={setSidebarWidth} />
         <SidebarInset className="min-h-0">
           {/* Ziehbereich für das Fenster über dem Inhalt */}
           <div data-tauri-drag-region className="h-8 shrink-0" />

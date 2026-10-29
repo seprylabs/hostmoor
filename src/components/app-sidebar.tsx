@@ -227,8 +227,8 @@ export function AppSidebar({
         )}
 
         {favorites.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>
+          <SidebarGroup className="py-0.5">
+            <SidebarGroupLabel className="h-7">
               <Star className="mr-1.5 size-3 fill-current" /> {t("sidebar.favorites")}
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -238,6 +238,7 @@ export function AppSidebar({
                     <SidebarMenuButton
                       isActive={isSelected(fav.kind, fav.id)}
                       onClick={() => onSelect({ kind: fav.kind, id: fav.id })}
+                      className="h-7"
                     >
                       <fav.icon />
                       <span className="truncate">{fav.name}</span>
@@ -265,12 +266,12 @@ export function AppSidebar({
                   open={open}
                   onOpenChange={(o) => setCustomerOpen(customer.id, o)}
                 >
-                  <SidebarGroup>
+                  <SidebarGroup className="py-0.5">
                     <SidebarGroupLabel asChild>
                       <button
                         onClick={() => onSelect({ kind: "customer", id: customer.id })}
                         className={cn(
-                          "hover:text-sidebar-foreground w-full text-left",
+                          "hover:text-sidebar-foreground h-7 w-full text-left",
                           isSelected("customer", customer.id) && "text-sidebar-foreground",
                         )}
                       >
@@ -279,6 +280,7 @@ export function AppSidebar({
                     </SidebarGroupLabel>
                     <CollapsibleTrigger asChild>
                       <SidebarGroupAction
+                        className="top-1.5"
                         title={open ? t("sidebar.collapse") : t("sidebar.expand")}
                         aria-label={open ? t("sidebar.collapse") : t("sidebar.expand")}
                       >
@@ -298,16 +300,16 @@ export function AppSidebar({
                                 <SidebarMenuButton
                                   isActive={isSelected("project", project.id)}
                                   onClick={() => onSelect({ kind: "project", id: project.id })}
-                                  className="h-auto py-1.5"
+                                  title={`${stackLabel(project.stack)} · ${server?.name ?? t("sidebar.noServer")}`}
+                                  className="h-7"
                                 >
                                   <Globe />
-                                  <div className="flex min-w-0 flex-col">
-                                    <span className="truncate">{project.name}</span>
-                                    <span className="text-muted-foreground truncate text-xs">
-                                      {stackLabel(project.stack)} · {server?.name ?? t("sidebar.noServer")}
-                                    </span>
-                                  </div>
-                                  <span className="ml-auto flex items-center gap-1.5">
+                                  <span className="truncate">{project.name}</span>
+                                  {/* Bekommt nur den Platz, den der Projektname übrig lässt */}
+                                  <span className="text-muted-foreground min-w-0 flex-1 basis-0 truncate pl-1 text-right text-xs">
+                                    {server?.name}
+                                  </span>
+                                  <span className="flex shrink-0 items-center gap-1.5">
                                     <ProjectStatusIcons projectId={project.id} />
                                     {server && <HealthDot health={serverHealth(server.facts)} />}
                                   </span>
@@ -329,8 +331,8 @@ export function AppSidebar({
               const items = list.filter(matchesServer);
               if (items.length === 0) return null;
               return (
-                <SidebarGroup key={key}>
-                  <SidebarGroupLabel>{label}</SidebarGroupLabel>
+                <SidebarGroup key={key} className="py-0.5">
+                  <SidebarGroupLabel className="h-7">{label}</SidebarGroupLabel>
                   <SidebarGroupContent>
                     <SidebarMenu>
                       {items.map((server) => {
@@ -340,6 +342,7 @@ export function AppSidebar({
                             <SidebarMenuButton
                               isActive={isSelected("server", server.id)}
                               onClick={() => onSelect({ kind: "server", id: server.id })}
+                              className="h-7"
                             >
                               <ServerIcon />
                               <span className="truncate">{server.name}</span>

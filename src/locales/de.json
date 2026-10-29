@@ -80,7 +80,11 @@
     "checkAll": "Alle Server prüfen",
     "checkProgress": "Prüfe … {{done}} von {{total}}",
     "exportBackup": "Backup exportieren…",
-    "restoreBackup": "Backup wiederherstellen…"
+    "restoreBackup": "Backup wiederherstellen…",
+    "resizer": {
+      "label": "Breite der Sidebar",
+      "title": "Ziehen zum Anpassen, Doppelklick setzt zurück"
+    }
   },
   "store": {
     "loadFailed": "Daten konnten nicht geladen werden",

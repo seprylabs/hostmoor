@@ -80,7 +80,11 @@
     "checkAll": "Check all servers",
     "checkProgress": "Checking … {{done}} of {{total}}",
     "exportBackup": "Export backup…",
-    "restoreBackup": "Restore backup…"
+    "restoreBackup": "Restore backup…",
+    "resizer": {
+      "label": "Sidebar width",
+      "title": "Drag to resize, double-click to reset"
+    }
   },
   "store": {
     "loadFailed": "Couldn’t load data",
