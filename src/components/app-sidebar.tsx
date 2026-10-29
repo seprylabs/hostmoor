@@ -292,11 +292,7 @@ export function AppSidebar({
                                 >
                                   <Globe />
                                   <span className="truncate">{project.name}</span>
-                                  {/* Bekommt nur den Platz, den der Projektname übrig lässt */}
-                                  <span className="text-muted-foreground min-w-0 flex-1 basis-0 truncate pl-1 text-right text-xs">
-                                    {server?.name}
-                                  </span>
-                                  <span className="flex shrink-0 items-center gap-1.5">
+                                  <span className="ml-auto flex shrink-0 items-center gap-1.5">
                                     <ProjectStatusIcons projectId={project.id} />
                                     {server && <HealthDot health={serverHealth(server.facts)} />}
                                   </span>
