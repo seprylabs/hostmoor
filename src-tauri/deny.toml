@@ -2,7 +2,12 @@
 # Erlaubt sind nur Lizenzen, die mit AGPL-3.0 vereinbar sind.
 
 [graph]
-targets = ["aarch64-apple-darwin", "x86_64-apple-darwin"]
+targets = [
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+  "x86_64-pc-windows-msvc",
+  "x86_64-unknown-linux-gnu",
+]
 
 [licenses]
 allow = [
@@ -15,4 +20,6 @@ allow = [
   "Zlib",
   "Unicode-3.0",
   "MPL-2.0",
+  # Mozilla root certificates (webpki-root-certs, via reqwest on Linux); permissive data license
+  "CDLA-Permissive-2.0",
 ]

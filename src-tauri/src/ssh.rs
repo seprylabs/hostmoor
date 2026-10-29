@@ -1,4 +1,4 @@
-//! Verbindungen über das System-`ssh` des Macs.
+//! Verbindungen über das System-`ssh` (macOS, Linux, OpenSSH unter Windows).
 //!
 //! Die App liest nie den Inhalt einer Key-Datei. Sie prüft höchstens, ob die
 //! Datei existiert, und übergibt den Pfad an `ssh -i`.
@@ -47,10 +47,14 @@ pub struct ConnectionResult {
     pub duration_ms: u64,
 }
 
-/// `~/…` zum Home-Verzeichnis auflösen (ohne die Datei anzufassen)
+/// Resolves `~/…` (on Windows also `~\\…`) to the home directory without touching the file.
+/// `home_dir` reads HOME on Unix and the user profile (USERPROFILE) on Windows.
 pub fn expand_home(path: &str) -> PathBuf {
-    match (path.strip_prefix("~/"), std::env::var_os("HOME")) {
-        (Some(rest), Some(home)) => PathBuf::from(home).join(rest),
+    let rest = path
+        .strip_prefix("~/")
+        .or_else(|| path.strip_prefix("~\\").filter(|_| cfg!(windows)));
+    match (rest, std::env::home_dir()) {
+        (Some(rest), Some(home)) => home.join(rest),
         _ => PathBuf::from(path),
     }
 }
@@ -211,6 +215,8 @@ pub fn shell_quote(s: &str) -> String {
 }
 
 /// Nur quoten, wenn nötig, damit der Befehl im Terminal lesbar bleibt
+// Windows starts ssh.exe with an argument list instead
+#[cfg_attr(windows, allow(dead_code))]
 fn quote_arg(arg: &str) -> String {
     let plain = !arg.is_empty()
         && arg.chars().all(|c| {
@@ -224,14 +230,14 @@ fn quote_arg(arg: &str) -> String {
     }
 }
 
-/// ssh-Befehl für ein interaktives Terminal. Anders als beim Check ohne BatchMode:
-/// Dort darfst du Passphrase oder Host-Bestätigung selbst eingeben.
-/// Mit `dir` wechselt die Sitzung auf dem Server direkt in diesen Ordner.
-pub fn interactive_command(server: &Server, dir: Option<&str>) -> Result<String, String> {
+/// ssh arguments for an interactive terminal. Unlike the check, without BatchMode:
+/// there you may enter a passphrase or confirm the host yourself.
+/// With `dir` the session changes straight into that folder on the server.
+fn interactive_args(server: &Server, dir: Option<&str>) -> Result<Vec<String>, String> {
     validate(server)?;
-    let mut args: Vec<String> = vec!["ssh".into()];
+    let mut args: Vec<String> = Vec::new();
     if dir.is_some() {
-        // Terminal anfordern, obwohl ein Befehl mitgegeben wird
+        // Request a terminal even though a command is given
         args.push("-t".into());
     }
     args.push("-p".into());
@@ -248,30 +254,37 @@ pub fn interactive_command(server: &Server, dir: Option<&str>) -> Result<String,
         None => server.host.clone(),
     });
     if let Some(dir) = dir {
-        // ~/… auf dem Server auflösen lassen, Rest sicher quoten
+        // Let the server resolve ~/…, quote the rest safely
         let target = match dir.strip_prefix("~/") {
             Some(rest) => format!("~/{}", shell_quote(rest)),
             None => shell_quote(dir),
         };
         args.push(format!("cd {target} && exec \"$SHELL\" -l"));
     }
-    Ok(args
-        .iter()
-        .map(|a| quote_arg(a))
+    Ok(args)
+}
+
+/// The same as a command line for a POSIX shell
+// Windows starts ssh.exe with an argument list instead
+#[cfg_attr(windows, allow(dead_code))]
+pub fn interactive_command(server: &Server, dir: Option<&str>) -> Result<String, String> {
+    let args = interactive_args(server, dir)?;
+    Ok(std::iter::once("ssh".to_string())
+        .chain(args.iter().map(|a| quote_arg(a)))
         .collect::<Vec<_>>()
         .join(" "))
 }
 
-/// Öffnet ein Terminal mit einer SSH-Sitzung; `terminal` ist die ID aus `terminal::installed`.
-/// Dafür wird eine kurzlebige .command-Datei angelegt, die sich beim Start selbst löscht;
-/// so braucht die App keine Berechtigung, das Terminal fernzusteuern.
+/// Opens a terminal with an SSH session; `terminal` is an ID from `terminal::installed`.
+/// On macOS and Linux this writes a short-lived script that deletes itself on start,
+/// so the app needs no permission to remote-control the terminal.
+#[cfg(unix)]
 pub fn open_terminal(
     server: &Server,
     dir: Option<&str>,
     terminal: Option<&str>,
 ) -> Result<(), String> {
     use std::io::Write;
-    #[cfg(unix)]
     use std::os::unix::fs::OpenOptionsExt;
 
     let command = interactive_command(server, dir)?;
@@ -284,19 +297,43 @@ pub fn open_terminal(
         "#!/bin/sh\nrm -f \"$0\"\nprintf '%s\\n\\n' {}\nexec {command}\n",
         shell_quote(&format!("StackPort: {} ({})", server.name, server.host)),
     );
-    // Neu anlegen statt überschreiben: folgt keinem vorab platzierten Symlink,
-    // und die Datei ist von Anfang an nur für dich les- und ausführbar
-    let mut options = std::fs::OpenOptions::new();
-    options.write(true).create_new(true);
-    #[cfg(unix)]
-    options.mode(0o700);
-    options
+    // Create instead of overwrite: follows no planted symlink,
+    // and only you can read and run the file from the start
+    std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(0o700)
         .open(&path)
         .and_then(|mut file| file.write_all(script.as_bytes()))
         .map_err(|e| e.to_string())?;
     crate::terminal::launch(terminal, &path).inspect_err(|_| {
         let _ = std::fs::remove_file(&path);
     })
+}
+
+/// On Windows ssh.exe (OpenSSH, part of Windows 10 and 11) starts directly in a new
+/// console window; Windows 11 shows it in Windows Terminal. No script, no shell quoting.
+#[cfg(windows)]
+pub fn open_terminal(
+    server: &Server,
+    dir: Option<&str>,
+    _terminal: Option<&str>,
+) -> Result<(), String> {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NEW_CONSOLE: u32 = 0x0000_0010;
+
+    std::process::Command::new("ssh")
+        .args(interactive_args(server, dir)?)
+        .creation_flags(CREATE_NEW_CONSOLE)
+        .spawn()
+        .map(drop)
+        .map_err(|e| match e.kind() {
+            std::io::ErrorKind::NotFound => tr!(
+                "ssh.exe was not found. Install the optional Windows feature “OpenSSH Client”.",
+                "ssh.exe wurde nicht gefunden. Installiere die optionale Windows-Funktion „OpenSSH-Client“."
+            ),
+            _ => crate::terminal::open_failed(),
+        })
 }
 
 pub async fn test_connection(server: &Server) -> ConnectionResult {
@@ -341,10 +378,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(
-        windows,
-        ignore = "~/ wird unter Windows noch nicht aufgelöst (SPM-144)"
-    )]
     fn args_never_prompt_and_use_given_key_only() {
         let args = ssh_args(&server()).join(" ");
         assert!(args.contains("BatchMode=yes"));
@@ -424,18 +457,12 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(
-        windows,
-        ignore = "~/ wird unter Windows noch nicht aufgelöst (SPM-144)"
-    )]
     fn interactive_command_is_quoted() {
-        let home = std::env::var("HOME").unwrap();
+        let key = quote_arg(&expand_home("~/.ssh/test_key").to_string_lossy());
         let cmd = interactive_command(&server(), None).unwrap();
         assert_eq!(
             cmd,
-            format!(
-                "ssh -p 2222 -i {home}/.ssh/test_key -o IdentitiesOnly=yes -- deploy@203.0.113.10"
-            )
+            format!("ssh -p 2222 -i {key} -o IdentitiesOnly=yes -- deploy@203.0.113.10")
         );
         assert!(!cmd.contains("BatchMode"));
 
@@ -460,16 +487,13 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(
-        windows,
-        ignore = "~/ wird unter Windows noch nicht aufgelöst (SPM-144)"
-    )]
     fn expands_home_without_touching_file() {
-        let home = std::env::var("HOME").unwrap();
-        assert_eq!(
-            expand_home("~/.ssh/x"),
-            PathBuf::from(format!("{home}/.ssh/x"))
-        );
+        let home = std::env::home_dir().unwrap();
+        assert_eq!(expand_home("~/.ssh/x"), home.join(".ssh/x"));
         assert_eq!(expand_home("/abs/key"), PathBuf::from("/abs/key"));
+        // A plain "~" or "~user/" is not ours to resolve
+        assert_eq!(expand_home("~other/key"), PathBuf::from("~other/key"));
+        #[cfg(windows)]
+        assert_eq!(expand_home(r"~\.ssh\x"), home.join(r".ssh\x"));
     }
 }

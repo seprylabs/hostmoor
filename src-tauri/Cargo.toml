@@ -30,9 +30,16 @@ reqwest = { version = "0.13.5", features = ["json"] }
 tauri-plugin-notification = "2.7.0"
 sys-locale = "0.3.2"
 
-# Schlüsselbund für CI-Tokens; nur unter macOS
+# Credential store for CI tokens: macOS Keychain, Windows Credential Manager,
+# Secret Service (GNOME Keyring, KWallet) on Linux via zbus without libdbus
 [target.'cfg(target_os = "macos")'.dependencies]
-security-framework = "3.7.0"
+keyring = { version = "3.6.3", features = ["apple-native"] }
+
+[target.'cfg(windows)'.dependencies]
+keyring = { version = "3.6.3", features = ["windows-native"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+keyring = { version = "3.6.3", features = ["async-secret-service", "tokio", "crypto-rust"] }
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
