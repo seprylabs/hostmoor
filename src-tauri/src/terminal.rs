@@ -129,9 +129,10 @@ pub fn launch(terminal: Option<&str>, script: &Path) -> Result<(), String> {
     }
     let status = cmd.status().map_err(|e| e.to_string())?;
     if !status.success() {
-        return Err(
-            "Das Terminal konnte nicht geöffnet werden. Ist die App noch installiert?".into(),
-        );
+        return Err(tr!(
+            "Could not open the terminal. Is the app still installed?",
+            "Das Terminal konnte nicht geöffnet werden. Ist die App noch installiert?"
+        ));
     }
     Ok(())
 }

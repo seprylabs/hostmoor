@@ -186,17 +186,23 @@ impl<'a> Lines<'a> {
 pub fn parse(stdout: &str, checked_at: String) -> Result<ServerFacts, String> {
     let lines = Lines(stdout.lines().filter_map(|l| l.split_once('=')).collect());
     if lines.get("stackport-check").is_none() {
-        return Err(
+        return Err(tr!(
+            "The server did not run the check script. Does it use a standard shell (sh)?",
             "Der Server hat das Prüfskript nicht ausgeführt. Läuft dort eine Standard-Shell (sh)?"
-                .into(),
-        );
+        ));
     }
     if lines.get("stackport-check-end").is_none() {
-        return Err("Die Prüfung wurde auf dem Server vorzeitig abgebrochen.".into());
+        return Err(tr!(
+            "The check was aborted on the server.",
+            "Die Prüfung wurde auf dem Server vorzeitig abgebrochen."
+        ));
     }
 
     let os = Os {
-        name: lines.get("os_name").unwrap_or("Unbekannt").to_string(),
+        name: lines
+            .get("os_name")
+            .map(String::from)
+            .unwrap_or_else(|| tr!("Unknown", "Unbekannt")),
         version: lines.get("os_version").unwrap_or_default().to_string(),
         kernel: lines.get("kernel").unwrap_or_default().to_string(),
     };
