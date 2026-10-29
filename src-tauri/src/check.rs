@@ -15,7 +15,16 @@ const SCRIPT: &str = include_str!("check.sh");
 const CHECK_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// Mounts, die keine echten Datenplatten sind
-const IGNORED_MOUNTS: &[&str] = &["/boot", "/snap", "/run", "/dev", "/sys", "/proc", "/var/lib/docker", "/var/snap"];
+const IGNORED_MOUNTS: &[&str] = &[
+    "/boot",
+    "/snap",
+    "/run",
+    "/dev",
+    "/sys",
+    "/proc",
+    "/var/lib/docker",
+    "/var/snap",
+];
 
 #[derive(Debug, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -110,7 +119,8 @@ fn find_version(text: &str) -> Option<String> {
     let bytes = text.as_bytes();
     let mut i = 0;
     while i < bytes.len() {
-        let starts_here = bytes[i].is_ascii_digit() && (i == 0 || !bytes[i - 1].is_ascii_digit() && bytes[i - 1] != b'.');
+        let starts_here = bytes[i].is_ascii_digit()
+            && (i == 0 || !bytes[i - 1].is_ascii_digit() && bytes[i - 1] != b'.');
         if starts_here {
             let end = (i..bytes.len())
                 .find(|&j| !(bytes[j].is_ascii_digit() || bytes[j] == b'.'))
@@ -162,7 +172,10 @@ impl<'a> Lines<'a> {
     }
 
     fn all<'k>(&'k self, key: &'k str) -> impl Iterator<Item = &'a str> + 'k {
-        self.0.iter().filter(move |(k, _)| *k == key).map(|(_, v)| v.trim())
+        self.0
+            .iter()
+            .filter(move |(k, _)| *k == key)
+            .map(|(_, v)| v.trim())
     }
 
     fn number<T: std::str::FromStr>(&self, key: &str) -> Option<T> {
@@ -173,7 +186,10 @@ impl<'a> Lines<'a> {
 pub fn parse(stdout: &str, checked_at: String) -> Result<ServerFacts, String> {
     let lines = Lines(stdout.lines().filter_map(|l| l.split_once('=')).collect());
     if lines.get("stackport-check").is_none() {
-        return Err("Der Server hat das Prüfskript nicht ausgeführt. Läuft dort eine Standard-Shell (sh)?".into());
+        return Err(
+            "Der Server hat das Prüfskript nicht ausgeführt. Läuft dort eine Standard-Shell (sh)?"
+                .into(),
+        );
     }
     if lines.get("stackport-check-end").is_none() {
         return Err("Die Prüfung wurde auf dem Server vorzeitig abgebrochen.".into());
@@ -235,14 +251,21 @@ pub fn parse(stdout: &str, checked_at: String) -> Result<ServerFacts, String> {
             .map(String::from)
             .collect();
         extensions.sort_by_key(|e| e.to_lowercase());
-        let mut installed: BTreeSet<String> = lines.all("php_installed").filter_map(php_minor).collect();
+        let mut installed: BTreeSet<String> =
+            lines.all("php_installed").filter_map(php_minor).collect();
         installed.extend(php_minor(version));
         Php {
             version: version.to_string(),
             installed: installed.into_iter().collect(),
             extensions,
-            memory_limit: lines.get("php_memory_limit").unwrap_or_default().to_string(),
-            upload_max_filesize: lines.get("php_upload_max_filesize").unwrap_or_default().to_string(),
+            memory_limit: lines
+                .get("php_memory_limit")
+                .unwrap_or_default()
+                .to_string(),
+            upload_max_filesize: lines
+                .get("php_upload_max_filesize")
+                .unwrap_or_default()
+                .to_string(),
         }
     });
 
@@ -259,19 +282,34 @@ pub fn parse(stdout: &str, checked_at: String) -> Result<ServerFacts, String> {
         .or_else(|| named("Caddy", tool("caddy", "v")))
         .or_else(|| named("LiteSpeed", tool("litespeed", "LiteSpeed/")));
 
-    let mysql_name = |raw: &str| if raw.to_lowercase().contains("mariadb") { "MariaDB" } else { "MySQL" };
+    let mysql_name = |raw: &str| {
+        if raw.to_lowercase().contains("mariadb") {
+            "MariaDB"
+        } else {
+            "MySQL"
+        }
+    };
     let database = named("MariaDB", tool("mariadb", "Ver "))
-        .or_else(|| lines.get("mysql").and_then(|raw| named(mysql_name(raw), version_after(raw, "Ver "))))
+        .or_else(|| {
+            lines
+                .get("mysql")
+                .and_then(|raw| named(mysql_name(raw), version_after(raw, "Ver ")))
+        })
         .or_else(|| {
             // Nur der Client ist installiert, die Datenbank läuft vermutlich woanders
             lines.get("mysql_client").and_then(|raw| {
-                let version = version_after(raw, "Distrib ").or_else(|| version_after(raw, "from "));
-                named(&format!("{}-Client", mysql_name(raw)), version.or_else(|| version_after(raw, "Ver ")))
+                let version =
+                    version_after(raw, "Distrib ").or_else(|| version_after(raw, "from "));
+                named(
+                    &format!("{}-Client", mysql_name(raw)),
+                    version.or_else(|| version_after(raw, "Ver ")),
+                )
             })
         })
         .or_else(|| named("PostgreSQL", tool("postgres", "PostgreSQL)")));
 
-    let redis = tool("redis", "v=").or_else(|| tool("redis_client", "redis-cli").map(|v| format!("{v} (nur Client)")));
+    let redis = tool("redis", "v=")
+        .or_else(|| tool("redis_client", "redis-cli").map(|v| format!("{v} (nur Client)")));
 
     Ok(ServerFacts {
         checked_at,
@@ -348,7 +386,10 @@ stackport-check-end=1
         let php = facts.php.unwrap();
         assert_eq!(php.version, "8.3.6");
         assert_eq!(php.installed, ["8.1", "8.2", "8.3"]);
-        assert_eq!(php.extensions, ["Core", "date", "PDO", "pdo_mysql", "redis", "Zend OPcache"]);
+        assert_eq!(
+            php.extensions,
+            ["Core", "date", "PDO", "pdo_mysql", "redis", "Zend OPcache"]
+        );
         assert_eq!(php.memory_limit, "-1");
 
         assert_eq!(facts.composer.as_deref(), Some("2.7.1"));
@@ -356,8 +397,20 @@ stackport-check-end=1
         assert_eq!(facts.npm.as_deref(), Some("10.9.0"));
         assert_eq!(facts.git.as_deref(), Some("2.43.0"));
         assert_eq!(facts.wp_cli.as_deref(), Some("2.11.0"));
-        assert_eq!(facts.webserver, Some(NamedVersion { name: "nginx".into(), version: "1.24.0".into() }));
-        assert_eq!(facts.database, Some(NamedVersion { name: "MySQL".into(), version: "8.0.39".into() }));
+        assert_eq!(
+            facts.webserver,
+            Some(NamedVersion {
+                name: "nginx".into(),
+                version: "1.24.0".into()
+            })
+        );
+        assert_eq!(
+            facts.database,
+            Some(NamedVersion {
+                name: "MySQL".into(),
+                version: "8.0.39".into()
+            })
+        );
         assert_eq!(facts.redis.as_deref(), Some("7.0.15"));
     }
 
@@ -369,10 +422,20 @@ stackport-check-end=1
             stackport-check-end=1\n";
         let facts = parse(out, String::new()).unwrap();
         assert_eq!(facts.webserver.unwrap().version, "2.4.62");
-        assert_eq!(facts.database, Some(NamedVersion { name: "MariaDB".into(), version: "10.11.6".into() }));
+        assert_eq!(
+            facts.database,
+            Some(NamedVersion {
+                name: "MariaDB".into(),
+                version: "10.11.6".into()
+            })
+        );
         assert!(facts.php.is_none());
         // Ohne versionierte Ordner zählt zumindest die CLI-Version
-        let only_cli = parse("stackport-check=1\nphp_version=8.4.27\nstackport-check-end=1\n", String::new()).unwrap();
+        let only_cli = parse(
+            "stackport-check=1\nphp_version=8.4.27\nstackport-check-end=1\n",
+            String::new(),
+        )
+        .unwrap();
         assert_eq!(only_cli.php.unwrap().installed, ["8.4"]);
         assert!(facts.node.is_none());
         assert!(facts.disks.is_empty());
@@ -395,7 +458,10 @@ stackport-check-end=1
     #[test]
     fn finds_versions() {
         assert_eq!(find_version("v22.11.0").as_deref(), Some("22.11.0"));
-        assert_eq!(find_version("on line 12 version 2.7.1.").as_deref(), Some("2.7.1"));
+        assert_eq!(
+            find_version("on line 12 version 2.7.1.").as_deref(),
+            Some("2.7.1")
+        );
         assert_eq!(find_version("nothing here"), None);
     }
 

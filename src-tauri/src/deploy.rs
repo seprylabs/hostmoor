@@ -86,10 +86,10 @@ pub fn start(
         .filter(|s| !s.trim().is_empty())
         .ok_or("Für das Projekt ist noch kein Deploy-Skript hinterlegt.")?;
     ssh::validate(server)?;
-    if let Some(key) = &server.ssh_key_path {
-        if !ssh::expand_home(key).exists() {
-            return Err(format!("Key-Datei nicht gefunden: {key}"));
-        }
+    if let Some(key) = &server.ssh_key_path
+        && !ssh::expand_home(key).exists()
+    {
+        return Err(format!("Key-Datei nicht gefunden: {key}"));
     }
     let mut args = ssh::ssh_args(server);
     args.push(remote_command(dir, script));
@@ -161,7 +161,11 @@ fn notify(app: &AppHandle, project: &str, server: &str, status: DeployStatus, to
         _ => format!("✖ Deploy von {project} fehlgeschlagen"),
     };
     let secs = took.as_secs();
-    let duration = if secs < 60 { format!("{secs} s") } else { format!("{} min {} s", secs / 60, secs % 60) };
+    let duration = if secs < 60 {
+        format!("{secs} s")
+    } else {
+        format!("{} min {} s", secs / 60, secs % 60)
+    };
     if let Err(e) = app
         .notification()
         .builder()
@@ -266,12 +270,17 @@ async fn run(
     let status = match stopped {
         Some(DeployStatus::Cancelled) => {
             push("");
-            push("■ Abgebrochen. Die Verbindung wurde getrennt; ein bereits laufender Befehl kann auf dem Server noch zu Ende laufen.");
+            push(
+                "■ Abgebrochen. Die Verbindung wurde getrennt; ein bereits laufender Befehl kann auf dem Server noch zu Ende laufen.",
+            );
             DeployStatus::Cancelled
         }
         Some(_) => {
             push("");
-            push(&format!("✖ Zeitlimit von {} Minuten überschritten, Deploy abgebrochen.", DEPLOY_TIMEOUT.as_secs() / 60));
+            push(&format!(
+                "✖ Zeitlimit von {} Minuten überschritten, Deploy abgebrochen.",
+                DEPLOY_TIMEOUT.as_secs() / 60
+            ));
             DeployStatus::Failed
         }
         None if code == Some(0) => {
@@ -281,13 +290,17 @@ async fn run(
         }
         None if code == Some(255) => {
             push("");
-            push("✖ Die SSH-Verbindung ist fehlgeschlagen. Teste die Verbindung in der Serveransicht.");
+            push(
+                "✖ Die SSH-Verbindung ist fehlgeschlagen. Teste die Verbindung in der Serveransicht.",
+            );
             DeployStatus::Failed
         }
         None => {
             push("");
             match code {
-                Some(code) => push(&format!("✖ Deploy fehlgeschlagen (Exit-Code {code}). Der letzte Befehl oben hat den Fehler ausgelöst.")),
+                Some(code) => push(&format!(
+                    "✖ Deploy fehlgeschlagen (Exit-Code {code}). Der letzte Befehl oben hat den Fehler ausgelöst."
+                )),
                 None => push("✖ Deploy fehlgeschlagen."),
             }
             DeployStatus::Failed
@@ -296,7 +309,9 @@ async fn run(
 
     if output.len() > MAX_OUTPUT_CHARS {
         let cut = output.len() - MAX_OUTPUT_CHARS;
-        let cut = (cut..output.len()).find(|&i| output.is_char_boundary(i)).unwrap_or(cut);
+        let cut = (cut..output.len())
+            .find(|&i| output.is_char_boundary(i))
+            .unwrap_or(cut);
         output = format!("… (Anfang gekürzt)\n{}", &output[cut..]);
     }
     (status, code, output)
@@ -326,7 +341,11 @@ mod tests {
         // Mit einem echten sh prüfen, dass Quoting, cd und set -e zusammenspielen
         let dir = std::env::temp_dir();
         let cmd = remote_command(dir.to_str().unwrap(), "echo eins\nfalse\necho nie");
-        let out = std::process::Command::new("sh").arg("-c").arg(&cmd).output().unwrap();
+        let out = std::process::Command::new("sh")
+            .arg("-c")
+            .arg(&cmd)
+            .output()
+            .unwrap();
         let stdout = String::from_utf8_lossy(&out.stdout);
         let stderr = String::from_utf8_lossy(&out.stderr);
         assert!(!out.status.success());

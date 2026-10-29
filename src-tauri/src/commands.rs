@@ -2,12 +2,12 @@ use std::path::PathBuf;
 
 use tauri::{AppHandle, State};
 
-use crate::db::{Db, Table};
-use crate::deploy;
-use crate::models::{Backup, Customer, Deploy, LastDeploy, Project, Server, Snapshot};
 use crate::check::{self, CheckError};
 use crate::ci::{self, CiResult};
 use crate::ci_watch::{CiWatch, ProjectCi};
+use crate::db::{Db, Table};
+use crate::deploy;
+use crate::models::{Backup, Customer, Deploy, LastDeploy, Project, Server, Snapshot};
 use crate::ssh::{self, ConnectionResult};
 use crate::terminal;
 
@@ -177,9 +177,18 @@ pub fn ci_overview(watch: State<CiWatch>) -> Vec<ProjectCi> {
 
 /// Öffnet das Terminal mit einer SSH-Sitzung, optional direkt im Projektordner
 #[tauri::command]
-pub fn open_terminal(db: State<Db>, id: String, dir: Option<String>, terminal: Option<String>) -> CmdResult<()> {
+pub fn open_terminal(
+    db: State<Db>,
+    id: String,
+    dir: Option<String>,
+    terminal: Option<String>,
+) -> CmdResult<()> {
     let server = find_server(&db, &id)?;
-    ssh::open_terminal(&server, dir.as_deref().filter(|d| !d.trim().is_empty()), terminal.as_deref())
+    ssh::open_terminal(
+        &server,
+        dir.as_deref().filter(|d| !d.trim().is_empty()),
+        terminal.as_deref(),
+    )
 }
 
 /// Installierte Terminal-Apps für die Auswahl am Terminal-Button
@@ -197,13 +206,19 @@ pub struct CheckOutcome {
 
 /// Liest PHP, Node, Kapazität usw. per SSH aus und speichert das Ergebnis
 #[tauri::command]
-pub async fn check_server(db: State<'_, Db>, id: String, checked_at: String) -> CmdResult<CheckOutcome> {
+pub async fn check_server(
+    db: State<'_, Db>,
+    id: String,
+    checked_at: String,
+) -> CmdResult<CheckOutcome> {
     let server = find_server(&db, &id)?;
     match check::check_server(&server, checked_at).await {
         Ok(facts) => {
             let json = serde_json::to_value(&facts).map_err(err)?;
             db.set_facts(&id, &json).map_err(err)?;
-            Ok(CheckOutcome { connection_error: None })
+            Ok(CheckOutcome {
+                connection_error: None,
+            })
         }
         Err(CheckError::Connection(result)) => Ok(CheckOutcome {
             connection_error: Some(result),

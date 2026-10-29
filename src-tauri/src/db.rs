@@ -186,7 +186,11 @@ impl Db {
         Ok(changed > 0)
     }
 
-    pub fn set_deploy_script(&self, project_id: &str, script: Option<&str>) -> rusqlite::Result<()> {
+    pub fn set_deploy_script(
+        &self,
+        project_id: &str,
+        script: Option<&str>,
+    ) -> rusqlite::Result<()> {
         self.conn().execute(
             "UPDATE projects SET deploy_script = ?1 WHERE id = ?2",
             params![script, project_id],
@@ -253,9 +257,7 @@ impl Db {
     /// Je Projekt nur der neueste Deploy
     pub fn last_deploys(&self) -> rusqlite::Result<Vec<LastDeploy>> {
         self.conn()
-            .prepare(
-                "SELECT project_id, status, MAX(started_at) FROM deploys GROUP BY project_id",
-            )?
+            .prepare("SELECT project_id, status, MAX(started_at) FROM deploys GROUP BY project_id")?
             .query_map([], |r| {
                 let status: String = r.get(1)?;
                 Ok(LastDeploy {
@@ -448,7 +450,10 @@ mod tests {
         let snap = db.snapshot().unwrap();
         assert_eq!(snap.projects[0].deploy_script.as_deref(), Some("git pull"));
         db.replace_all(&snap).unwrap();
-        assert_eq!(db.snapshot().unwrap().projects[0].deploy_script.as_deref(), Some("git pull"));
+        assert_eq!(
+            db.snapshot().unwrap().projects[0].deploy_script.as_deref(),
+            Some("git pull")
+        );
     }
 
     #[test]
@@ -458,11 +463,15 @@ mod tests {
         db.save_project(&project("p1", "c1", None)).unwrap();
         for i in 0..25 {
             let id = format!("d{i:02}");
-            db.insert_deploy(&deploy(&id, "p1", &format!("2026-10-26T10:{i:02}:00Z"))).unwrap();
-            db.finish_deploy(&id, DeployStatus::Success, Some(0), 1000, "ok").unwrap();
+            db.insert_deploy(&deploy(&id, "p1", &format!("2026-10-26T10:{i:02}:00Z")))
+                .unwrap();
+            db.finish_deploy(&id, DeployStatus::Success, Some(0), 1000, "ok")
+                .unwrap();
         }
-        db.insert_deploy(&deploy("d99", "p1", "2026-10-26T11:00:00Z")).unwrap();
-        db.finish_deploy("d99", DeployStatus::Failed, Some(1), 1000, "").unwrap();
+        db.insert_deploy(&deploy("d99", "p1", "2026-10-26T11:00:00Z"))
+            .unwrap();
+        db.finish_deploy("d99", DeployStatus::Failed, Some(1), 1000, "")
+            .unwrap();
         let last = db.last_deploys().unwrap();
         assert_eq!(last.len(), 1);
         assert_eq!(last[0].status, DeployStatus::Failed);
