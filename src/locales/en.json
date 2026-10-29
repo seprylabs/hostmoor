@@ -219,7 +219,7 @@
       "title": "Connection",
       "testing": "Testing …",
       "test": "Test connection",
-      "intro": "Checks whether your Mac can sign in to this server via SSH. Nothing on the server is changed.",
+      "intro": "Checks whether this computer can sign in to this server via SSH. Nothing on the server is changed.",
       "duration": "{{seconds}} s",
       "howToFix": "How to fix it",
       "saved": "Saved",
@@ -243,7 +243,7 @@
       "openTitleInDir": "Open SSH session in {{app}}, directly in {{dir}}",
       "chooseApp": "Choose terminal app",
       "openWith": "Open with",
-      "macosDefault": "macOS default"
+      "systemDefault": "System default"
     }
   },
   "sshHelp": {
@@ -256,7 +256,7 @@
     },
     "unknownHost": {
       "title": "Server is not known yet",
-      "explanation": "Your Mac has never connected to this server. So that no one can impersonate your server, the app doesn’t confirm new servers automatically."
+      "explanation": "This computer has never connected to this server. So that no one can impersonate your server, the app doesn’t confirm new servers automatically."
     },
     "hostKeyChanged": {
       "title": "Warning: The server key has changed",
@@ -272,7 +272,9 @@
       "useKey": "Use this key for the server:",
       "copyId": "Copy the public key to the server. This asks for the server password once:",
       "pbcopy": "Can’t sign in with a password? Copy the public key to the clipboard and paste it into your host’s panel (or Forge, Plesk …) under “SSH keys”:",
-      "passphrase": "Does your key have a passphrase? The app can’t ask for it. Store it once in the macOS keychain:"
+      "passphrase": "Does your key have a passphrase? The app can’t ask for it. Store it once in the macOS keychain:",
+      "showPublicKey": "Can’t sign in with a password? Show the public key, copy it and paste it into your host’s panel (or Forge, Plesk …) under “SSH keys”:",
+      "passphraseAgent": "Does your key have a passphrase? The app can’t ask for it. Add the key to the running SSH agent once:"
     },
     "keyNotFound": {
       "title": "Key file not found",
@@ -356,7 +358,7 @@
     },
     "token": {
       "title": "Token for {{host}}",
-      "description": "The token is stored in the macOS Keychain, not in the StackPort database or in backups. It applies to all projects on {{host}}.",
+      "description": "The token is stored in the {{store}}, not in the StackPort database or in backups. It applies to all projects on {{host}}.",
       "helpGithub": "Recommended: a fine-grained token with “Actions: Read-only” access to the repos you need. If an organization owns the repo, select it as the resource owner, and make sure the token isn't pending approval. A classic token with the repo scope also works, but grants much broader access.",
       "helpGitlab": "Create a personal access token on {{host}} with the read_api scope. That's all StackPort needs.",
       "openTokenPage": "Open token page",
@@ -364,7 +366,12 @@
       "placeholder": "Paste token",
       "remove": "Remove token",
       "saved": "Token saved to Keychain",
-      "removed": "Token removed"
+      "removed": "Token removed",
+      "store": {
+        "macos": "macOS Keychain",
+        "windows": "Windows Credential Manager",
+        "linux": "system keyring (GNOME Keyring or KWallet)"
+      }
     }
   },
   "deploy": {

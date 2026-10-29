@@ -201,7 +201,7 @@ export async function onCiUpdate(handler: (overview: ProjectCi[]) => void): Prom
   return listen<ProjectCi[]>("ci-update", (e) => handler(e.payload));
 }
 
-/** Speichert den Token im macOS-Schlüsselbund; null entfernt ihn */
+/** Speichert den Token im Schlüsselbund des Systems; null entfernt ihn */
 export async function setCiToken(host: string, token: string | null): Promise<void> {
   await invoke("set_ci_token", { host, token });
 }
@@ -223,7 +223,7 @@ export async function openExternal(url: string): Promise<void> {
 }
 
 /** Öffnet das Terminal mit einer SSH-Sitzung; mit `dir` direkt in diesem Ordner auf dem Server.
- *  `terminal` ist eine ID aus `listTerminals`, null = macOS-Standard */
+ *  `terminal` ist eine ID aus `listTerminals`, null = Systemstandard */
 export async function openTerminal(serverId: string, dir?: string | null, terminal?: string | null): Promise<void> {
   if (!isTauri()) throw new Error(i18n.t("api.terminalBrowserOnly"));
   await invoke("open_terminal", { id: serverId, dir: dir ?? null, terminal: terminal ?? null });
