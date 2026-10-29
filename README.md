@@ -1,79 +1,128 @@
 # StackPort
 
-Desktop-App für macOS, Windows und Linux, die eigene Server und Kundenserver (Hetzner, netcup …) mit ihren Projekten an einem Ort zeigt, gedacht für die Arbeit mit Laravel und WordPress.
+**English** · [Deutsch](README.de.md)
 
-**Stack:** Tauri 2 (Rust) · React 19 · TypeScript · Tailwind CSS 4 · shadcn/ui · SQLite
+[![CI][ci-badge]][ci] [![Release][release-badge]][releases] [![License: AGPL-3.0][license-badge]](LICENSE)
 
-## Funktionen
+**All your servers and client projects in one desktop app.** StackPort is for freelancers and small agencies who run Laravel and WordPress sites on their own and their clients' servers (Hetzner, netcup, IONOS …): see what runs where, check servers, deploy, and watch CI, without a SaaS account and without handing out SSH keys.
 
-- Kunden → Projekte → Server, in der Seitenleiste nach Kunden oder nach Servern gruppiert
-- Kunden, Server und Projekte von Hand anlegen, bearbeiten und löschen
-- Favoriten und einklappbare Kundengruppen
-- Backup als JSON exportieren und wiederherstellen
-- SSH-Zugang nur über lokale Keys: die App speichert nur den **Pfad** zum Key und liest die Key-Datei nie
-- Verbindungstest mit Einrichtungshilfe (erkannte Ursache plus Befehle zum Selbst-Ausführen)
-- Button „Terminal“: öffnet ein Terminal mit einer SSH-Sitzung (macOS: Terminal, iTerm2, Ghostty …; Linux: GNOME Terminal, Konsole …; Windows: Standard-Konsole bzw. Windows Terminal), bei Projekten direkt im Projektordner
-- Server-Check auf Knopfdruck: PHP, Composer, Node/npm, Git, WP-CLI, Webserver, Datenbank, Redis, RAM, Platten. Das Skript (`src-tauri/src/check.sh`) liest nur. Das Ergebnis wird lokal gespeichert, nach 30 Tagen als veraltet markiert, und es wird nie automatisch geprüft
-- Deploy-Skripte pro Projekt: Vorlagen für Laravel/WordPress, Bestätigung vor dem Start, Live-Ausgabe, Abbrechen, Verlauf der letzten 20 Deploys, Systemmitteilung am Ende (wenn das Fenster im Hintergrund ist oder der Deploy länger als eine Minute lief)
-- „Alle Server prüfen“ im ⋯-Menü der Seitenleiste (drei Server gleichzeitig, Zusammenfassung am Ende)
-- GitHub Actions und GitLab-Pipelines pro Projekt (auch selbst gehostetes GitLab); Tokens liegen im Schlüsselbund des Systems (macOS-Schlüsselbund, Windows-Anmeldeinformationsverwaltung, Secret Service unter Linux)
-- Pipelines aller Projekte im Hintergrund (alle 60 s, 15 s solange etwas läuft, per ETag): „Läuft gerade“ in der Seitenleiste und Systemmitteilung bei Start, Erfolg und Fehlschlag
-- Seitenleiste zeigt laufende und fehlgeschlagene Deploys pro Projekt
+Runs on macOS, Windows and Linux. English and German.
 
-## Entwicklung
+![StackPort: project with server, GitHub Actions and deploy](docs/screenshots/project-light.png)
 
-Voraussetzungen: Rust (`rustup`), Node 22 (siehe `.nvmrc`) und je nach System die [Tauri-Voraussetzungen](https://v2.tauri.app/start/prerequisites/): Xcode Command Line Tools (macOS), Microsoft C++ Build Tools und WebView2 (Windows) bzw. `libwebkit2gtk-4.1-dev` und Co. (Linux). SSH braucht unter Windows den OpenSSH-Client (bei Windows 10 und 11 dabei).
+<details>
+<summary>More screenshots</summary>
+
+![Server check in dark mode](docs/screenshots/server-dark.png)
+![Project in dark mode](docs/screenshots/project-dark.png)
+![Server check in light mode](docs/screenshots/server-light.png)
+
+</details>
+
+## Features
+
+- **Customers → projects → servers**, grouped in the sidebar by customer or by server, with favorites and search
+- **Server check** on demand: OS, CPU, RAM, disks, PHP and extensions, Composer, Node/npm, Git, WP-CLI, web server, database, Redis. The script ([`check.sh`](src-tauri/src/check.sh)) only reads; results are stored locally and marked as outdated after 30 days
+- **Connection test with setup help**: StackPort recognizes the cause (unknown host, key not accepted, wrong permissions, firewall …) and shows the commands to fix it for your system
+- **Deploys** per project: templates for Laravel and WordPress, confirmation before every run, live output, cancel, history of the last 20 deploys, system notification when done
+- **GitHub Actions and GitLab pipelines** per project (including self-hosted GitLab), polled in the background with a notification on start, success and failure
+- **Terminal button**: opens an SSH session in your terminal (Terminal, iTerm2, Ghostty, WezTerm, GNOME Terminal, Konsole, Windows Terminal …), for projects right in the project folder
+- **Backup** of all data as JSON, export and restore
+
+![Deploy with live output](docs/screenshots/deploy.gif)
+
+## Installation
+
+Download the installer for your system from the [releases page][releases]:
+
+| System | File |
+| --- | --- |
+| macOS (Apple Silicon and Intel) | `.dmg` |
+| Windows 10 and 11 | `.msi` or `-setup.exe` |
+| Linux | `.AppImage`, `.deb` or `.rpm` |
+
+The apps are not signed yet, so your system will warn once:
+
+- **macOS:** after installing, run `xattr -cr /Applications/StackPort.app` once in Terminal.
+- **Windows:** SmartScreen shows “Windows protected your PC”. Choose “More info” → “Run anyway”.
+- **Linux:** make the AppImage executable (`chmod +x StackPort_*.AppImage`) or install the package.
+
+StackPort uses the `ssh` client of your system. On Windows this is the OpenSSH client that ships with Windows 10 and 11.
+
+## Security and privacy
+
+StackPort has SSH and deploy access to your servers, so it is built to need as little trust as possible:
+
+- **Local only.** All data stays in a SQLite database on your computer. No account, no cloud, no telemetry. The only network requests go to your servers (via `ssh`) and to the GitHub or GitLab API for pipelines.
+- **SSH keys are never read.** StackPort stores only the *path* to a key and passes it to `ssh -i`. Passphrases stay in your SSH agent or keychain.
+- **No silent host trust.** Checks and deploys run with `BatchMode=yes` and `StrictHostKeyChecking=yes`. New or changed host keys are never accepted automatically.
+- **Tokens in the system keychain.** CI tokens are stored in the macOS Keychain, the Windows Credential Manager or the Secret Service on Linux, never in the database or in backups.
+- **Strict content security policy** and minimal Tauri permissions.
+
+Found a vulnerability? Please report it privately, see [SECURITY.md](SECURITY.md).
+
+## How it compares
+
+| | StackPort | Laravel Forge, Ploi | Termius |
+| --- | --- | --- | --- |
+| Works with servers you don't manage | ✓ any server with SSH | provisions and manages its own servers | ✓ |
+| Deploy scripts with live output | ✓ | ✓ | – |
+| Customers and projects | ✓ | sites per server | hosts only |
+| Server check (PHP, database, disks …) | ✓ | partly | – |
+| GitHub Actions / GitLab CI | ✓ | ✓ | – |
+| Runs locally, no account | ✓ | SaaS | account for sync |
+| Open source | ✓ AGPL-3.0 | – | – |
+
+StackPort does not provision servers. It is the overview and toolbox for servers that already exist, including client servers where you only have SSH access.
+
+## Roadmap
+
+- Signed and notarized apps, automatic updates
+- Homebrew, winget and Flathub/AUR packages
+- Rollback for deploys, more deploy templates
+
+## Development
+
+Requirements: Rust (`rustup`), Node 22 (see `.nvmrc`) and the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your system: Xcode Command Line Tools (macOS), Microsoft C++ Build Tools and WebView2 (Windows), or `libwebkit2gtk-4.1-dev` and friends (Linux).
 
 ```bash
 npm install
-npm run tauri dev      # App mit Hot-Reload starten
-npm run tauri build    # Installer bauen → src-tauri/target/release/bundle/ (dmg, msi/nsis, AppImage/deb/rpm)
-```
-
-Rust-Tests:
-
-```bash
+npm run tauri dev      # run the app with hot reload
+npm run tauri build    # build installers → src-tauri/target/release/bundle/
 cd src-tauri && cargo test
 ```
 
-Ohne Tauri läuft die Oberfläche auch im Browser (`npm run dev`, http://localhost:1420). Die Daten landen dann im localStorage statt in SQLite.
+Without Tauri the UI also runs in the browser (`npm run dev`, http://localhost:1420); data is then kept in localStorage instead of SQLite.
 
-## Daten
-
-Die Datenbank `stackport.db` liegt im App-Datenordner `de.spmedia.stackport`:
-
-- macOS: `~/Library/Application Support/de.spmedia.stackport/`
-- Windows: `%APPDATA%\de.spmedia.stackport\`
-- Linux: `~/.local/share/de.spmedia.stackport/`
-
-Schema-Migrationen stehen in `src-tauri/src/db.rs` (`MIGRATIONS`) und laufen beim Start automatisch.
-
-## Aufbau
+The database `stackport.db` lives in the app data folder `de.spmedia.stackport`: `~/Library/Application Support/` on macOS, `%APPDATA%` on Windows, `~/.local/share/` on Linux. Schema migrations are in [`db.rs`](src-tauri/src/db.rs) and run on startup.
 
 ```
-src/                    React-Oberfläche
-  components/           Seitenleiste, Detailansichten, Formulare
-  components/ui/        shadcn/ui-Komponenten
-  hooks/use-store.ts    Daten laden und ändern
-  lib/api.ts            Aufrufe ans Rust-Backend (mit Browser-Fallback)
+src/                    React UI (React 19, TypeScript, Tailwind CSS 4, shadcn/ui)
+  locales/              English and German texts
+  lib/api.ts            calls into the Rust backend, with browser fallback
 src-tauri/src/
-  db.rs                 SQLite, Migrationen, Tests
-  commands.rs           Tauri-Commands für die Oberfläche
-  ssh.rs                Aufruf des System-ssh, Fehlererkennung
-  check.rs / check.sh   Server-Check: Skript auf dem Server, Auswertung in Rust
-  deploy.rs             Deploys: ssh im Hintergrund, Ausgabe als Events
-  ci.rs                 GitHub-/GitLab-API, Tokens im Schlüsselbund
-  ci_watch.rs           Hintergrund-Abfrage der Pipelines, Mitteilungen
-  models.rs             Datentypen
+  db.rs                 SQLite, migrations
+  ssh.rs                system ssh, error detection
+  check.rs, check.sh    server check
+  deploy.rs             deploys with live output
+  ci.rs, ci_watch.rs    GitHub/GitLab API, background polling
+  terminal.rs           terminal apps per platform
 ```
 
-## Lizenz
+## License
 
-StackPort steht unter der [GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`).
+StackPort is licensed under the [GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`). Built by [SPMedia](https://spmedia.de).
 
-Lizenzen der Abhängigkeiten prüfen:
+Check the licenses of dependencies:
 
 ```bash
-cd src-tauri && cargo deny check licenses      # Rust (cargo install cargo-deny)
+cd src-tauri && cargo deny check licenses                 # Rust (cargo install cargo-deny)
 npx license-checker-rseidelsohn --production --summary   # npm
 ```
+
+<!-- Repository links: change only here when the repository moves -->
+[ci]: https://github.com/SebastianPrzybylski/stackport/actions/workflows/ci.yml
+[ci-badge]: https://github.com/SebastianPrzybylski/stackport/actions/workflows/ci.yml/badge.svg
+[releases]: https://github.com/SebastianPrzybylski/stackport/releases
+[release-badge]: https://img.shields.io/github/v/release/SebastianPrzybylski/stackport
+[license-badge]: https://img.shields.io/badge/license-AGPL--3.0-blue
