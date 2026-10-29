@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, SquareTerminal } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ function loadChoice(): string {
 /** Öffnet ein Terminal mit einer SSH-Sitzung zum Server, optional direkt im Ordner `dir`.
  *  Über den Pfeil lässt sich die Terminal-App wählen (Ghostty, iTerm2 …) */
 export function TerminalButton({ serverId, dir }: { serverId: string; dir?: string | null }) {
+  const { t } = useTranslation();
   const [terminals, setTerminals] = useState<TerminalApp[]>([]);
   const [choice, setChoice] = useState(loadChoice);
 
@@ -58,7 +60,7 @@ export function TerminalButton({ serverId, dir }: { serverId: string; dir?: stri
     try {
       await openTerminal(serverId, dir, selected?.id ?? null);
     } catch (e) {
-      toast.error("Terminal konnte nicht geöffnet werden", { description: String(e) });
+      toast.error(t("terminal.button.openFailed"), { description: String(e) });
     }
   };
 
@@ -69,7 +71,7 @@ export function TerminalButton({ serverId, dir }: { serverId: string; dir?: stri
         variant="outline"
         className="rounded-r-none"
         onClick={open}
-        title={dir ? `SSH-Sitzung in ${label} öffnen, direkt in ${dir}` : `SSH-Sitzung in ${label} öffnen`}
+        title={dir ? t("terminal.button.openTitleInDir", { app: label, dir }) : t("terminal.button.openTitle", { app: label })}
       >
         <SquareTerminal /> {label}
       </Button>
@@ -79,16 +81,16 @@ export function TerminalButton({ serverId, dir }: { serverId: string; dir?: stri
             size="icon-sm"
             variant="outline"
             className="rounded-l-none border-l-0"
-            aria-label="Terminal-App wählen"
-            title="Terminal-App wählen"
+            aria-label={t("terminal.button.chooseApp")}
+            title={t("terminal.button.chooseApp")}
           >
             <ChevronDown />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-auto min-w-48">
-          <DropdownMenuLabel>Öffnen mit</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("terminal.button.openWith")}</DropdownMenuLabel>
           <DropdownMenuRadioGroup value={selected?.id ?? DEFAULT} onValueChange={choose}>
-            <DropdownMenuRadioItem value={DEFAULT}>macOS-Standard</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value={DEFAULT}>{t("terminal.button.macosDefault")}</DropdownMenuRadioItem>
             {terminals.length > 0 && <DropdownMenuSeparator />}
             {terminals.map((t) => (
               <DropdownMenuRadioItem key={t.id} value={t.id}>

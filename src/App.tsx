@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Building2, MousePointerClick, Server as ServerIcon } from "lucide-react";
 
@@ -28,6 +29,7 @@ import { pickBackupFile } from "@/lib/api";
 import type { Selection } from "@/types";
 
 function App() {
+  const { t } = useTranslation();
   const store = useStore();
   const { customers, servers, projects } = store;
 
@@ -41,7 +43,7 @@ function App() {
       const path = await pickBackupFile();
       if (path) setImportPath(path);
     } catch (e) {
-      toast.error("Import nicht möglich", { description: String(e) });
+      toast.error(t("app.importFailed"), { description: String(e) });
     }
   };
 
@@ -54,8 +56,6 @@ function App() {
   const customer = selection?.kind === "customer" ? customers.find((c) => c.id === selection.id) : undefined;
   const server = selection?.kind === "server" ? servers.find((s) => s.id === selection.id) : undefined;
   const project = selection?.kind === "project" ? projects.find((p) => p.id === selection.id) : undefined;
-
-  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
   const confirmDelete = async (request: DeleteRequest) => {
     setDeleteRequest(null);
@@ -104,8 +104,8 @@ function App() {
                       name: customer.name,
                       consequence:
                         n > 0
-                          ? `${plural(n, "Projekt wird", "Projekte werden")} ebenfalls gelöscht. Server bleiben erhalten, nur ohne Kundenzuordnung.`
-                          : "Server des Kunden bleiben erhalten, nur ohne Kundenzuordnung.",
+                          ? t("app.customerDeleteConsequence", { count: n })
+                          : t("app.customerDeleteServersKept"),
                     });
                   }}
                   onAddProject={() => setEditor({ kind: "project", defaultCustomerId: customer.id })}
@@ -130,9 +130,7 @@ function App() {
                       id: server.id,
                       name: server.name,
                       consequence:
-                        n > 0
-                          ? `${plural(n, "Projekt bleibt", "Projekte bleiben")} erhalten, ist dann aber keinem Server mehr zugeordnet.`
-                          : undefined,
+                        n > 0 ? t("app.serverDeleteConsequence", { count: n }) : undefined,
                     });
                   }}
                   onAddProject={() =>
@@ -165,14 +163,14 @@ function App() {
                 <div className="text-muted-foreground flex h-[60vh] flex-col items-center justify-center gap-4 text-sm">
                   {isEmpty ? (
                     <>
-                      <p className="text-foreground text-lg font-medium">Willkommen bei StackPort</p>
-                      <p>Leg los mit deinem ersten Kunden oder Server.</p>
+                      <p className="text-foreground text-lg font-medium">{t("app.welcome.title")}</p>
+                      <p>{t("app.welcome.text")}</p>
                       <div className="flex gap-2">
                         <Button onClick={() => setEditor({ kind: "customer" })}>
-                          <Building2 /> Kunde anlegen
+                          <Building2 /> {t("app.welcome.addCustomer")}
                         </Button>
                         <Button variant="outline" onClick={() => setEditor({ kind: "server" })}>
-                          <ServerIcon /> Server anlegen
+                          <ServerIcon /> {t("app.welcome.addServer")}
                         </Button>
                       </div>
                     </>
@@ -180,7 +178,7 @@ function App() {
                     !store.loading && (
                       <>
                         <MousePointerClick className="size-6" />
-                        Wähle links einen Kunden, ein Projekt oder einen Server aus.
+                        {t("app.selectHint")}
                       </>
                     )
                   )}
@@ -214,17 +212,19 @@ function App() {
       <AlertDialog open={importPath !== null} onOpenChange={(open) => !open && setImportPath(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Backup wiederherstellen?</AlertDialogTitle>
+            <AlertDialogTitle>{t("app.restore.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Alle aktuellen Kunden, Server und Projekte werden durch den Inhalt von
-              <span className="text-foreground mx-1 font-mono break-all">{importPath?.split("/").pop()}</span>
-              ersetzt. Exportiere vorher ein Backup, wenn du den aktuellen Stand behalten willst.
+              <Trans
+                i18nKey="app.restore.description"
+                values={{ file: importPath?.split("/").pop() }}
+                components={{ file: <span className="text-foreground font-mono break-all" /> }}
+              />
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={confirmImport}>
-              Ersetzen
+              {t("app.restore.replace")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

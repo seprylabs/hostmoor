@@ -10,6 +10,7 @@ import {
   Rocket,
   Square,
 } from "lucide-react";
+import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import {
@@ -32,12 +33,13 @@ import { formatDateTime, formatRelative, sshTarget } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Deploy, DeployStatus, Project, Server } from "@/types";
 
-const statusStyle: Record<DeployStatus, { icon: typeof Rocket; label: string; className: string }> = {
-  running: { icon: Loader2, label: "Läuft", className: "text-info animate-spin" },
-  success: { icon: CircleCheck, label: "Erfolgreich", className: "text-success" },
-  failed: { icon: CircleAlert, label: "Fehlgeschlagen", className: "text-danger" },
-  cancelled: { icon: Ban, label: "Abgebrochen", className: "text-muted-foreground" },
-  interrupted: { icon: CircleSlash, label: "Unterbrochen (App beendet)", className: "text-warning" },
+// Label kommt beim Rendern aus deploy.status.<status>
+const statusStyle: Record<DeployStatus, { icon: typeof Rocket; className: string }> = {
+  running: { icon: Loader2, className: "text-info animate-spin" },
+  success: { icon: CircleCheck, className: "text-success" },
+  failed: { icon: CircleAlert, className: "text-danger" },
+  cancelled: { icon: Ban, className: "text-muted-foreground" },
+  interrupted: { icon: CircleSlash, className: "text-warning" },
 };
 
 /** So viele Deploys zeigt der Verlauf, bevor er aufgeklappt wird */
@@ -57,6 +59,7 @@ interface Props {
 }
 
 export function DeployPanel({ project, server, onEditProject, onSaveScript }: Props) {
+  const { t } = useTranslation();
   const script = project.deployScript ?? "";
   const live = useLiveDeploy(project.id);
   const running = live?.status === "running";
@@ -71,9 +74,9 @@ export function DeployPanel({ project, server, onEditProject, onSaveScript }: Pr
     try {
       setHistory(await listDeploys(project.id));
     } catch (e) {
-      toast.error("Deploy-Verlauf konnte nicht geladen werden", { description: String(e) });
+      toast.error(t("deploy.panel.historyLoadFailed"), { description: String(e) });
     }
-  }, [project.id]);
+  }, [project.id, t]);
 
   useEffect(() => {
     reloadHistory();
@@ -85,9 +88,9 @@ export function DeployPanel({ project, server, onEditProject, onSaveScript }: Pr
   }, [live?.status, reloadHistory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const missing = !server
-    ? "Ordne dem Projekt zuerst einen Server zu."
+    ? t("deploy.panel.missingServer")
     : !project.path
-      ? "Trag beim Projekt den Pfad auf dem Server ein (z. B. /var/www/shop), dort läuft das Skript."
+      ? t("deploy.panel.missingPath")
       : null;
 
   const startEditing = () => {
@@ -108,7 +111,7 @@ export function DeployPanel({ project, server, onEditProject, onSaveScript }: Pr
       reloadHistory();
     } catch (e) {
       discardLiveDeploy(project.id);
-      toast.error("Deploy konnte nicht gestartet werden", { description: String(e) });
+      toast.error(t("deploy.panel.startFailed"), { description: String(e) });
     }
   };
 
@@ -116,7 +119,7 @@ export function DeployPanel({ project, server, onEditProject, onSaveScript }: Pr
     try {
       await cancelDeploy(project.id);
     } catch (e) {
-      toast.error("Abbrechen fehlgeschlagen", { description: String(e) });
+      toast.error(t("deploy.panel.cancelFailed"), { description: String(e) });
     }
   };
 
@@ -128,16 +131,16 @@ export function DeployPanel({ project, server, onEditProject, onSaveScript }: Pr
         <div className="ml-auto flex gap-2">
           {!editing && script && (
             <Button size="sm" variant="ghost" onClick={startEditing} disabled={running}>
-              <Pencil /> Skript bearbeiten
+              <Pencil /> {t("deploy.panel.editScript")}
             </Button>
           )}
           {running ? (
             <Button size="sm" variant="outline" onClick={cancel}>
-              <Square /> Abbrechen
+              <Square /> {t("common.cancel")}
             </Button>
           ) : (
             <Button size="sm" onClick={() => setConfirming(true)} disabled={!script || !!missing || editing}>
-              <Rocket /> Deployen
+              <Rocket /> {t("deploy.panel.deploy")}
             </Button>
           )}
         </div>
@@ -148,7 +151,7 @@ export function DeployPanel({ project, server, onEditProject, onSaveScript }: Pr
           <div className="bg-muted/60 flex items-center justify-between gap-4 rounded-md px-3 py-2">
             <span className="text-muted-foreground">{missing}</span>
             <Button size="sm" variant="outline" onClick={onEditProject}>
-              Projekt bearbeiten
+              {t("common.editProject")}
             </Button>
           </div>
         )}
@@ -156,12 +159,12 @@ export function DeployPanel({ project, server, onEditProject, onSaveScript }: Pr
         {editing ? (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-muted-foreground text-xs">Vorlage:</span>
+              <span className="text-muted-foreground text-xs">{t("deploy.panel.template")}</span>
               {Object.values(deployTemplates)
                 .flat()
-                .map((t) => (
-                  <Button key={t.label} size="xs" variant="outline" onClick={() => setDraft(t.script)}>
-                    {t.label}
+                .map((template) => (
+                  <Button key={template.label} size="xs" variant="outline" onClick={() => setDraft(template.script)}>
+                    {template.label}
                   </Button>
                 ))}
             </div>
@@ -173,26 +176,28 @@ export function DeployPanel({ project, server, onEditProject, onSaveScript }: Pr
               className="font-mono text-xs"
             />
             <p className="text-muted-foreground text-xs">
-              Läuft mit bash im Ordner <code className="font-mono">{project.path || "(kein Pfad)"}</code> auf dem Server.
-              Jeder Befehl wird angezeigt, beim ersten Fehler bricht der Deploy ab. Zeilen mit # sind Kommentare.
+              <Trans
+                i18nKey="deploy.panel.editorHelp"
+                values={{ path: project.path || t("deploy.panel.noPath") }}
+                components={{ code: <code className="font-mono" /> }}
+              />
             </p>
             <div className="flex justify-end gap-2">
               <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
-                Verwerfen
+                {t("deploy.panel.discard")}
               </Button>
               <Button size="sm" onClick={save}>
-                Speichern
+                {t("common.save")}
               </Button>
             </div>
           </div>
         ) : !script ? (
           <div className="space-y-3">
             <p className="text-muted-foreground">
-              Noch kein Deploy-Skript. Leg fest, welche Befehle beim Deployen auf dem Server laufen sollen, zum
-              Beispiel <code className="font-mono">git pull</code> und <code className="font-mono">composer install</code>.
+              <Trans i18nKey="deploy.panel.noScript" components={{ code: <code className="font-mono" /> }} />
             </p>
             <Button size="sm" variant="outline" onClick={startEditing}>
-              <Pencil /> Skript anlegen
+              <Pencil /> {t("deploy.panel.createScript")}
             </Button>
           </div>
         ) : (
@@ -207,13 +212,15 @@ export function DeployPanel({ project, server, onEditProject, onSaveScript }: Pr
 
         {history.length > 0 && (
           <div className="space-y-1 border-t pt-3">
-            <p className="text-muted-foreground pb-1 text-xs font-medium">Verlauf</p>
+            <p className="text-muted-foreground pb-1 text-xs font-medium">{t("deploy.panel.history")}</p>
             {(showAllHistory ? history : history.slice(0, HISTORY_PREVIEW)).map((d) => (
               <HistoryRow key={d.id} deploy={d} />
             ))}
             {history.length > HISTORY_PREVIEW && (
               <Button size="xs" variant="ghost" className="text-muted-foreground -mx-2" onClick={() => setShowAllHistory(!showAllHistory)}>
-                {showAllHistory ? "Weniger anzeigen" : `Ältere anzeigen (${history.length - HISTORY_PREVIEW})`}
+                {showAllHistory
+                  ? t("deploy.panel.showLess")
+                  : t("deploy.panel.showOlder", { count: history.length - HISTORY_PREVIEW })}
               </Button>
             )}
           </div>
@@ -224,17 +231,20 @@ export function DeployPanel({ project, server, onEditProject, onSaveScript }: Pr
         <AlertDialog open={confirming} onOpenChange={setConfirming}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>„{project.name}“ jetzt deployen?</AlertDialogTitle>
+              <AlertDialogTitle>{t("deploy.panel.confirmTitle", { name: project.name })}</AlertDialogTitle>
               <AlertDialogDescription>
-                Auf <strong>{server.name}</strong> ({sshTarget(server)}) im Ordner{" "}
-                <code className="font-mono">{project.path}</code> werden diese Befehle ausgeführt:
+                <Trans
+                  i18nKey="deploy.panel.confirmDescription"
+                  values={{ server: server.name, target: sshTarget(server), path: project.path }}
+                  components={{ strong: <strong />, code: <code className="font-mono" /> }}
+                />
               </AlertDialogDescription>
             </AlertDialogHeader>
             <pre className="bg-muted max-h-56 overflow-auto rounded-md p-3 font-mono text-xs">{script}</pre>
             <AlertDialogFooter>
-              <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
               <AlertDialogAction onClick={deploy}>
-                <Rocket /> Deployen
+                <Rocket /> {t("deploy.panel.deploy")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -245,6 +255,7 @@ export function DeployPanel({ project, server, onEditProject, onSaveScript }: Pr
 }
 
 function LiveOutput({ lines, status }: { lines: string[]; status: DeployStatus }) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLPreElement>(null);
   const style = statusStyle[status];
 
@@ -258,19 +269,20 @@ function LiveOutput({ lines, status }: { lines: string[]; status: DeployStatus }
     <div className="space-y-2">
       <p className="flex items-center gap-2 text-xs font-medium">
         <style.icon className={cn("size-4", style.className)} />
-        {status === "running" ? "Deploy läuft …" : style.label}
+        {status === "running" ? t("deploy.live.running") : t(`deploy.status.${status}`)}
       </p>
       <pre
         ref={ref}
         className="h-72 overflow-auto rounded-md bg-terminal p-3 font-mono text-xs leading-relaxed text-terminal-foreground"
       >
-        {lines.length === 0 ? "Verbinde …" : lines.join("\n")}
+        {lines.length === 0 ? t("deploy.live.connecting") : lines.join("\n")}
       </pre>
     </div>
   );
 }
 
 function HistoryRow({ deploy }: { deploy: Deploy }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const style = statusStyle[deploy.status];
 
@@ -283,7 +295,7 @@ function HistoryRow({ deploy }: { deploy: Deploy }) {
       >
         <ChevronRight className={cn("text-muted-foreground size-3.5 transition-transform", open && "rotate-90")} />
         <style.icon className={cn("size-4", style.className)} />
-        <span>{style.label}</span>
+        <span>{t(`deploy.status.${deploy.status}`)}</span>
         <span className="text-muted-foreground">· {formatRelative(deploy.startedAt)}</span>
         <span className="text-muted-foreground ml-auto text-xs">
           {deploy.serverName}
@@ -292,7 +304,7 @@ function HistoryRow({ deploy }: { deploy: Deploy }) {
       </button>
       {open && (
         <pre className="mt-1 mb-2 max-h-72 overflow-auto rounded-md bg-terminal p-3 font-mono text-xs leading-relaxed text-terminal-foreground">
-          {deploy.output || "Keine Ausgabe gespeichert."}
+          {deploy.output || t("deploy.history.noOutput")}
         </pre>
       )}
     </div>

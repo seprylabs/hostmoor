@@ -1,7 +1,9 @@
+import i18n from "i18next";
+
 import type { Provider, ServerFacts, Stack } from "@/types";
 
-// Reihenfolge = Reihenfolge im Server-Formular
-export const providerLabel: Record<Provider, string> = {
+// Reihenfolge = Reihenfolge im Server-Formular; Firmennamen werden nicht übersetzt
+const providerNames: Record<Exclude<Provider, "other">, string> = {
   allinkl: "ALL-INKL.COM",
   aws: "AWS",
   contabo: "Contabo",
@@ -13,15 +15,19 @@ export const providerLabel: Record<Provider, string> = {
   mittwald: "Mittwald",
   netcup: "netcup",
   strato: "STRATO",
-  other: "Sonstige",
 };
 
-export const stackLabel: Record<Stack, string> = {
-  laravel: "Laravel",
-  wordpress: "WordPress",
-  static: "Statisch",
-  other: "Sonstige",
-};
+export const providers = [...Object.keys(providerNames), "other"] as Provider[];
+
+export function providerLabel(provider: Provider): string {
+  return provider === "other" ? i18n.t("provider.other") : providerNames[provider];
+}
+
+export const stacks: Stack[] = ["laravel", "wordpress", "static", "other"];
+
+export function stackLabel(stack: Stack): string {
+  return i18n.t(`stack.${stack}`);
+}
 
 export type Health = "ok" | "warn" | "unknown";
 
@@ -40,11 +46,11 @@ export function percent(used: number, total: number): number {
 export function formatUptime(seconds: number): string {
   const days = Math.floor(seconds / 86_400);
   const hours = Math.floor((seconds % 86_400) / 3_600);
-  return days > 0 ? `${days} T ${hours} Std` : `${hours} Std`;
+  return days > 0 ? i18n.t("format.uptimeDays", { days, hours }) : i18n.t("format.uptimeHours", { hours });
 }
 
 export function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("de-DE", {
+  return new Date(iso).toLocaleString(i18n.language, {
     dateStyle: "medium",
     timeStyle: "short",
   });
@@ -57,13 +63,12 @@ export function ageInDays(iso: string): number {
   return (Date.now() - new Date(iso).getTime()) / 86_400_000;
 }
 
-const relative = new Intl.RelativeTimeFormat("de", { numeric: "auto" });
-
-/** "gerade eben", "vor 5 Minuten", "gestern", "vor 3 Tagen" … */
+/** "just now", "5 minutes ago", "yesterday", "3 days ago" … in the UI language */
 export function formatRelative(iso: string): string {
+  const relative = new Intl.RelativeTimeFormat(i18n.language, { numeric: "auto" });
   const seconds = (new Date(iso).getTime() - Date.now()) / 1000;
   const abs = Math.abs(seconds);
-  if (abs < 60) return "gerade eben";
+  if (abs < 60) return i18n.t("format.justNow");
   if (abs < 3_600) return relative.format(Math.round(seconds / 60), "minute");
   if (abs < 86_400) return relative.format(Math.round(seconds / 3_600), "hour");
   if (abs < 30 * 86_400) return relative.format(Math.round(seconds / 86_400), "day");

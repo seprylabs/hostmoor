@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -30,6 +31,7 @@ export function FormShell({
   canSubmit: boolean;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
 
   const handle = async (e: FormEvent) => {
@@ -48,10 +50,10 @@ export function FormShell({
       {children}
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel}>
-          Abbrechen
+          {t("common.cancel")}
         </Button>
         <Button type="submit" disabled={!canSubmit || busy}>
-          Speichern
+          {t("common.save")}
         </Button>
       </DialogFooter>
     </form>

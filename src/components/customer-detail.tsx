@@ -1,5 +1,6 @@
 import { Building2, Plus } from "lucide-react";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function CustomerDetail({ customer, projects, servers, onSelect, onEdit, onToggleFavorite, onDelete, onAddProject, onAddServer }: Props) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       <header className="flex items-start justify-between gap-4">
@@ -35,27 +37,27 @@ export function CustomerDetail({ customer, projects, servers, onSelect, onEdit, 
       </header>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <ListCard title="Projekte" onAdd={onAddProject} empty="Noch keine Projekte.">
+        <ListCard title={t("customer.projects")} onAdd={onAddProject} empty={t("customer.noProjects")}>
           {projects.map((p) => (
             <ListRow key={p.id} onClick={() => onSelect({ kind: "project", id: p.id })}>
               <span className="truncate">
                 {p.name}
                 {p.domain && <span className="text-muted-foreground"> · {p.domain}</span>}
               </span>
-              <Badge variant="secondary">{stackLabel[p.stack]}</Badge>
+              <Badge variant="secondary">{stackLabel(p.stack)}</Badge>
             </ListRow>
           ))}
         </ListCard>
 
-        <ListCard title="Server" onAdd={onAddServer} empty="Noch keine Server.">
+        <ListCard title={t("customer.servers")} onAdd={onAddServer} empty={t("customer.noServers")}>
           {servers.map((s) => (
             <ListRow key={s.id} onClick={() => onSelect({ kind: "server", id: s.id })}>
               <span className="flex items-center gap-2 truncate">
                 <HealthDot health={serverHealth(s.facts)} />
                 {s.name}
-                {s.customerId !== customer.id && <span className="text-muted-foreground text-xs">(eigener)</span>}
+                {s.customerId !== customer.id && <span className="text-muted-foreground text-xs">{t("customer.ownServer")}</span>}
               </span>
-              <span className="text-muted-foreground text-xs">{providerLabel[s.provider]}</span>
+              <span className="text-muted-foreground text-xs">{providerLabel(s.provider)}</span>
             </ListRow>
           ))}
         </ListCard>
@@ -67,12 +69,13 @@ export function CustomerDetail({ customer, projects, servers, onSelect, onEdit, 
 }
 
 function ListCard({ title, onAdd, empty, children }: { title: string; onAdd: () => void; empty: string; children: ReactNode[] }) {
+  const { t } = useTranslation();
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{title}</CardTitle>
         <Button variant="ghost" size="sm" onClick={onAdd}>
-          <Plus /> Neu
+          <Plus /> {t("customer.new")}
         </Button>
       </CardHeader>
       <CardContent className="divide-y">

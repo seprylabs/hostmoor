@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Clock, KeyRound, Loader2, Plus, RefreshCw, Server as ServerIcon, Terminal } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +41,7 @@ interface Props {
 }
 
 export function ServerDetail({ server, customer, projects, onSelect, onCheck, onEdit, onToggleFavorite, onDelete, onAddProject, onSaveKeyPath }: Props) {
+  const { t } = useTranslation();
   const facts = server.facts;
   const stale = facts ? ageInDays(facts.checkedAt) > STALE_AFTER_DAYS : false;
 
@@ -58,7 +60,7 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
     try {
       setConnection({ key: connectionKey, result: await testConnection(server.id), server });
     } catch (e) {
-      toast.error("Test nicht möglich", { description: String(e) });
+      toast.error(t("server.detail.testFailed"), { description: String(e) });
     } finally {
       setBusy(null);
     }
@@ -93,13 +95,13 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
             <HealthDot health={serverHealth(facts)} />
           </div>
           <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
-            <Badge variant="secondary">{providerLabel[server.provider]}</Badge>
+            <Badge variant="secondary">{providerLabel(server.provider)}</Badge>
             {customer ? (
               <button className="hover:text-foreground underline-offset-2 hover:underline" onClick={() => onSelect({ kind: "customer", id: customer.id })}>
-                Kunde: {customer.name}
+                {t("server.detail.customer", { name: customer.name })}
               </button>
             ) : (
-              <span>Eigener Server</span>
+              <span>{t("server.detail.ownServer")}</span>
             )}
             <span className="flex items-center gap-1 font-mono">
               <Terminal className="size-3.5" /> {sshTarget(server)}
@@ -116,21 +118,22 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
             <TerminalButton serverId={server.id} />
             <Button size="sm" onClick={runCheck} disabled={busy !== null}>
               {busy === "check" ? <Loader2 className="animate-spin" /> : <RefreshCw />}
-              {busy === "check" ? "Prüfe …" : "Jetzt prüfen"}
+              {busy === "check" ? t("server.detail.checking") : t("server.detail.checkNow")}
             </Button>
             <DetailActions favorite={server.favorite} onToggleFavorite={onToggleFavorite} onEdit={onEdit} onDelete={onDelete} />
           </div>
           {facts ? (
             <span
               className={cn("flex items-center gap-1 text-xs", stale ? "text-warning" : "text-muted-foreground")}
-              title={`Geprüft am ${formatDateTime(facts.checkedAt)}`}
+              title={t("server.detail.checkedAtTitle", { date: formatDateTime(facts.checkedAt) })}
             >
               {stale && <Clock className="size-3" />}
-              Stand: {formatRelative(facts.checkedAt)}
-              {stale && " · evtl. veraltet"}
+              {t(stale ? "server.detail.checkedAtStale" : "server.detail.checkedAt", {
+                time: formatRelative(facts.checkedAt),
+              })}
             </span>
           ) : (
-            <span className="text-muted-foreground text-xs">Noch nie geprüft</span>
+            <span className="text-muted-foreground text-xs">{t("server.detail.neverChecked")}</span>
           )}
         </div>
       </header>
@@ -148,20 +151,22 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
       {!facts ? (
         <Card>
           <CardContent className="text-muted-foreground py-10 text-center text-sm">
-            Für diesen Server liegen noch keine Daten vor. Mit „Jetzt prüfen“ liest StackPort PHP, Node,
-            Kapazität usw. aus. Auf dem Server wird dabei nichts verändert.
+            {t("server.detail.noData", { action: t("server.detail.checkNow") })}
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Kapazität</CardTitle>
+              <CardTitle>{t("server.detail.capacity")}</CardTitle>
             </CardHeader>
             <CardContent>
               <FactRow
                 label="CPU"
-                value={`${facts.cpu.cores} Kerne · Last ${facts.cpu.load.map((l) => l.toFixed(2)).join(" / ")}`}
+                value={t("server.detail.cpuValue", {
+                  count: facts.cpu.cores,
+                  load: facts.cpu.load.map((l) => l.toFixed(2)).join(" / "),
+                })}
               />
               <UsageBar
                 label="RAM"
@@ -172,29 +177,29 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
               {facts.disks.map((disk) => (
                 <UsageBar
                   key={disk.mount}
-                  label={`Speicher ${disk.mount}`}
+                  label={t("server.detail.disk", { mount: disk.mount })}
                   used={disk.usedGb}
                   total={disk.totalGb}
                   unit="GB"
                 />
               ))}
-              <FactRow label="Laufzeit" value={formatUptime(facts.uptimeSeconds)} />
+              <FactRow label={t("server.detail.uptime")} value={formatUptime(facts.uptimeSeconds)} />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>System &amp; Dienste</CardTitle>
+              <CardTitle>{t("server.detail.systemServices")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <FactRow label="Betriebssystem" value={`${facts.os.name} ${facts.os.version}`} />
+              <FactRow label={t("server.detail.os")} value={`${facts.os.name} ${facts.os.version}`} />
               <FactRow label="Kernel" value={facts.os.kernel} />
               <FactRow
-                label="Webserver"
+                label={t("server.detail.webserver")}
                 value={facts.webserver && `${facts.webserver.name} ${facts.webserver.version}`}
               />
               <FactRow
-                label="Datenbank"
+                label={t("server.detail.database")}
                 value={facts.database && `${facts.database.name} ${facts.database.version}`}
               />
               <FactRow label="Redis" value={facts.redis} />
@@ -206,10 +211,10 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
               <CardTitle>PHP</CardTitle>
             </CardHeader>
             <CardContent>
-              <FactRow label="CLI-Version" value={facts.php?.version} />
+              <FactRow label={t("server.detail.phpCliVersion")} value={facts.php?.version} />
               {facts.php && (
                 <>
-                  <FactRow label="Installiert" value={facts.php.installed.join(", ")} />
+                  <FactRow label={t("server.detail.phpInstalled")} value={facts.php.installed.join(", ")} />
                   <FactRow label="memory_limit (CLI)" value={facts.php.memoryLimit} />
                   <FactRow label="upload_max_filesize (CLI)" value={facts.php.uploadMaxFilesize} />
                   <div className="flex flex-wrap gap-1 pt-2">
@@ -226,7 +231,7 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
 
           <Card>
             <CardHeader>
-              <CardTitle>Entwickler-Tools</CardTitle>
+              <CardTitle>{t("server.detail.devTools")}</CardTitle>
             </CardHeader>
             <CardContent>
               <FactRow label="Composer" value={facts.composer} />
@@ -243,14 +248,14 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Projekte auf diesem Server</CardTitle>
+          <CardTitle>{t("server.detail.projects")}</CardTitle>
           <Button variant="ghost" size="sm" onClick={onAddProject}>
-            <Plus /> Projekt
+            <Plus /> {t("server.detail.addProject")}
           </Button>
         </CardHeader>
         <CardContent className="divide-y">
           {projects.length === 0 && (
-            <p className="text-muted-foreground text-sm">Noch keine Projekte zugeordnet.</p>
+            <p className="text-muted-foreground text-sm">{t("server.detail.noProjects")}</p>
           )}
           {projects.map((project) => (
             <button
@@ -262,7 +267,7 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
                 {project.name}
                 {project.domain && <span className="text-muted-foreground"> · {project.domain}</span>}
               </span>
-              <Badge variant="secondary">{stackLabel[project.stack]}</Badge>
+              <Badge variant="secondary">{stackLabel(project.stack)}</Badge>
             </button>
           ))}
         </CardContent>

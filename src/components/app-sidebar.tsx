@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import {
   Activity,
   ArchiveRestore,
@@ -8,6 +9,7 @@ import {
   Download,
   Ellipsis,
   Globe,
+  Languages,
   Loader2,
   Plus,
   RefreshCw,
@@ -24,7 +26,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -49,6 +56,7 @@ import { ProjectStatusIcons } from "@/components/deploy-status";
 import { HealthDot } from "@/components/health-dot";
 import { useActiveRuns } from "@/hooks/use-ci-overview";
 import { useRunningDeploys } from "@/hooks/use-live-deploys";
+import { applyLanguage, languageSetting, type LanguageSetting } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { providerLabel, serverHealth, stackLabel } from "@/lib/format";
 import type { Customer, EntityKind, Project, Selection, Server } from "@/types";
@@ -95,6 +103,8 @@ export function AppSidebar({
   onCheckAll,
   checkAll,
 }: Props) {
+  const { t } = useTranslation();
+  const [language, setLanguage] = useState<LanguageSetting>(languageSetting);
   const activeRuns = useActiveRuns();
   const runningDeploys = useRunningDeploys();
   const [groupBy, setGroupBy] = useState<GroupBy>("customer");
@@ -143,7 +153,7 @@ export function AppSidebar({
     ...runningDeploys.map((d) => {
       const project = projects.find((p) => p.id === d.projectId);
       const server = project?.serverId ? serverById.get(project.serverId) : undefined;
-      const label = server ? `Deploy auf ${server.name}` : "Deploy";
+      const label = server ? t("sidebar.deployTo", { server: server.name }) : t("sidebar.deploy");
       return { key: `deploy-${d.deployId}`, projectId: d.projectId, deploy: true, queued: false, label, title: label };
     }),
     ...activeRuns.map(({ projectId, run }) => ({
@@ -151,7 +161,10 @@ export function AppSidebar({
       projectId,
       deploy: false,
       queued: run.status === "queued",
-      label: `${run.status === "queued" ? "Wartet · " : ""}${run.workflow ?? run.title}`,
+      label:
+        run.status === "queued"
+          ? t("sidebar.queued", { workflow: run.workflow ?? run.title })
+          : (run.workflow ?? run.title),
       title: `${run.title}${run.branch ? ` · ${run.branch}` : ""}`,
     })),
   ];
@@ -170,27 +183,27 @@ export function AppSidebar({
             className="flex-1"
           >
             <ToggleGroupItem value="customer" className={toggleItemClass}>
-              Kunden
+              {t("sidebar.customers")}
             </ToggleGroupItem>
             <ToggleGroupItem value="server" className={toggleItemClass}>
-              Server
+              {t("sidebar.servers")}
             </ToggleGroupItem>
           </ToggleGroup>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon-sm" aria-label="Neu anlegen" title="Neu anlegen">
+              <Button variant="outline" size="icon-sm" aria-label={t("sidebar.create")} title={t("sidebar.create")}>
                 <Plus />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-auto min-w-44">
               <DropdownMenuItem onSelect={() => onCreate("customer")}>
-                <Building2 /> Neuer Kunde
+                <Building2 /> {t("sidebar.newCustomer")}
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => onCreate("server")}>
-                <ServerIcon /> Neuer Server
+                <ServerIcon /> {t("sidebar.newServer")}
               </DropdownMenuItem>
               <DropdownMenuItem disabled={customers.length === 0} onSelect={() => onCreate("project")}>
-                <Globe /> Neues Projekt
+                <Globe /> {t("sidebar.newProject")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -200,7 +213,7 @@ export function AppSidebar({
           <SidebarInput
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Suchen…"
+            placeholder={t("sidebar.search")}
             className="pl-8"
           />
         </div>
@@ -209,14 +222,14 @@ export function AppSidebar({
       <SidebarContent>
         {isEmpty && (
           <p className="text-muted-foreground px-4 py-2 text-sm">
-            Noch leer. Lege über <Plus className="inline size-3.5" /> deinen ersten Kunden oder Server an.
+            <Trans i18nKey="sidebar.empty" components={{ icon: <Plus className="inline size-3.5" /> }} />
           </p>
         )}
 
         {favorites.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel>
-              <Star className="mr-1.5 size-3 fill-current" /> Favoriten
+              <Star className="mr-1.5 size-3 fill-current" /> {t("sidebar.favorites")}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -266,8 +279,8 @@ export function AppSidebar({
                     </SidebarGroupLabel>
                     <CollapsibleTrigger asChild>
                       <SidebarGroupAction
-                        title={open ? "Einklappen" : "Aufklappen"}
-                        aria-label={open ? "Einklappen" : "Aufklappen"}
+                        title={open ? t("sidebar.collapse") : t("sidebar.expand")}
+                        aria-label={open ? t("sidebar.collapse") : t("sidebar.expand")}
                       >
                         <ChevronRight className={cn("transition-transform", open && "rotate-90")} />
                       </SidebarGroupAction>
@@ -276,7 +289,7 @@ export function AppSidebar({
                       <SidebarGroupContent>
                         <SidebarMenu>
                           {items.length === 0 && (
-                            <p className="text-muted-foreground/70 px-2 text-xs">Keine Projekte</p>
+                            <p className="text-muted-foreground/70 px-2 text-xs">{t("sidebar.noProjects")}</p>
                           )}
                           {items.map((project) => {
                             const server = project.serverId ? serverById.get(project.serverId) : undefined;
@@ -291,7 +304,7 @@ export function AppSidebar({
                                   <div className="flex min-w-0 flex-col">
                                     <span className="truncate">{project.name}</span>
                                     <span className="text-muted-foreground truncate text-xs">
-                                      {stackLabel[project.stack]} · {server?.name ?? "kein Server"}
+                                      {stackLabel(project.stack)} · {server?.name ?? t("sidebar.noServer")}
                                     </span>
                                   </div>
                                   <span className="ml-auto flex items-center gap-1.5">
@@ -310,13 +323,13 @@ export function AppSidebar({
               );
             })
           : [
-              { label: "Eigene Server", list: servers.filter((s) => !s.customerId) },
-              { label: "Kundenserver", list: servers.filter((s) => s.customerId) },
-            ].map(({ label, list }) => {
+              { key: "own", label: t("sidebar.ownServers"), list: servers.filter((s) => !s.customerId) },
+              { key: "customer", label: t("sidebar.customerServers"), list: servers.filter((s) => s.customerId) },
+            ].map(({ key, label, list }) => {
               const items = list.filter(matchesServer);
               if (items.length === 0) return null;
               return (
-                <SidebarGroup key={label}>
+                <SidebarGroup key={key}>
                   <SidebarGroupLabel>{label}</SidebarGroupLabel>
                   <SidebarGroupContent>
                     <SidebarMenu>
@@ -331,7 +344,7 @@ export function AppSidebar({
                               <ServerIcon />
                               <span className="truncate">{server.name}</span>
                               <span className="text-muted-foreground ml-auto text-xs">
-                                {providerLabel[server.provider]}
+                                {providerLabel(server.provider)}
                               </span>
                               <HealthDot health={serverHealth(server.facts)} />
                             </SidebarMenuButton>
@@ -364,7 +377,7 @@ export function AppSidebar({
         {running.length > 0 && (
           <div className="bg-sidebar-accent/60 ring-sidebar-border rounded-lg p-1 ring-1">
             <p className="text-muted-foreground flex items-center gap-1.5 px-2 pt-1 pb-0.5 text-xs font-medium">
-              <Activity className="size-3" /> Läuft gerade
+              <Activity className="size-3" /> {t("sidebar.running")}
               <span className="ml-auto tabular-nums">{running.length}</span>
             </p>
             <div className="max-h-40 overflow-y-auto">
@@ -384,7 +397,7 @@ export function AppSidebar({
                     <Loader2 className={cn("size-3.5 shrink-0 animate-spin", item.deploy ? "text-info" : "text-ci")} />
                   )}
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm">{projects.find((p) => p.id === item.projectId)?.name ?? "Projekt"}</span>
+                    <span className="block truncate text-sm">{projects.find((p) => p.id === item.projectId)?.name ?? t("sidebar.projectFallback")}</span>
                     <span className="text-muted-foreground flex items-center gap-1 truncate text-xs">
                       {item.deploy ? <Rocket className="size-3 shrink-0" /> : <Workflow className="size-3 shrink-0" />}
                       <span className="truncate">{item.label}</span>
@@ -397,35 +410,57 @@ export function AppSidebar({
         )}
         <div className="flex items-center justify-between">
           <div className="text-muted-foreground flex items-center gap-3 px-2 text-xs tabular-nums">
-            <span className="flex items-center gap-1" title={`${customers.length} Kunden`}>
+            <span className="flex items-center gap-1" title={t("sidebar.customerCount", { count: customers.length })}>
               <Building2 className="size-3.5" /> {customers.length}
             </span>
-            <span className="flex items-center gap-1" title={`${projects.length} Projekte`}>
+            <span className="flex items-center gap-1" title={t("sidebar.projectCount", { count: projects.length })}>
               <Globe className="size-3.5" /> {projects.length}
             </span>
-            <span className="flex items-center gap-1" title={`${servers.length} Server`}>
+            <span className="flex items-center gap-1" title={t("sidebar.serverCount", { count: servers.length })}>
               <ServerIcon className="size-3.5" /> {servers.length}
             </span>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-sm" aria-label="Weitere Aktionen" title="Weitere Aktionen">
+              <Button variant="ghost" size="icon-sm" aria-label={t("sidebar.moreActions")} title={t("sidebar.moreActions")}>
                 <Ellipsis />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" side="top" className="w-auto min-w-56">
               <DropdownMenuItem disabled={servers.length === 0 || checkAll !== null} onSelect={onCheckAll}>
                 <RefreshCw className={checkAll ? "animate-spin" : undefined} />
-                {checkAll ? `Prüfe … ${checkAll.done} von ${checkAll.total}` : "Alle Server prüfen"}
+                {checkAll
+                  ? t("sidebar.checkProgress", { done: checkAll.done, total: checkAll.total })
+                  : t("sidebar.checkAll")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={onExport}>
-                <Download /> Backup exportieren…
+                <Download /> {t("sidebar.exportBackup")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={onImport}>
-                <ArchiveRestore /> Backup wiederherstellen…
+                <ArchiveRestore /> {t("sidebar.restoreBackup")}
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <Languages /> {t("language.label")}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuRadioGroup
+                    value={language}
+                    onValueChange={(value) => {
+                      const setting = value as LanguageSetting;
+                      setLanguage(setting);
+                      void applyLanguage(setting);
+                    }}
+                  >
+                    <DropdownMenuRadioItem value="system">{t("language.system")}</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="de">Deutsch</DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

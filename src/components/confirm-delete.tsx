@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,11 +20,11 @@ export interface DeleteRequest {
   consequence?: string;
 }
 
-const kindLabel: Record<EntityKind, string> = {
-  customer: "Kunden",
-  server: "Server",
-  project: "Projekt",
-};
+const titleKey = {
+  customer: "confirmDelete.customerTitle",
+  server: "confirmDelete.serverTitle",
+  project: "confirmDelete.projectTitle",
+} as const satisfies Record<EntityKind, string>;
 
 export function ConfirmDelete({
   request,
@@ -33,22 +35,21 @@ export function ConfirmDelete({
   onCancel: () => void;
   onConfirm: (request: DeleteRequest) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <AlertDialog open={request !== null} onOpenChange={(open) => !open && onCancel()}>
       {request && (
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {kindLabel[request.kind]} „{request.name}“ löschen?
-            </AlertDialogTitle>
+            <AlertDialogTitle>{t(titleKey[request.kind], { name: request.name })}</AlertDialogTitle>
             <AlertDialogDescription>
-              {request.consequence ?? "Das lässt sich nicht rückgängig machen."}
+              {request.consequence ?? t("confirmDelete.cannotUndo")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={() => onConfirm(request)}>
-              Löschen
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,3 +1,5 @@
+import i18n from "i18next";
+
 import type { Stack } from "@/types";
 
 export interface DeployTemplate {
@@ -16,11 +18,14 @@ php artisan migrate --force
 php artisan optimize
 npm ci
 npm run build
-# Falls Queues laufen:
+# If you use queues:
 # php artisan queue:restart`,
     },
     {
-      label: "Laravel mit Wartungsmodus",
+      // Getter, damit das Label bei jedem Zugriff in der aktuellen Sprache kommt
+      get label() {
+        return i18n.t("deployTemplates.laravelMaintenance");
+      },
       script: `php artisan down --retry=15
 trap "php artisan up" EXIT
 git pull --ff-only
@@ -36,16 +41,18 @@ npm run build`,
       label: "WordPress (Git)",
       script: `git pull --ff-only
 if [ -f composer.json ]; then composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader; fi
-# Mit WP-CLI nach Core-Updates die Datenbank aktualisieren:
+# With WP-CLI, update the database after core updates:
 # wp core update-db
 # wp cache flush`,
     },
   ],
   static: [
     {
-      label: "Statische Seite",
+      get label() {
+        return i18n.t("deployTemplates.staticSite");
+      },
       script: `git pull --ff-only
-# Falls gebaut werden muss:
+# If the site needs a build step:
 # npm ci
 # npm run build`,
     },
