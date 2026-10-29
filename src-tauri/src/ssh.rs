@@ -260,9 +260,10 @@ fn interactive_args(server: &Server, dir: Option<&str>) -> Result<Vec<String>, S
             None => shell_quote(dir),
         };
         // $SHELL may point to a missing binary on some hosts, which would end
-        // the session right away; fall back to bash, then sh
+        // the session right away; fall back to bash, then sh. Such hosts (e.g. All-Inkl)
+        // run an interactive non-login bash that reads ~/.bashrc, so start bash without -l
         args.push(format!(
-            "cd {target} && {{ [ -x \"$SHELL\" ] && exec \"$SHELL\" -l; command -v bash >/dev/null && exec bash -l; exec sh -l; }}"
+            "cd {target} && {{ [ -x \"$SHELL\" ] && exec \"$SHELL\" -l; command -v bash >/dev/null && exec bash; exec sh -l; }}"
         ));
     }
     Ok(args)
@@ -474,7 +475,7 @@ mod tests {
         assert!(cmd.starts_with("ssh -t "));
         assert!(
             cmd.ends_with(
-                r#"deploy@203.0.113.10 'cd '\''/var/www/my shop'\'' && { [ -x "$SHELL" ] && exec "$SHELL" -l; command -v bash >/dev/null && exec bash -l; exec sh -l; }'"#
+                r#"deploy@203.0.113.10 'cd '\''/var/www/my shop'\'' && { [ -x "$SHELL" ] && exec "$SHELL" -l; command -v bash >/dev/null && exec bash; exec sh -l; }'"#
             ),
             "{cmd}"
         );
