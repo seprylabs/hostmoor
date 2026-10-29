@@ -1,7 +1,9 @@
+import { Trans, useTranslation } from "react-i18next";
+
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { providerLabel } from "@/lib/format";
+import { providerLabel, providers } from "@/lib/format";
 import type { Customer, Provider, Server } from "@/types";
 
 import { clean, FormShell, OptionSelect, useDraft } from "./shared";
@@ -16,6 +18,7 @@ interface Props {
 }
 
 export function ServerForm({ initial, defaultCustomerId, customers, onSubmit, onCancel }: Props) {
+  const { t } = useTranslation();
   const [draft, set] = useDraft({
     name: initial?.name ?? "",
     provider: initial?.provider ?? ("hetzner" as Provider),
@@ -51,28 +54,28 @@ export function ServerForm({ initial, defaultCustomerId, customers, onSubmit, on
       <FieldGroup>
         <div className="grid grid-cols-2 gap-4">
           <Field>
-            <FieldLabel htmlFor="server-name">Name</FieldLabel>
+            <FieldLabel htmlFor="server-name">{t("forms.name")}</FieldLabel>
             <Input
               id="server-name"
               autoFocus
               value={draft.name}
               onChange={(e) => set("name", e.target.value)}
-              placeholder="z. B. web-01"
+              placeholder={t("forms.server.namePlaceholder")}
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor="server-provider">Anbieter</FieldLabel>
+            <FieldLabel htmlFor="server-provider">{t("forms.server.provider")}</FieldLabel>
             <OptionSelect
               id="server-provider"
               value={draft.provider}
               onChange={(v) => v && set("provider", v as Provider)}
-              options={Object.entries(providerLabel).map(([value, label]) => ({ value, label }))}
+              options={providers.map((value) => ({ value, label: providerLabel(value) }))}
             />
           </Field>
         </div>
         <div className="grid grid-cols-[1fr_6rem] gap-4">
           <Field>
-            <FieldLabel htmlFor="server-host">Host / IP</FieldLabel>
+            <FieldLabel htmlFor="server-host">{t("forms.server.host")}</FieldLabel>
             <Input
               id="server-host"
               value={draft.host}
@@ -82,7 +85,7 @@ export function ServerForm({ initial, defaultCustomerId, customers, onSubmit, on
             />
           </Field>
           <Field data-invalid={!portValid || undefined}>
-            <FieldLabel htmlFor="server-port">Port</FieldLabel>
+            <FieldLabel htmlFor="server-port">{t("forms.server.port")}</FieldLabel>
             <Input
               id="server-port"
               inputMode="numeric"
@@ -94,17 +97,17 @@ export function ServerForm({ initial, defaultCustomerId, customers, onSubmit, on
           </Field>
         </div>
         <Field>
-          <FieldLabel htmlFor="server-user">SSH-Benutzer</FieldLabel>
+          <FieldLabel htmlFor="server-user">{t("forms.server.sshUser")}</FieldLabel>
           <Input
             id="server-user"
             value={draft.sshUser}
             onChange={(e) => set("sshUser", e.target.value)}
-            placeholder="z. B. deploy"
+            placeholder={t("forms.server.sshUserPlaceholder")}
             className="font-mono"
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="server-key">Pfad zum SSH-Key</FieldLabel>
+          <FieldLabel htmlFor="server-key">{t("forms.server.sshKey")}</FieldLabel>
           <Input
             id="server-key"
             value={draft.sshKeyPath}
@@ -113,28 +116,26 @@ export function ServerForm({ initial, defaultCustomerId, customers, onSubmit, on
             className="font-mono"
           />
           <FieldDescription>
-            Es wird nur der Pfad gespeichert. Die App öffnet die Key-Datei nie; sie wird später nur an
-            <code className="mx-1">ssh -i</code>übergeben. Leer lassen, um den Standard-Key bzw. den SSH-Agent
-            zu nutzen.
+            <Trans i18nKey="forms.server.sshKeyHint" components={{ code: <code /> }} />
           </FieldDescription>
         </Field>
         <Field>
-          <FieldLabel htmlFor="server-customer">Gehört zu</FieldLabel>
+          <FieldLabel htmlFor="server-customer">{t("forms.server.owner")}</FieldLabel>
           <OptionSelect
             id="server-customer"
             value={draft.customerId}
             onChange={(v) => set("customerId", v)}
-            noneLabel="Eigener Server"
+            noneLabel={t("forms.server.ownServer")}
             options={customers.map((c) => ({ value: c.id, label: c.name }))}
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="server-notes">Notizen</FieldLabel>
+          <FieldLabel htmlFor="server-notes">{t("forms.notes")}</FieldLabel>
           <Textarea
             id="server-notes"
             value={draft.notes}
             onChange={(e) => set("notes", e.target.value)}
-            placeholder="Tarif, Besonderheiten, Zugänge zum Panel …"
+            placeholder={t("forms.server.notesPlaceholder")}
           />
         </Field>
       </FieldGroup>

@@ -1,4 +1,5 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
+import i18n from "i18next";
 
 import type { CheckOutcome, CiResult, ProjectCi, ConnectionResult, Deploy, LastDeploy, Customer, EntityKind, Project, Server, Snapshot, TerminalApp } from "@/types";
 
@@ -90,7 +91,8 @@ function backupFileName() {
   return `stackport-backup-${new Date().toISOString().slice(0, 10)}.json`;
 }
 
-const backupFilter = [{ name: "StackPort-Sicherung", extensions: ["json"] }];
+// Funktion statt Konstante, damit der Name erst beim Aufruf übersetzt wird
+const backupFilter = () => [{ name: i18n.t("api.backupFilter"), extensions: ["json"] }];
 
 /** Fragt nach einem Speicherort und schreibt das Backup; false, wenn abgebrochen */
 export async function exportBackup(): Promise<boolean> {
@@ -104,7 +106,7 @@ export async function exportBackup(): Promise<boolean> {
     return true;
   }
   const { save } = await import("@tauri-apps/plugin-dialog");
-  const path = await save({ defaultPath: backupFileName(), filters: backupFilter });
+  const path = await save({ defaultPath: backupFileName(), filters: backupFilter() });
   if (!path) return false;
   await invoke("export_backup", { path, exportedAt });
   return true;
@@ -112,9 +114,9 @@ export async function exportBackup(): Promise<boolean> {
 
 /** Fragt nach einer Backup-Datei; null, wenn abgebrochen */
 export async function pickBackupFile(): Promise<string | null> {
-  if (!isTauri()) throw new Error("Import ist nur in der App möglich, nicht im Browser.");
+  if (!isTauri()) throw new Error(i18n.t("api.importBrowserOnly"));
   const { open } = await import("@tauri-apps/plugin-dialog");
-  const path = await open({ multiple: false, directory: false, filters: backupFilter });
+  const path = await open({ multiple: false, directory: false, filters: backupFilter() });
   return typeof path === "string" ? path : null;
 }
 
@@ -125,7 +127,7 @@ export async function importBackup(path: string): Promise<void> {
 
 /** Prüft per SSH, ob die Anmeldung am Server klappt */
 export async function testConnection(serverId: string): Promise<ConnectionResult> {
-  if (!isTauri()) throw new Error("Der Verbindungstest ist nur in der App möglich, nicht im Browser.");
+  if (!isTauri()) throw new Error(i18n.t("api.connectionTestBrowserOnly"));
   return invoke<ConnectionResult>("test_connection", { id: serverId });
 }
 
@@ -150,7 +152,7 @@ export async function lastDeploys(): Promise<LastDeploy[]> {
 
 /** Startet den Deploy; die Ausgabe kommt über onDeployEvents */
 export async function startDeploy(projectId: string, deployId: string): Promise<Deploy> {
-  if (!isTauri()) throw new Error("Deploys sind nur in der App möglich, nicht im Browser.");
+  if (!isTauri()) throw new Error(i18n.t("api.deployBrowserOnly"));
   return invoke<Deploy>("start_deploy", { projectId, deployId, startedAt: new Date().toISOString() });
 }
 
@@ -182,7 +184,7 @@ export async function onDeployEvents(handlers: DeployEvents): Promise<() => void
 
 /** Letzte Pipeline-Läufe (GitHub Actions / GitLab CI) zur Repo-URL des Projekts */
 export async function ciRuns(projectId: string): Promise<CiResult> {
-  if (!isTauri()) throw new Error("Pipelines lassen sich nur in der App laden, nicht im Browser.");
+  if (!isTauri()) throw new Error(i18n.t("api.ciBrowserOnly"));
   return invoke<CiResult>("ci_runs", { projectId });
 }
 
@@ -204,6 +206,12 @@ export async function setCiToken(host: string, token: string | null): Promise<vo
   await invoke("set_ci_token", { host, token });
 }
 
+/** Tells the Rust side which language to use (null = system language); returns the resolved language */
+export async function setBackendLanguage(language: "en" | "de" | null): Promise<"en" | "de"> {
+  if (isTauri()) return invoke<"en" | "de">("set_language", { language });
+  return (language ?? navigator.language).toLowerCase().startsWith("de") ? "de" : "en";
+}
+
 /** Öffnet einen Link im Standardbrowser */
 export async function openExternal(url: string): Promise<void> {
   if (!isTauri()) {
@@ -217,7 +225,7 @@ export async function openExternal(url: string): Promise<void> {
 /** Öffnet das Terminal mit einer SSH-Sitzung; mit `dir` direkt in diesem Ordner auf dem Server.
  *  `terminal` ist eine ID aus `listTerminals`, null = macOS-Standard */
 export async function openTerminal(serverId: string, dir?: string | null, terminal?: string | null): Promise<void> {
-  if (!isTauri()) throw new Error("Das Terminal lässt sich nur aus der App öffnen, nicht im Browser.");
+  if (!isTauri()) throw new Error(i18n.t("api.terminalBrowserOnly"));
   await invoke("open_terminal", { id: serverId, dir: dir ?? null, terminal: terminal ?? null });
 }
 
@@ -229,6 +237,6 @@ export async function listTerminals(): Promise<TerminalApp[]> {
 
 /** Liest PHP, Node, Kapazität usw. per SSH aus; das Ergebnis wird beim Server gespeichert */
 export async function checkServer(serverId: string): Promise<CheckOutcome> {
-  if (!isTauri()) throw new Error("Der Server-Check ist nur in der App möglich, nicht im Browser.");
+  if (!isTauri()) throw new Error(i18n.t("api.serverCheckBrowserOnly"));
   return invoke<CheckOutcome>("check_server", { id: serverId, checkedAt: new Date().toISOString() });
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import i18n from "i18next";
 import { toast } from "sonner";
 
 import * as api from "@/lib/api";
@@ -10,6 +11,7 @@ const empty: Snapshot = { customers: [], servers: [], projects: [] };
 /** So viele Server werden bei „Alle Server prüfen“ gleichzeitig geprüft */
 const CHECK_ALL_PARALLEL = 3;
 
+// i18n.t statt useTranslation: ein wechselndes t würde reload neu erzeugen und die Daten neu laden
 export function useStore() {
   const [data, setData] = useState<Snapshot>(empty);
   const [loading, setLoading] = useState(true);
@@ -20,7 +22,7 @@ export function useStore() {
     try {
       setData(await api.loadAll());
     } catch (e) {
-      toast.error("Daten konnten nicht geladen werden", { description: String(e) });
+      toast.error(i18n.t("store.loadFailed"), { description: String(e) });
     } finally {
       setLoading(false);
     }
@@ -39,7 +41,7 @@ export function useStore() {
         toast.success(success);
         return true;
       } catch (e) {
-        toast.error("Speichern fehlgeschlagen", { description: String(e) });
+        toast.error(i18n.t("common.saveFailed"), { description: String(e) });
         return false;
       }
     },
@@ -49,24 +51,24 @@ export function useStore() {
   return {
     ...data,
     loading,
-    saveCustomer: (c: Customer) => mutate(() => api.saveCustomer(c), "Kunde gespeichert"),
-    saveServer: (s: Server) => mutate(() => api.saveServer(s), "Server gespeichert"),
-    saveProject: (p: Project) => mutate(() => api.saveProject(p), "Projekt gespeichert"),
-    remove: (kind: EntityKind, id: string) => mutate(() => api.deleteEntity(kind, id), "Gelöscht"),
+    saveCustomer: (c: Customer) => mutate(() => api.saveCustomer(c), i18n.t("store.customerSaved")),
+    saveServer: (s: Server) => mutate(() => api.saveServer(s), i18n.t("store.serverSaved")),
+    saveProject: (p: Project) => mutate(() => api.saveProject(p), i18n.t("store.projectSaved")),
+    remove: (kind: EntityKind, id: string) => mutate(() => api.deleteEntity(kind, id), i18n.t("store.deleted")),
     setFavorite: (kind: EntityKind, id: string, favorite: boolean) =>
       mutate(
         () => api.setFavorite(kind, id, favorite),
-        favorite ? "Zu Favoriten hinzugefügt" : "Aus Favoriten entfernt",
+        favorite ? i18n.t("store.favoriteAdded") : i18n.t("store.favoriteRemoved"),
       ),
     exportBackup: async () => {
       try {
-        if (await api.exportBackup()) toast.success("Backup gespeichert");
+        if (await api.exportBackup()) toast.success(i18n.t("store.backupSaved"));
       } catch (e) {
-        toast.error("Export fehlgeschlagen", { description: String(e) });
+        toast.error(i18n.t("store.exportFailed"), { description: String(e) });
       }
     },
     setDeployScript: (projectId: string, script: string | null) =>
-      mutate(() => api.setDeployScript(projectId, script), "Deploy-Skript gespeichert"),
+      mutate(() => api.setDeployScript(projectId, script), i18n.t("store.deployScriptSaved")),
     checkAll,
     /** Prüft alle Server nacheinander (wenige parallel) und fasst das Ergebnis zusammen */
     checkAllServers: async () => {
@@ -75,7 +77,7 @@ export function useStore() {
       const failures: string[] = [];
       let done = 0;
       setCheckAll({ done, total: servers.length });
-      const toastId = toast.loading(`Prüfe ${servers.length} Server …`);
+      const toastId = toast.loading(i18n.t("store.checking", { count: servers.length }));
 
       const queue = [...servers];
       const worker = async () => {
@@ -88,7 +90,7 @@ export function useStore() {
           }
           done += 1;
           setCheckAll({ done, total: servers.length });
-          toast.loading(`Prüfe Server … ${done} von ${servers.length}`, { id: toastId });
+          toast.loading(i18n.t("store.checkProgress", { done, total: servers.length }), { id: toastId });
         }
       };
       await Promise.all(Array.from({ length: Math.min(CHECK_ALL_PARALLEL, servers.length) }, worker));
@@ -97,9 +99,9 @@ export function useStore() {
 
       const ok = servers.length - failures.length;
       if (failures.length === 0) {
-        toast.success(`Alle ${ok} Server geprüft`, { id: toastId });
+        toast.success(i18n.t("store.allChecked", { count: ok }), { id: toastId });
       } else {
-        toast.error(`${ok} von ${servers.length} Servern geprüft`, {
+        toast.error(i18n.t("store.partiallyChecked", { ok, count: servers.length }), {
           id: toastId,
           description: failures.join("\n"),
           classNames: { description: "whitespace-pre-line" },
@@ -112,16 +114,16 @@ export function useStore() {
       try {
         const { connectionError } = await api.checkServer(id);
         if (connectionError) {
-          toast.error("Keine Verbindung zum Server", { description: "Details und Hilfe stehen unter „Verbindung“." });
+          toast.error(i18n.t("store.noConnection"), { description: i18n.t("store.noConnectionHint") });
           return connectionError;
         }
         await reload();
-        toast.success("Server geprüft");
+        toast.success(i18n.t("store.serverChecked"));
       } catch (e) {
-        toast.error("Prüfung fehlgeschlagen", { description: String(e) });
+        toast.error(i18n.t("store.checkFailed"), { description: String(e) });
       }
       return null;
     },
-    importBackup: (path: string) => mutate(() => api.importBackup(path), "Backup wiederhergestellt"),
+    importBackup: (path: string) => mutate(() => api.importBackup(path), i18n.t("store.backupRestored")),
   };
 }

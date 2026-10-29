@@ -64,7 +64,11 @@ pub fn validate(server: &Server) -> Result<(), String> {
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | ':' | '_' | '[' | ']'));
     if !ok_host {
-        return Err(format!("Ungültiger Host: „{}“", server.host));
+        return Err(tr!(
+            "Invalid host: “{}”",
+            "Ungültiger Host: „{}“",
+            server.host
+        ));
     }
     if let Some(user) = &server.ssh_user {
         let ok_user = !user.starts_with('-')
@@ -72,7 +76,10 @@ pub fn validate(server: &Server) -> Result<(), String> {
                 .chars()
                 .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | '_'));
         if !ok_user {
-            return Err(format!("Ungültiger SSH-Benutzer: „{user}“"));
+            return Err(tr!(
+                "Invalid SSH user: “{user}”",
+                "Ungültiger SSH-Benutzer: „{user}“"
+            ));
         }
     }
     Ok(())
@@ -165,7 +172,7 @@ pub async fn run(
         if !expand_home(key).exists() {
             return Err(fail(
                 ConnectionStatus::KeyNotFound,
-                Some(format!("Datei nicht gefunden: {key}")),
+                Some(tr!("File not found: {key}", "Datei nicht gefunden: {key}")),
             ));
         }
     }
@@ -181,7 +188,10 @@ pub async fn run(
         Ok(Err(e)) => {
             return Err(fail(
                 ConnectionStatus::Unknown,
-                Some(format!("ssh konnte nicht gestartet werden: {e}")),
+                Some(tr!(
+                    "Could not start ssh: {e}",
+                    "ssh konnte nicht gestartet werden: {e}"
+                )),
             ));
         }
         Ok(Ok(output)) => output,
@@ -300,7 +310,10 @@ pub async fn test_connection(server: &Server) -> ConnectionResult {
         },
         Ok(stdout) => ConnectionResult {
             status: ConnectionStatus::Unknown,
-            detail: trim_detail(&format!("Unerwartete Antwort vom Server: {stdout}")),
+            detail: trim_detail(&tr!(
+                "Unexpected response from the server: {stdout}",
+                "Unerwartete Antwort vom Server: {stdout}"
+            )),
             duration_ms: started.elapsed().as_millis() as u64,
         },
         Err(result) => result,

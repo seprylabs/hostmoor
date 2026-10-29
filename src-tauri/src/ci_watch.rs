@@ -87,9 +87,11 @@ fn summarize(project_id: &str, runs: &[CiRun]) -> ProjectCi {
 
 fn notify(app: &AppHandle, project: &str, run: &CiRun, change: &Change) {
     let title = match change {
-        Change::Started => format!("▶ CI gestartet: {project}"),
-        Change::Finished(RunStatus::Success) => format!("✔ CI erfolgreich: {project}"),
-        Change::Finished(_) => format!("✖ CI fehlgeschlagen: {project}"),
+        Change::Started => tr!("▶ CI started: {project}", "▶ CI gestartet: {project}"),
+        Change::Finished(RunStatus::Success) => {
+            tr!("✔ CI succeeded: {project}", "✔ CI erfolgreich: {project}")
+        }
+        Change::Finished(_) => tr!("✖ CI failed: {project}", "✖ CI fehlgeschlagen: {project}"),
     };
     let body = match &run.branch {
         Some(branch) => format!("{} · {branch}", run.title),

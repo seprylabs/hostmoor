@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 const WIDTH_KEY = "stackport-sidebar-width";
 const DEFAULT_WIDTH = 256;
 const MIN_WIDTH = 200;
@@ -20,6 +22,7 @@ function saveWidth(width: number) {
 
 /** Ziehgriff am rechten Rand der Sidebar; Doppelklick setzt die Breite zurück */
 export function SidebarResizer({ width, onResize }: { width: number; onResize: (width: number) => void }) {
+  const { t } = useTranslation();
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     const handle = e.currentTarget;
@@ -43,11 +46,11 @@ export function SidebarResizer({ width, onResize }: { width: number; onResize: (
     <div
       role="separator"
       aria-orientation="vertical"
-      aria-label="Breite der Sidebar"
+      aria-label={t("sidebar.resizer.label")}
       aria-valuenow={width}
       aria-valuemin={MIN_WIDTH}
       aria-valuemax={MAX_WIDTH}
-      title="Ziehen zum Anpassen, Doppelklick setzt zurück"
+      title={t("sidebar.resizer.title")}
       onPointerDown={onPointerDown}
       onDoubleClick={() => {
         onResize(DEFAULT_WIDTH);

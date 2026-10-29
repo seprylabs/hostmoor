@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CustomerForm } from "@/components/forms/customer-form";
 import { ProjectForm } from "@/components/forms/project-form";
@@ -15,16 +17,16 @@ export type EditorState =
     }
   | { kind: "project"; initial?: Project; defaultCustomerId?: string; defaultServerId?: string };
 
-const titles = {
-  customer: ["Neuer Kunde", "Kunde bearbeiten"],
-  server: ["Neuer Server", "Server bearbeiten"],
-  project: ["Neues Projekt", "Projekt bearbeiten"],
+const titleKeys = {
+  customer: ["entityDialog.newCustomer", "entityDialog.editCustomer"],
+  server: ["entityDialog.newServer", "entityDialog.editServer"],
+  project: ["entityDialog.newProject", "common.editProject"],
 } as const;
 
-const descriptions = {
-  customer: "Kunden fassen Projekte und Server zusammen.",
-  server: "Zugangsdaten für den späteren SSH-Check. Passwörter werden nicht gespeichert.",
-  project: "Eine Website oder App eines Kunden, z. B. ein Laravel-Shop.",
+const descriptionKeys = {
+  customer: "entityDialog.customerDescription",
+  server: "entityDialog.serverDescription",
+  project: "entityDialog.projectDescription",
 } as const;
 
 interface Props {
@@ -40,6 +42,7 @@ interface Props {
 }
 
 export function EntityDialog({ editor, customers, servers, onClose, saveCustomer, saveServer, saveProject, onSaved }: Props) {
+  const { t } = useTranslation();
   const submit =
     <T extends { id: string }>(kind: EditorState["kind"], save: (item: T) => Promise<boolean>) =>
     async (item: T) => {
@@ -53,11 +56,11 @@ export function EntityDialog({ editor, customers, servers, onClose, saveCustomer
       {editor && (
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{titles[editor.kind][editor.initial ? 1 : 0]}</DialogTitle>
+            <DialogTitle>{t(titleKeys[editor.kind][editor.initial ? 1 : 0])}</DialogTitle>
             <DialogDescription>
               {editor.kind === "server" && editor.assignTo
-                ? `Wird nach dem Speichern direkt dem Projekt „${editor.assignTo.name}“ zugeordnet.`
-                : descriptions[editor.kind]}
+                ? t("entityDialog.assignTo", { name: editor.assignTo.name })
+                : t(descriptionKeys[editor.kind])}
             </DialogDescription>
           </DialogHeader>
           {editor.kind === "customer" && (

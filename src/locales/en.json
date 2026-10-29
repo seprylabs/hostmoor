@@ -1,0 +1,427 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "refresh": "Refresh",
+    "loading": "Loading …",
+    "editProject": "Edit project",
+    "saveFailed": "Saving failed"
+  },
+  "provider": {
+    "other": "Other"
+  },
+  "stack": {
+    "laravel": "Laravel",
+    "wordpress": "WordPress",
+    "static": "Static",
+    "other": "Other"
+  },
+  "format": {
+    "uptimeDays": "{{days}} d {{hours}} h",
+    "uptimeHours": "{{hours}} h",
+    "justNow": "just now"
+  },
+  "language": {
+    "label": "Language",
+    "system": "System default",
+    "en": "English",
+    "de": "Deutsch"
+  },
+  "app": {
+    "importFailed": "Couldn’t import backup",
+    "customerDeleteConsequence_one": "{{count}} project will also be deleted. Servers are kept but will no longer be assigned to a customer.",
+    "customerDeleteConsequence_other": "{{count}} projects will also be deleted. Servers are kept but will no longer be assigned to a customer.",
+    "customerDeleteServersKept": "The customer’s servers are kept but will no longer be assigned to a customer.",
+    "serverDeleteConsequence_one": "{{count}} project is kept but will no longer be assigned to a server.",
+    "serverDeleteConsequence_other": "{{count}} projects are kept but will no longer be assigned to a server.",
+    "welcome": {
+      "title": "Welcome to StackPort",
+      "text": "Get started by adding your first customer or server.",
+      "addCustomer": "Add customer",
+      "addServer": "Add server"
+    },
+    "selectHint": "Select a customer, project, or server in the sidebar.",
+    "restore": {
+      "title": "Restore backup?",
+      "description": "All current customers, servers, and projects will be replaced with the contents of <file>{{file}}</file>. Export a backup first if you want to keep your current data.",
+      "replace": "Replace"
+    }
+  },
+  "sidebar": {
+    "customers": "Customers",
+    "servers": "Servers",
+    "create": "Add new",
+    "newCustomer": "New customer",
+    "newServer": "New server",
+    "newProject": "New project",
+    "search": "Search…",
+    "empty": "Nothing here yet. Use <icon/> to add your first customer or server.",
+    "favorites": "Favorites",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "noProjects": "No projects",
+    "noServer": "no server",
+    "ownServers": "My servers",
+    "customerServers": "Customer servers",
+    "deploy": "Deploy",
+    "deployTo": "Deploy to {{server}}",
+    "queued": "Queued · {{workflow}}",
+    "running": "In progress",
+    "projectFallback": "Project",
+    "customerCount_one": "{{count}} customer",
+    "customerCount_other": "{{count}} customers",
+    "projectCount_one": "{{count}} project",
+    "projectCount_other": "{{count}} projects",
+    "serverCount_one": "{{count}} server",
+    "serverCount_other": "{{count}} servers",
+    "moreActions": "More actions",
+    "checkAll": "Check all servers",
+    "checkProgress": "Checking … {{done}} of {{total}}",
+    "exportBackup": "Export backup…",
+    "restoreBackup": "Restore backup…",
+    "resizer": {
+      "label": "Sidebar width",
+      "title": "Drag to resize, double-click to reset"
+    }
+  },
+  "store": {
+    "loadFailed": "Couldn’t load data",
+    "customerSaved": "Customer saved",
+    "serverSaved": "Server saved",
+    "projectSaved": "Project saved",
+    "deleted": "Deleted",
+    "favoriteAdded": "Added to favorites",
+    "favoriteRemoved": "Removed from favorites",
+    "backupSaved": "Backup saved",
+    "exportFailed": "Export failed",
+    "deployScriptSaved": "Deploy script saved",
+    "checking_one": "Checking {{count}} server …",
+    "checking_other": "Checking {{count}} servers …",
+    "checkProgress": "Checking servers … {{done}} of {{total}}",
+    "allChecked_one": "{{count}} server checked",
+    "allChecked_other": "All {{count}} servers checked",
+    "partiallyChecked_one": "{{ok}} of {{count}} server checked",
+    "partiallyChecked_other": "{{ok}} of {{count}} servers checked",
+    "noConnection": "Couldn’t connect to server",
+    "noConnectionHint": "See “Connection” for details and help.",
+    "serverChecked": "Server checked",
+    "checkFailed": "Check failed",
+    "backupRestored": "Backup restored"
+  },
+  "entityDialog": {
+    "newCustomer": "New customer",
+    "editCustomer": "Edit customer",
+    "newServer": "New server",
+    "editServer": "Edit server",
+    "newProject": "New project",
+    "customerDescription": "Customers group projects and servers together.",
+    "serverDescription": "Connection details for the SSH check. Passwords are never stored.",
+    "projectDescription": "A customer’s website or app, e.g. a Laravel shop.",
+    "assignTo": "Will be assigned to the project “{{name}}” after saving."
+  },
+  "confirmDelete": {
+    "customerTitle": "Delete customer “{{name}}”?",
+    "serverTitle": "Delete server “{{name}}”?",
+    "projectTitle": "Delete project “{{name}}”?",
+    "cannotUndo": "This can’t be undone."
+  },
+  "forms": {
+    "name": "Name",
+    "notes": "Notes",
+    "customer": {
+      "namePlaceholder": "e.g. Smith’s Bakery",
+      "notesPlaceholder": "Contact person, contract, special notes …"
+    },
+    "project": {
+      "namePlaceholder": "e.g. Online shop",
+      "stack": "Stack",
+      "customer": "Customer",
+      "customerPlaceholder": "Choose customer",
+      "server": "Server",
+      "noServer": "No server yet",
+      "domain": "Domain",
+      "domainPlaceholder": "shop.example.com",
+      "path": "Path on server",
+      "pathHint": "Will be used for deploy scripts.",
+      "repo": "Repository",
+      "repoPlaceholder": "https://github.com/company/shop",
+      "repoHint": "Used to show GitHub or GitLab Actions."
+    },
+    "server": {
+      "namePlaceholder": "e.g. web-01",
+      "provider": "Provider",
+      "host": "Host / IP",
+      "port": "Port",
+      "sshUser": "SSH user",
+      "sshUserPlaceholder": "e.g. deploy",
+      "sshKey": "SSH key path",
+      "sshKeyHint": "Only the path is stored. The app never opens the key file; it’s only passed to <code>ssh -i</code>. Leave empty to use the default key or the SSH agent.",
+      "owner": "Belongs to",
+      "ownServer": "My server",
+      "notesPlaceholder": "Plan, special notes, panel access …"
+    }
+  },
+  "customer": {
+    "projects": "Projects",
+    "noProjects": "No projects yet.",
+    "servers": "Servers",
+    "noServers": "No servers yet.",
+    "ownServer": "(mine)",
+    "new": "New"
+  },
+  "detailActions": {
+    "addFavorite": "Add to favorites",
+    "removeFavorite": "Remove from favorites"
+  },
+  "fact": {
+    "notFound": "not found",
+    "notes": "Notes",
+    "percent": "({{pct}}%)"
+  },
+  "health": {
+    "ok": "All good",
+    "warn": "Disk or memory almost full",
+    "unknown": "Not checked yet"
+  },
+  "server": {
+    "detail": {
+      "testFailed": "Couldn’t run the test",
+      "customer": "Customer: {{name}}",
+      "ownServer": "My server",
+      "checking": "Checking …",
+      "checkNow": "Check now",
+      "checkedAtTitle": "Checked on {{date}}",
+      "checkedAt": "Checked {{time}}",
+      "checkedAtStale": "Checked {{time}} · may be outdated",
+      "neverChecked": "Never checked",
+      "noData": "No data for this server yet. Click “{{action}}” and StackPort reads PHP, Node, capacity and more. Nothing on the server is changed.",
+      "capacity": "Capacity",
+      "cpuValue_one": "{{count}} core · load {{load}}",
+      "cpuValue_other": "{{count}} cores · load {{load}}",
+      "disk": "Disk {{mount}}",
+      "uptime": "Uptime",
+      "systemServices": "System & services",
+      "os": "Operating system",
+      "webserver": "Web server",
+      "database": "Database",
+      "phpCliVersion": "CLI version",
+      "phpInstalled": "Installed",
+      "devTools": "Developer tools",
+      "projects": "Projects on this server",
+      "addProject": "Project",
+      "noProjects": "No projects assigned yet."
+    }
+  },
+  "connection": {
+    "panel": {
+      "title": "Connection",
+      "testing": "Testing …",
+      "test": "Test connection",
+      "intro": "Checks whether your Mac can sign in to this server via SSH. Nothing on the server is changed.",
+      "duration": "{{seconds}} s",
+      "howToFix": "How to fix it",
+      "saved": "Saved",
+      "apply": "Use",
+      "selfRun": "You run these commands yourself in Terminal. StackPort doesn’t change anything on the server.",
+      "sshMessage": "Message from ssh"
+    },
+    "commandLine": {
+      "copy": "Copy",
+      "copyCommand": "Copy command",
+      "copyPath": "Copy path",
+      "commandCopied": "Command copied",
+      "pathCopied": "Path copied",
+      "copyFailed": "Couldn’t copy"
+    }
+  },
+  "terminal": {
+    "button": {
+      "openFailed": "Couldn’t open Terminal",
+      "openTitle": "Open SSH session in {{app}}",
+      "openTitleInDir": "Open SSH session in {{app}}, directly in {{dir}}",
+      "chooseApp": "Choose terminal app",
+      "openWith": "Open with",
+      "macosDefault": "macOS default"
+    }
+  },
+  "sshHelp": {
+    "confirmHost": "Connect once yourself in Terminal and answer “Are you sure you want to continue connecting?” with yes. Then you can close the connection with exit.",
+    "retry": "Then click “{{action}}” here again.",
+    "ok": {
+      "title": "Connected",
+      "explanation": "Signing in as {{user}} works. The server is ready for the server check.",
+      "explanationNoUser": "Signing in with your user works. The server is ready for the server check."
+    },
+    "unknownHost": {
+      "title": "Server is not known yet",
+      "explanation": "Your Mac has never connected to this server. So that no one can impersonate your server, the app doesn’t confirm new servers automatically."
+    },
+    "hostKeyChanged": {
+      "title": "Warning: The server key has changed",
+      "explanation": "This happens when the server was reinstalled. But it can also mean that someone is impersonating your server. Only continue if you’re sure the server was set up again.",
+      "removeEntry": "Only if you’re sure: remove the old entry."
+    },
+    "authFailed": {
+      "title": "Key not accepted",
+      "explanation": "The server is reachable, but signing in as {{user}} fails. Usually the public key isn’t on the server yet.",
+      "explanationNoUser": "The server is reachable, but signing in with your user fails. Usually the public key isn’t on the server yet.",
+      "noUser": "No SSH user is set. Enter the correct one in the server form, e.g. root, deploy or forge.",
+      "generateKey": "Create a dedicated key for this server. It’s saved to {{key}} and also works normally in Terminal afterwards. If you already have a key you want to use, enter its path in the server form instead.",
+      "useKey": "Use this key for the server:",
+      "copyId": "Copy the public key to the server. This asks for the server password once:",
+      "pbcopy": "Can’t sign in with a password? Copy the public key to the clipboard and paste it into your host’s panel (or Forge, Plesk …) under “SSH keys”:",
+      "passphrase": "Does your key have a passphrase? The app can’t ask for it. Store it once in the macOS keychain:"
+    },
+    "keyNotFound": {
+      "title": "Key file not found",
+      "explanation": "There’s no file at {{key}}. Check the path in the server form or create a new key.",
+      "listKeys": "Show existing keys:",
+      "generateKey": "Or create a new key at exactly this path:",
+      "copyAndRetry": "Then copy the public key to the server and test again."
+    },
+    "keyPermissions": {
+      "title": "Key file is readable by others",
+      "explanation": "For security reasons, ssh won’t use the key as long as other users could read it.",
+      "chmod": "Set permissions to “only you”:"
+    },
+    "dnsFailed": {
+      "title": "Host not found",
+      "explanation": "The name “{{host}}” can’t be resolved. Check the spelling or enter the IP address directly."
+    },
+    "refused": {
+      "title": "Connection refused",
+      "explanation": "The server responds, but SSH isn’t running on port {{port}}. Often the port is wrong (default: 22) or SSH isn’t enabled on the server."
+    },
+    "timeout": {
+      "title": "No response from server",
+      "explanation": "No response within 8 seconds. Common causes: wrong IP, the server is off, or a firewall (e.g. in the Hetzner panel) is blocking port {{port}}."
+    },
+    "unreachable": {
+      "title": "Server unreachable",
+      "explanation": "The network can’t find a route to the server. Are you on the right network or VPN, and is the IP correct?"
+    },
+    "invalidConfig": {
+      "title": "Check your input",
+      "explanation": "Host or user contains characters that aren’t allowed. Please correct them in the server form."
+    },
+    "unknown": {
+      "title": "Connection failed",
+      "explanation": "The cause couldn’t be detected automatically. The message from ssh is shown in the details below.",
+      "verbose": "Try it yourself in Terminal to see what happens:"
+    }
+  },
+  "project": {
+    "detail": {
+      "customer": "Customer: {{name}}",
+      "provider": "Provider",
+      "database": "Database",
+      "notChecked": "This server hasn't been checked yet.",
+      "noServer": "No server is assigned to this project yet.",
+      "createServer": "Create new server",
+      "assignExisting": "Assign existing"
+    }
+  },
+  "ci": {
+    "status": {
+      "queued": "Queued",
+      "running": "Running",
+      "success": "Succeeded",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "skipped": "Skipped",
+      "manual": "Waiting for approval",
+      "other": "Unknown"
+    },
+    "panel": {
+      "loadFailed": "Couldn't load pipelines",
+      "changeOrRemoveToken": "Change or remove token",
+      "addToken": "Add token",
+      "changeToken": "Change token",
+      "manageToken": "Manage token",
+      "repoUrlNotRecognized": "Couldn't recognize the repo URL “{{url}}”. Use a format like git@github.com:company/project.git or https://gitlab.com/group/project.",
+      "noRepoUrl": "Add a repo URL to the project to see its latest runs here.",
+      "tokenRejected": "The saved token for {{host}} was rejected or has no access to this repo.",
+      "tokenMissing": "This repo is private or unreachable. Add a token for {{host}} so StackPort can read its runs.",
+      "noRuns": "No runs yet."
+    },
+    "runList": {
+      "latestOnly": "Show latest run per workflow",
+      "showAll_one": "Show {{count}} run",
+      "showAll_other": "Show all {{count}} runs"
+    },
+    "runRow": {
+      "title": "{{status}} · {{date}} · Open in browser"
+    },
+    "token": {
+      "title": "Token for {{host}}",
+      "description": "The token is stored in the macOS Keychain, not in the StackPort database or in backups. It applies to all projects on {{host}}.",
+      "helpGithub": "Recommended: a fine-grained token with “Actions: Read-only” access to the repos you need. If an organization owns the repo, select it as the resource owner, and make sure the token isn't pending approval. A classic token with the repo scope also works, but grants much broader access.",
+      "helpGitlab": "Create a personal access token on {{host}} with the read_api scope. That's all StackPort needs.",
+      "openTokenPage": "Open token page",
+      "placeholderReplace": "Paste a new token to replace the current one",
+      "placeholder": "Paste token",
+      "remove": "Remove token",
+      "saved": "Token saved to Keychain",
+      "removed": "Token removed"
+    }
+  },
+  "deploy": {
+    "status": {
+      "running": "Running",
+      "success": "Succeeded",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "interrupted": "Interrupted (app quit)"
+    },
+    "panel": {
+      "historyLoadFailed": "Couldn't load deploy history",
+      "startFailed": "Couldn't start deploy",
+      "cancelFailed": "Couldn't cancel deploy",
+      "missingServer": "Assign a server to this project first.",
+      "missingPath": "Add the project's path on the server (e.g. /var/www/shop). The script runs there.",
+      "editScript": "Edit script",
+      "deploy": "Deploy",
+      "template": "Template:",
+      "editorHelp": "Runs with bash in <code>{{path}}</code> on the server. Each command is shown, and the deploy stops at the first error. Lines starting with # are comments.",
+      "noPath": "(no path)",
+      "discard": "Discard",
+      "noScript": "No deploy script yet. Define which commands run on the server when you deploy, for example <code>git pull</code> and <code>composer install</code>.",
+      "createScript": "Create script",
+      "history": "History",
+      "showLess": "Show less",
+      "showOlder_one": "Show older ({{count}})",
+      "showOlder_other": "Show older ({{count}})",
+      "confirmTitle": "Deploy “{{name}}” now?",
+      "confirmDescription": "These commands will run on <strong>{{server}}</strong> ({{target}}) in <code>{{path}}</code>:"
+    },
+    "live": {
+      "running": "Deploy running …",
+      "connecting": "Connecting …"
+    },
+    "history": {
+      "noOutput": "No output saved."
+    }
+  },
+  "deployStatus": {
+    "running": "Deploy running",
+    "lastFailed": "Last deploy failed",
+    "lastInterrupted": "Last deploy interrupted",
+    "ciRunning": "CI running: {{title}}",
+    "lastPipelineFailed": "Last pipeline failed"
+  },
+  "deployTemplates": {
+    "laravelMaintenance": "Laravel with maintenance mode",
+    "staticSite": "Static site"
+  },
+  "api": {
+    "backupFilter": "StackPort backup",
+    "importBrowserOnly": "Importing only works in the app, not in the browser.",
+    "connectionTestBrowserOnly": "The connection test only works in the app, not in the browser.",
+    "deployBrowserOnly": "Deploys only work in the app, not in the browser.",
+    "ciBrowserOnly": "Pipelines can only be loaded in the app, not in the browser.",
+    "terminalBrowserOnly": "The terminal can only be opened from the app, not from the browser.",
+    "serverCheckBrowserOnly": "The server check only works in the app, not in the browser."
+  }
+}

@@ -1,4 +1,5 @@
 import { CircleAlert, CircleX, Loader2, Workflow } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useProjectCi } from "@/hooks/use-ci-overview";
 import { useDeployStatus } from "@/hooks/use-live-deploys";
@@ -7,19 +8,20 @@ import { cn } from "@/lib/utils";
 
 /** Kleines Symbol in der Seitenleiste: Deploy läuft oder letzter Deploy fehlgeschlagen. Erfolg bleibt unauffällig. */
 export function DeployStatusIcon({ projectId, className }: { projectId: string; className?: string }) {
+  const { t } = useTranslation();
   const deploy = useDeployStatus(projectId);
   if (!deploy) return null;
 
   if (deploy.status === "running") {
     return (
-      <span title="Deploy läuft" className={cn("shrink-0", className)}>
+      <span title={t("deployStatus.running")} className={cn("shrink-0", className)}>
         <Loader2 className="size-3.5 animate-spin text-info" />
       </span>
     );
   }
   if (deploy.status === "failed" || deploy.status === "interrupted") {
     const when = deploy.startedAt ? ` · ${formatRelative(deploy.startedAt)}` : "";
-    const label = deploy.status === "failed" ? "Letzter Deploy fehlgeschlagen" : "Letzter Deploy unterbrochen";
+    const label = deploy.status === "failed" ? t("deployStatus.lastFailed") : t("deployStatus.lastInterrupted");
     return (
       <span title={`${label}${when}`} className={cn("shrink-0", className)}>
         <CircleAlert className={cn("size-3.5", deploy.status === "failed" ? "text-danger" : "text-warning")} />
@@ -31,12 +33,13 @@ export function DeployStatusIcon({ projectId, className }: { projectId: string; 
 
 /** Kleines Symbol in der Seitenleiste: Pipeline läuft oder letzte fehlgeschlagen */
 export function CiStatusIcon({ projectId, className }: { projectId: string; className?: string }) {
+  const { t } = useTranslation();
   const ci = useProjectCi(projectId);
   if (!ci) return null;
 
   if (ci.active.length > 0) {
     return (
-      <span title={`CI läuft: ${ci.active[0].title}`} className={cn("shrink-0", className)}>
+      <span title={t("deployStatus.ciRunning", { title: ci.active[0].title })} className={cn("shrink-0", className)}>
         <Workflow className="size-3.5 animate-pulse text-ci" />
       </span>
     );
@@ -44,7 +47,7 @@ export function CiStatusIcon({ projectId, className }: { projectId: string; clas
   if (ci.latest === "failed") {
     const when = ci.latestAt ? ` · ${formatRelative(ci.latestAt)}` : "";
     return (
-      <span title={`Letzte Pipeline fehlgeschlagen${when}`} className={cn("shrink-0", className)}>
+      <span title={`${t("deployStatus.lastPipelineFailed")}${when}`} className={cn("shrink-0", className)}>
         <CircleX className="size-3.5 text-danger" />
       </span>
     );

@@ -79,17 +79,30 @@ pub fn start(
         .path
         .as_deref()
         .filter(|p| !p.trim().is_empty())
-        .ok_or("Für das Projekt ist kein Pfad auf dem Server eingetragen.")?;
+        .ok_or_else(|| {
+            tr!(
+                "The project has no path on the server.",
+                "Für das Projekt ist kein Pfad auf dem Server eingetragen."
+            )
+        })?;
     let script = project
         .deploy_script
         .as_deref()
         .filter(|s| !s.trim().is_empty())
-        .ok_or("Für das Projekt ist noch kein Deploy-Skript hinterlegt.")?;
+        .ok_or_else(|| {
+            tr!(
+                "The project has no deploy script yet.",
+                "Für das Projekt ist noch kein Deploy-Skript hinterlegt."
+            )
+        })?;
     ssh::validate(server)?;
     if let Some(key) = &server.ssh_key_path
         && !ssh::expand_home(key).exists()
     {
-        return Err(format!("Key-Datei nicht gefunden: {key}"));
+        return Err(tr!(
+            "Key file not found: {key}",
+            "Key-Datei nicht gefunden: {key}"
+        ));
     }
     let mut args = ssh::ssh_args(server);
     args.push(remote_command(dir, script));
@@ -99,7 +112,10 @@ pub fn start(
         let running = app.state::<Running>();
         let mut running = running.lock();
         if running.contains_key(&project.id) {
-            return Err("Für dieses Projekt läuft bereits ein Deploy.".into());
+            return Err(tr!(
+                "A deploy is already running for this project.",
+                "Für dieses Projekt läuft bereits ein Deploy."
+            ));
         }
         running.insert(project.id.clone(), (deploy_id.clone(), cancel_tx));
     }
@@ -157,8 +173,11 @@ fn notify(app: &AppHandle, project: &str, server: &str, status: DeployStatus, to
         return;
     }
     let title = match status {
-        DeployStatus::Success => format!("✔ {project} deployt"),
-        _ => format!("✖ Deploy von {project} fehlgeschlagen"),
+        DeployStatus::Success => tr!("✔ {project} deployed", "✔ {project} deployt"),
+        _ => tr!(
+            "✖ Deploy of {project} failed",
+            "✖ Deploy von {project} fehlgeschlagen"
+        ),
     };
     let secs = took.as_secs();
     let duration = if secs < 60 {
@@ -231,7 +250,10 @@ async fn run(
     {
         Ok(child) => child,
         Err(e) => {
-            push(&format!("ssh konnte nicht gestartet werden: {e}"));
+            push(&tr!(
+                "Could not start ssh: {e}",
+                "ssh konnte nicht gestartet werden: {e}"
+            ));
             return (DeployStatus::Failed, None, output);
         }
     };
@@ -270,14 +292,16 @@ async fn run(
     let status = match stopped {
         Some(DeployStatus::Cancelled) => {
             push("");
-            push(
-                "■ Abgebrochen. Die Verbindung wurde getrennt; ein bereits laufender Befehl kann auf dem Server noch zu Ende laufen.",
-            );
+            push(&tr!(
+                "■ Cancelled. The connection was closed; a command that was already running may still finish on the server.",
+                "■ Abgebrochen. Die Verbindung wurde getrennt; ein bereits laufender Befehl kann auf dem Server noch zu Ende laufen."
+            ));
             DeployStatus::Cancelled
         }
         Some(_) => {
             push("");
-            push(&format!(
+            push(&tr!(
+                "✖ Time limit of {} minutes exceeded, deploy aborted.",
                 "✖ Zeitlimit von {} Minuten überschritten, Deploy abgebrochen.",
                 DEPLOY_TIMEOUT.as_secs() / 60
             ));
@@ -285,23 +309,28 @@ async fn run(
         }
         None if code == Some(0) => {
             push("");
-            push("✔ Deploy erfolgreich abgeschlossen.");
+            push(&tr!(
+                "✔ Deploy completed successfully.",
+                "✔ Deploy erfolgreich abgeschlossen."
+            ));
             DeployStatus::Success
         }
         None if code == Some(255) => {
             push("");
-            push(
-                "✖ Die SSH-Verbindung ist fehlgeschlagen. Teste die Verbindung in der Serveransicht.",
-            );
+            push(&tr!(
+                "✖ The SSH connection failed. Test the connection in the server view.",
+                "✖ Die SSH-Verbindung ist fehlgeschlagen. Teste die Verbindung in der Serveransicht."
+            ));
             DeployStatus::Failed
         }
         None => {
             push("");
             match code {
-                Some(code) => push(&format!(
+                Some(code) => push(&tr!(
+                    "✖ Deploy failed (exit code {code}). The last command above caused the error.",
                     "✖ Deploy fehlgeschlagen (Exit-Code {code}). Der letzte Befehl oben hat den Fehler ausgelöst."
                 )),
-                None => push("✖ Deploy fehlgeschlagen."),
+                None => push(&tr!("✖ Deploy failed.", "✖ Deploy fehlgeschlagen.")),
             }
             DeployStatus::Failed
         }
@@ -312,7 +341,11 @@ async fn run(
         let cut = (cut..output.len())
             .find(|&i| output.is_char_boundary(i))
             .unwrap_or(cut);
-        output = format!("… (Anfang gekürzt)\n{}", &output[cut..]);
+        output = tr!(
+            "… (beginning truncated)\n{}",
+            "… (Anfang gekürzt)\n{}",
+            &output[cut..]
+        );
     }
     (status, code, output)
 }

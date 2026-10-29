@@ -70,13 +70,23 @@ pub fn export_backup(db: State<Db>, path: PathBuf, exported_at: String) -> CmdRe
 #[tauri::command]
 pub fn import_backup(db: State<Db>, path: PathBuf) -> CmdResult<Snapshot> {
     let raw = std::fs::read_to_string(&path).map_err(err)?;
-    let backup: Backup = serde_json::from_str(&raw)
-        .map_err(|e| format!("Keine gültige StackPort-Sicherung: {e}"))?;
+    let backup: Backup = serde_json::from_str(&raw).map_err(|e| {
+        tr!(
+            "Not a valid StackPort backup: {e}",
+            "Keine gültige StackPort-Sicherung: {e}"
+        )
+    })?;
     if backup.app != BACKUP_APP {
-        return Err("Die Datei ist keine StackPort-Sicherung.".into());
+        return Err(tr!(
+            "The file is not a StackPort backup.",
+            "Die Datei ist keine StackPort-Sicherung."
+        ));
     }
     if backup.format_version > BACKUP_FORMAT_VERSION {
-        return Err("Die Sicherung stammt aus einer neueren StackPort-Version.".into());
+        return Err(tr!(
+            "The backup comes from a newer StackPort version.",
+            "Die Sicherung stammt aus einer neueren StackPort-Version."
+        ));
     }
     db.replace_all(&backup.data).map_err(err)?;
     db.snapshot().map_err(err)
@@ -88,7 +98,7 @@ fn find_server(db: &Db, id: &str) -> CmdResult<Server> {
         .servers
         .into_iter()
         .find(|s| s.id == id)
-        .ok_or_else(|| "Server nicht gefunden".into())
+        .ok_or_else(|| tr!("Server not found", "Server nicht gefunden"))
 }
 
 /// Testet, ob sich die App per SSH am Server anmelden kann
@@ -128,16 +138,18 @@ pub fn start_deploy(
         .projects
         .into_iter()
         .find(|p| p.id == project_id)
-        .ok_or("Projekt nicht gefunden")?;
-    let server_id = project
-        .server_id
-        .as_deref()
-        .ok_or("Dem Projekt ist kein Server zugeordnet.")?;
+        .ok_or_else(|| tr!("Project not found", "Projekt nicht gefunden"))?;
+    let server_id = project.server_id.as_deref().ok_or_else(|| {
+        tr!(
+            "The project has no server assigned.",
+            "Dem Projekt ist kein Server zugeordnet."
+        )
+    })?;
     let server = snapshot
         .servers
         .into_iter()
         .find(|s| s.id == server_id)
-        .ok_or("Server nicht gefunden")?;
+        .ok_or_else(|| tr!("Server not found", "Server nicht gefunden"))?;
     deploy::start(&app, &project, &server, deploy_id, started_at)
 }
 
@@ -155,7 +167,7 @@ pub async fn ci_runs(db: State<'_, Db>, project_id: String) -> CmdResult<CiResul
         .projects
         .into_iter()
         .find(|p| p.id == project_id)
-        .ok_or("Projekt nicht gefunden")?
+        .ok_or_else(|| tr!("Project not found", "Projekt nicht gefunden"))?
         .repo_url
         .unwrap_or_default();
     Ok(ci::runs(&repo_url).await)
@@ -225,4 +237,10 @@ pub async fn check_server(
         }),
         Err(CheckError::Output(message)) => Err(message),
     }
+}
+
+/// Language for backend texts; `None` follows the system. Returns "en" or "de".
+#[tauri::command]
+pub fn set_language(language: Option<String>) -> &'static str {
+    crate::i18n::set(language.as_deref())
 }

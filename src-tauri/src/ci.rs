@@ -156,7 +156,8 @@ pub fn token(host: &str) -> Result<Option<String>, String> {
     match security_framework::passwords::get_generic_password(KEYCHAIN_SERVICE, host) {
         Ok(bytes) => Ok(String::from_utf8(bytes).ok().filter(|t| !t.is_empty())),
         Err(e) if e.code() == ERR_NOT_FOUND => Ok(None),
-        Err(e) => Err(format!(
+        Err(e) => Err(tr!(
+            "Could not read the token for {host} from the Keychain ({}, code {}).",
             "Der Token für {host} konnte nicht aus dem Schlüsselbund gelesen werden ({}, Code {}).",
             e,
             e.code()
@@ -174,7 +175,8 @@ pub fn set_token(host: &str, token: Option<&str>) -> Result<(), String> {
                 token.as_bytes(),
             )
             .map_err(|e| {
-                format!(
+                tr!(
+                    "Could not save the token in the Keychain: {e} (code {})",
                     "Token konnte nicht im Schlüsselbund gespeichert werden: {e} (Code {})",
                     e.code()
                 )
@@ -182,7 +184,10 @@ pub fn set_token(host: &str, token: Option<&str>) -> Result<(), String> {
             // Gegenprobe, damit ein Problem sofort beim Speichern auffällt und nicht erst beim Laden
             match self::token(host)? {
                 Some(stored) if stored == token => Ok(()),
-                _ => Err("Der Token wurde gespeichert, lässt sich aber nicht wieder lesen.".into()),
+                _ => Err(tr!(
+                    "The token was saved but cannot be read back.",
+                    "Der Token wurde gespeichert, lässt sich aber nicht wieder lesen."
+                )),
             }
         }
         None => {
@@ -201,7 +206,10 @@ pub fn token(_host: &str) -> Result<Option<String>, String> {
 
 #[cfg(not(target_os = "macos"))]
 pub fn set_token(_host: &str, _token: Option<&str>) -> Result<(), String> {
-    Err("Tokens lassen sich nur unter macOS im Schlüsselbund speichern.".into())
+    Err(tr!(
+        "Tokens can only be stored in the macOS Keychain.",
+        "Tokens lassen sich nur unter macOS im Schlüsselbund speichern."
+    ))
 }
 
 // --- API -------------------------------------------------------------------
@@ -369,12 +377,16 @@ pub async fn fetch(
         return Fetch::NeedsToken;
     }
     if status == 403 {
-        return Fetch::Error(
-            "Zu viele Anfragen ohne Token. Mit Token ist das Limit deutlich höher.".into(),
-        );
+        return Fetch::Error(tr!(
+            "Too many requests without a token. With a token the limit is much higher.",
+            "Zu viele Anfragen ohne Token. Mit Token ist das Limit deutlich höher."
+        ));
     }
     if !response.status().is_success() {
-        return Fetch::Error(format!("Unerwartete Antwort ({status})."));
+        return Fetch::Error(tr!(
+            "Unexpected response ({status}).",
+            "Unerwartete Antwort ({status})."
+        ));
     }
     let etag = response
         .headers()
@@ -429,7 +441,7 @@ pub async fn fetch(
 
     match runs {
         Ok(runs) => Fetch::Fresh { runs, etag },
-        Err(e) => Fetch::Error(format!("Antwort nicht lesbar: {e}")),
+        Err(e) => Fetch::Error(tr!("Unreadable response: {e}", "Antwort nicht lesbar: {e}")),
     }
 }
 

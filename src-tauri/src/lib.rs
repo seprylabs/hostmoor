@@ -1,3 +1,7 @@
+// First, so the tr! macro is available in all modules below
+#[macro_use]
+mod i18n;
+
 mod check;
 mod ci;
 mod ci_watch;
@@ -17,6 +21,8 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            // System language until the UI sends the user's choice
+            i18n::set(None);
             // ~/Library/Application Support/de.spmedia.stackport/stackport.db
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
@@ -47,6 +53,7 @@ pub fn run() {
             commands::ci_runs,
             commands::set_ci_token,
             commands::ci_overview,
+            commands::set_language,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
