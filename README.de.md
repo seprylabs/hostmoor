@@ -1,0 +1,51 @@
+# StackPort
+
+[English](README.md) · **Deutsch**
+
+**Alle Server und Kundenprojekte in einer Desktop-App.** StackPort ist für Freelancer und kleine Agenturen, die Laravel- und WordPress-Seiten auf eigenen Servern und auf Kundenservern betreiben (Hetzner, netcup, IONOS …): sehen, was wo läuft, Server prüfen, deployen und CI im Blick behalten, ohne SaaS-Konto und ohne SSH-Keys herauszugeben.
+
+Läuft unter macOS, Windows und Linux, auf Englisch und Deutsch.
+
+![StackPort: Projekt mit Server, GitHub Actions und Deploy](docs/screenshots/project-light.png)
+
+## Funktionen
+
+- **Kunden → Projekte → Server**, in der Seitenleiste nach Kunden oder nach Servern gruppiert, mit Favoriten und Suche
+- **Server-Check** auf Knopfdruck: Betriebssystem, CPU, RAM, Platten, PHP mit Erweiterungen, Composer, Node/npm, Git, WP-CLI, Webserver, Datenbank, Redis. Das Skript ([`check.sh`](src-tauri/src/check.sh)) liest nur; das Ergebnis wird lokal gespeichert und nach 30 Tagen als veraltet markiert
+- **Verbindungstest mit Einrichtungshilfe**: StackPort erkennt die Ursache (unbekannter Host, Key abgelehnt, falsche Rechte, Firewall …) und zeigt die passenden Befehle für dein System
+- **Deploys** pro Projekt: Vorlagen für Laravel und WordPress, Bestätigung vor jedem Start, Live-Ausgabe, Abbrechen, Verlauf der letzten 20 Deploys, Systemmitteilung am Ende
+- **GitHub Actions und GitLab-Pipelines** pro Projekt (auch selbst gehostetes GitLab), im Hintergrund abgefragt, mit Mitteilung bei Start, Erfolg und Fehlschlag
+- **Terminal-Knopf**: öffnet eine SSH-Sitzung in deinem Terminal, bei Projekten direkt im Projektordner
+- **Backup** aller Daten als JSON, Export und Wiederherstellung
+
+![Deploy mit Live-Ausgabe](docs/screenshots/deploy.gif)
+
+## Installation
+
+Den Installer für dein System gibt es auf der [Release-Seite][releases]: `.dmg` für macOS, `.msi` oder `-setup.exe` für Windows, `.AppImage`, `.deb` oder `.rpm` für Linux.
+
+Die Apps sind noch nicht signiert, dein System warnt deshalb einmal:
+
+- **macOS:** nach der Installation einmal im Terminal `xattr -cr /Applications/StackPort.app` ausführen.
+- **Windows:** SmartScreen meldet „Der Computer wurde durch Windows geschützt“. „Weitere Informationen“ → „Trotzdem ausführen“ wählen.
+- **Linux:** das AppImage ausführbar machen (`chmod +x StackPort_*.AppImage`) oder das Paket installieren.
+
+StackPort nutzt den `ssh`-Client des Systems, unter Windows den OpenSSH-Client von Windows 10 und 11.
+
+## Sicherheit und Datenschutz
+
+- **Nur lokal.** Alle Daten liegen in einer SQLite-Datenbank auf deinem Rechner. Kein Konto, keine Cloud, keine Telemetrie.
+- **SSH-Keys werden nie gelesen.** StackPort speichert nur den *Pfad* zum Key und übergibt ihn an `ssh -i`.
+- **Kein stilles Vertrauen in Hosts.** Checks und Deploys laufen mit `BatchMode=yes` und `StrictHostKeyChecking=yes`.
+- **Tokens im Schlüsselbund des Systems**, nie in der Datenbank oder im Backup.
+
+Sicherheitslücken bitte vertraulich melden, siehe [SECURITY.md](SECURITY.md).
+
+Entwicklung und Roadmap stehen im [englischen README](README.md).
+
+## Lizenz
+
+[GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`). Gebaut von [SPMedia](https://spmedia.de).
+
+<!-- Repo-Links: nur hier ändern, wenn das Repo umzieht -->
+[releases]: https://github.com/SebastianPrzybylski/stackport/releases
