@@ -1,0 +1,18 @@
+name: Question
+description: Ask how something in StackPort works
+labels: [question]
+body:
+  - type: markdown
+    attributes:
+      value: Please check the [README](../blob/main/README.md) first; your question might already be answered there.
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+    validations:
+      required: true
+  - type: input
+    id: context
+    attributes:
+      label: StackPort version and operating system
+      placeholder: e.g. 0.2.0 on Windows 11

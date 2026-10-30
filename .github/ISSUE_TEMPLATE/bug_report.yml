@@ -1,0 +1,52 @@
+name: Bug report
+description: Something in StackPort doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please **don't** report security issues here; see [SECURITY.md](../blob/main/SECURITY.md).
+        Remove host names, IP addresses, user names and tokens from logs and screenshots before posting.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a server …
+        2. Click "Check now" …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: StackPort version
+      placeholder: e.g. 0.2.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version and details
+      placeholder: e.g. macOS 26.1, Windows 11 24H2, Ubuntu 24.04 (GNOME)
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error messages, logs or screenshots
+      description: Anything shown in the app or in the deploy output that helps.
