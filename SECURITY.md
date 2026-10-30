@@ -1,43 +1,44 @@
-# Sicherheit
+# Security
 
-StackPort hat SSH- und Deploy-Zugriff auf deine Server. Sicherheitslücken nehmen wir deshalb ernst.
+StackPort has SSH and deploy access to your servers, so we take security issues seriously.
 
-## Sicherheitslücke melden
+## Reporting a vulnerability
 
-Bitte **kein öffentliches Issue** anlegen. Melde Lücken vertraulich über
-[„Report a vulnerability“](https://github.com/SebastianPrzybylski/stackport/security/advisories/new)
+Please **don't open a public issue**. Report vulnerabilities privately via
+["Report a vulnerability"](https://github.com/SebastianPrzybylski/stackport/security/advisories/new)
 (GitHub Private Vulnerability Reporting).
 
-Hilfreich sind:
+Helpful details:
 
-- betroffene Version
-- Schritte zum Nachstellen oder ein Proof of Concept
-- deine Einschätzung der Auswirkung
+- affected version
+- steps to reproduce or a proof of concept
+- your assessment of the impact
 
-Du bekommst innerhalb von 7 Tagen eine erste Rückmeldung. Nach dem Fix veröffentlichen
-wir ein Advisory und nennen dich auf Wunsch als Finder.
+You'll get a first response within 7 days. After the fix we publish an advisory and, if you
+like, credit you as the reporter.
 
-## Unterstützte Versionen
+## Supported versions
 
-Sicherheits-Fixes gibt es nur für die jeweils neueste Version.
+Security fixes are only provided for the latest version.
 
-## Sicherheitsmodell
+## Security model
 
-- **SSH-Keys:** Die App liest nie den Inhalt einer Key-Datei. Sie übergibt nur den Pfad an das
-  System-`ssh` (`ssh -i`). Passphrasen bleiben im ssh-agent bzw. Schlüsselbund.
-- **Host-Keys:** Verbindungstest, Server-Check und Deploys laufen mit `BatchMode=yes` und
-  `StrictHostKeyChecking=yes`. Unbekannte oder geänderte Host-Keys werden nie still akzeptiert.
-  Einen neuen Server bestätigst du einmal selbst im Terminal.
-- **Shell-Aufrufe:** Prozesse werden ohne lokale Shell mit getrennten Argumenten gestartet.
-  Hostnamen und Benutzernamen werden geprüft (keine führenden `-`, nur erlaubte Zeichen),
-  Pfade und Skripte für die Shell auf dem Server gequotet.
-- **Deploy-Skripte** sind absichtlich beliebige Shell-Befehle und laufen mit den Rechten des
-  SSH-Benutzers auf dem Server. Wer die lokale Datenbank ändern kann, kann also Befehle auf deinen
-  Servern ausführen. Schütze deinen Mac-Account entsprechend.
-- **CI-Tokens** liegen im macOS-Schlüsselbund, nicht in der Datenbank oder in Backups.
-- **Oberfläche:** Eine strenge Content Security Policy erlaubt nur eigene Skripte und keine
-  Verbindungen außer zur App selbst. Die Tauri-Berechtigungen sind auf Events, Fenster ziehen,
-  Datei-Dialoge und das Öffnen von `https://`-Links begrenzt.
-- **`macOSPrivateApi`** ist aktiv, weil das transparente Fenster mit Seitenleisten-Effekt es
-  braucht. Für den App Store ist StackPort ohnehin nicht gedacht: Die Sandbox dort erlaubt keinen
-  Zugriff auf `~/.ssh` und das System-`ssh`.
+- **SSH keys:** The app never reads the contents of a key file. It only passes the path to the
+  system `ssh` (`ssh -i`). Passphrases stay in the ssh-agent or the system keychain.
+- **Host keys:** Connection tests, server checks and deploys run with `BatchMode=yes` and
+  `StrictHostKeyChecking=yes`. Unknown or changed host keys are never accepted silently.
+  You confirm a new server once yourself in the terminal.
+- **Shell calls:** Processes are started without a local shell, with separate arguments.
+  Host names and user names are validated (no leading `-`, only allowed characters);
+  paths and scripts for the shell on the server are quoted.
+- **Deploy scripts** are intentionally arbitrary shell commands and run with the permissions of
+  the SSH user on the server. Anyone who can change the local database can therefore run commands
+  on your servers. Protect your user account accordingly.
+- **CI tokens** are stored in the system keychain (macOS Keychain, Windows Credential Manager,
+  Secret Service on Linux), never in the database or in backups.
+- **User interface:** A strict Content Security Policy only allows the app's own scripts and no
+  connections except to the app itself. Tauri permissions are limited to events, window dragging,
+  file dialogs and opening `https://` links.
+- **`macOSPrivateApi`** is enabled because the transparent window with the sidebar effect needs it.
+  StackPort is not meant for the App Store anyway: its sandbox doesn't allow access to `~/.ssh`
+  and the system `ssh`.
