@@ -42,6 +42,7 @@ StackPort nutzt den `ssh`-Client des Systems, unter Windows den OpenSSH-Client v
 ## Sicherheit und Datenschutz
 
 - **Nur lokal.** Alle Daten liegen in einer SQLite-Datenbank auf deinem Rechner. Kein Konto, keine Cloud, keine Telemetrie.
+- **Signierte Updates, nur mit deiner Zustimmung.** Beim Start sucht StackPort auf GitHub nach einer neuen Version und fragt vor der Installation. Updates werden gegen einen öffentlichen Schlüssel in der App geprüft, ein manipulierter Download wird abgelehnt.
 - **SSH-Keys werden nie gelesen.** StackPort speichert nur den *Pfad* zum Key und übergibt ihn an `ssh -i`.
 - **Kein stilles Vertrauen in Hosts.** Checks und Deploys laufen mit `BatchMode=yes` und `StrictHostKeyChecking=yes`.
 - **Tokens im Schlüsselbund des Systems**, nie in der Datenbank oder im Backup.

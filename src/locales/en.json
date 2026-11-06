@@ -430,5 +430,19 @@
     "ciBrowserOnly": "Pipelines can only be loaded in the app, not in the browser.",
     "terminalBrowserOnly": "The terminal can only be opened from the app, not from the browser.",
     "serverCheckBrowserOnly": "The server check only works in the app, not in the browser."
+  },
+  "update": {
+    "check": "Check for updates",
+    "checking": "Checking for updates …",
+    "title": "StackPort {{version}} is available",
+    "description": "You are using version {{current}}. The update is downloaded and installed, then StackPort restarts.",
+    "releaseNotes": "Release notes",
+    "later": "Later",
+    "install": "Install and restart",
+    "installing": "Installing update …",
+    "upToDate": "StackPort {{version}} is up to date",
+    "checkFailed": "Couldn't check for updates",
+    "installFailed": "Couldn't install the update",
+    "browserOnly": "Updates are only available in the desktop app"
   }
 }

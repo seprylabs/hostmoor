@@ -25,13 +25,16 @@ import { CustomerDetail } from "@/components/customer-detail";
 import { EntityDialog, type EditorState } from "@/components/entity-dialog";
 import { ProjectDetail } from "@/components/project-detail";
 import { ServerDetail } from "@/components/server-detail";
+import { UpdateDialog } from "@/components/update-dialog";
 import { useStore } from "@/hooks/use-store";
+import { useUpdater } from "@/hooks/use-updater";
 import { pickBackupFile } from "@/lib/api";
 import type { Selection } from "@/types";
 
 function App() {
   const { t } = useTranslation();
   const store = useStore();
+  const updater = useUpdater();
   const { customers, servers, projects } = store;
 
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -84,6 +87,8 @@ function App() {
           onImport={chooseBackup}
           onCheckAll={store.checkAllServers}
           checkAll={store.checkAll}
+          onCheckUpdates={updater.check}
+          checkingUpdates={updater.checking}
         />
         <SidebarResizer width={sidebarWidth} onResize={setSidebarWidth} />
         <SidebarInset className="min-h-0">
@@ -236,6 +241,7 @@ function App() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <UpdateDialog updater={updater} />
       <Toaster position="bottom-right" />
     </TooltipProvider>
   );

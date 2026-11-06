@@ -60,7 +60,8 @@ StackPort uses the `ssh` client of your system. On Windows this is the OpenSSH c
 
 StackPort has SSH and deploy access to your servers, so it is built to need as little trust as possible:
 
-- **Local only.** All data stays in a SQLite database on your computer. No account, no cloud, no telemetry. The only network requests go to your servers (via `ssh`) and to the GitHub or GitLab API for pipelines.
+- **Local only.** All data stays in a SQLite database on your computer. No account, no cloud, no telemetry. The only network requests go to your servers (via `ssh`), to the GitHub or GitLab API for pipelines, and to GitHub Releases to check for updates.
+- **Signed updates, installed only when you agree.** StackPort checks for a new version at startup and asks before installing it. Updates are verified against a public key built into the app, so a tampered download is rejected.
 - **SSH keys are never read.** StackPort stores only the *path* to a key and passes it to `ssh -i`. Passphrases stay in your SSH agent or keychain.
 - **No silent host trust.** Checks and deploys run with `BatchMode=yes` and `StrictHostKeyChecking=yes`. New or changed host keys are never accepted automatically.
 - **Tokens in the system keychain.** CI tokens are stored in the macOS Keychain, the Windows Credential Manager or the Secret Service on Linux, never in the database or in backups.
@@ -74,7 +75,6 @@ StackPort does not provision servers. It is the overview and toolbox for servers
 
 ## Roadmap
 
-- Automatic updates
 - Homebrew, winget and Flathub/AUR packages
 - Rollback for deploys, more deploy templates
 
