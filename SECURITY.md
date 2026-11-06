@@ -5,7 +5,7 @@ StackPort has SSH and deploy access to your servers, so we take security issues 
 ## Reporting a vulnerability
 
 Please **don't open a public issue**. Report vulnerabilities privately via
-["Report a vulnerability"](https://github.com/SebastianPrzybylski/stackport/security/advisories/new)
+["Report a vulnerability"](https://github.com/seprylabs/stackport/security/advisories/new)
 (GitHub Private Vulnerability Reporting).
 
 Helpful details:
