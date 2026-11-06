@@ -24,9 +24,14 @@ Läuft unter macOS, Windows und Linux, auf Englisch und Deutsch.
 
 Den Installer für dein System gibt es auf der [Release-Seite][releases]: `.dmg` für macOS, `.msi` oder `-setup.exe` für Windows, `.AppImage`, `.deb` oder `.rpm` für Linux.
 
-Die Apps sind noch nicht signiert, dein System warnt deshalb einmal:
+Die Apps sind nicht signiert, dein System warnt deshalb einmal:
 
-- **macOS:** nach der Installation einmal im Terminal `xattr -cr /Applications/StackPort.app` ausführen.
+- **macOS:** Gatekeeper meldet, StackPort sei „beschädigt“ oder „nicht verifiziert“. Nachdem du die App in den Programme-Ordner gezogen hast, entfernst du die Quarantäne-Markierung einmal im Terminal:
+
+  ```bash
+  xattr -cr /Applications/StackPort.app
+  ```
+
 - **Windows:** SmartScreen meldet „Der Computer wurde durch Windows geschützt“. „Weitere Informationen“ → „Trotzdem ausführen“ wählen.
 - **Linux:** das AppImage ausführbar machen (`chmod +x StackPort_*.AppImage`) oder das Paket installieren.
 

@@ -64,7 +64,7 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: StackPort ${{ github.ref_name }}
           releaseBody: |
-            The apps are not signed yet (SPM-131).
+            The apps are not code-signed, so your system warns once:
 
             - **macOS:** after installing, run once in Terminal: `xattr -cr /Applications/StackPort.app`
             - **Windows:** SmartScreen warns about an unknown publisher. Choose “More info” → “Run anyway”.

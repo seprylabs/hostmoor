@@ -41,9 +41,14 @@ Download the installer for your system from the [releases page][releases]:
 | Windows 10 and 11 | `.msi` or `-setup.exe` |
 | Linux | `.AppImage`, `.deb` or `.rpm` |
 
-The apps are not signed yet, so your system will warn once:
+The apps are not code-signed, so your system will warn once:
 
-- **macOS:** after installing, run `xattr -cr /Applications/StackPort.app` once in Terminal.
+- **macOS:** Gatekeeper reports that StackPort “is damaged” or “cannot be verified”. After moving the app to Applications, run this once in Terminal to remove the quarantine flag:
+
+  ```bash
+  xattr -cr /Applications/StackPort.app
+  ```
+
 - **Windows:** SmartScreen shows “Windows protected your PC”. Choose “More info” → “Run anyway”.
 - **Linux:** make the AppImage executable (`chmod +x StackPort_*.AppImage`) or install the package.
 
@@ -67,7 +72,7 @@ StackPort does not provision servers. It is the overview and toolbox for servers
 
 ## Roadmap
 
-- Signed and notarized apps, automatic updates
+- Automatic updates
 - Homebrew, winget and Flathub/AUR packages
 - Rollback for deploys, more deploy templates
 
