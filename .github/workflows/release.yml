@@ -60,6 +60,9 @@ jobs:
       - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signs the update bundles; the app checks them against the pubkey in tauri.conf.json
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: StackPort ${{ github.ref_name }}
@@ -75,6 +78,8 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+          # latest.json: Windows updates use the per-user NSIS installer instead of the .msi
+          updaterJsonPreferNsis: true
 
   # Runs once all installers are uploaded and adds a checksum file to the release
   checksums:

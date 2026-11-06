@@ -5,6 +5,7 @@ import {
   ArchiveRestore,
   Building2,
   ChevronRight,
+  CircleArrowUp,
   CircleDashed,
   Download,
   Ellipsis,
@@ -90,6 +91,8 @@ interface Props {
   onCheckAll: () => void;
   /** Fortschritt von „Alle Server prüfen“, null = läuft nicht */
   checkAll: { done: number; total: number } | null;
+  onCheckUpdates: () => void;
+  checkingUpdates: boolean;
 }
 
 export function AppSidebar({
@@ -103,6 +106,8 @@ export function AppSidebar({
   onImport,
   onCheckAll,
   checkAll,
+  onCheckUpdates,
+  checkingUpdates,
 }: Props) {
   const { t } = useTranslation();
   const [language, setLanguage] = useState<LanguageSetting>(languageSetting);
@@ -461,6 +466,9 @@ export function AppSidebar({
                   </DropdownMenuRadioGroup>
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
+              <DropdownMenuItem disabled={checkingUpdates} onSelect={onCheckUpdates}>
+                <CircleArrowUp /> {checkingUpdates ? t("update.checking") : t("update.check")}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

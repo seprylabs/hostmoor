@@ -14,3 +14,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - CI checks on macOS, Windows and Linux for every pull request, plus dependency audits.
 - English README with screenshots, contributing guide, code of conduct, and issue and pull request templates.
 - Open-source license: AGPL-3.0.
+- In-app updates: StackPort checks for new versions at startup and from the sidebar menu, and installs signed updates after you confirm.
