@@ -122,8 +122,8 @@ npx license-checker-rseidelsohn --production --summary   # npm
 ```
 
 <!-- Repository links: change only here when the repository moves -->
-[ci]: https://github.com/SebastianPrzybylski/stackport/actions/workflows/ci.yml
-[ci-badge]: https://github.com/SebastianPrzybylski/stackport/actions/workflows/ci.yml/badge.svg
-[releases]: https://github.com/SebastianPrzybylski/stackport/releases
-[release-badge]: https://img.shields.io/github/v/release/SebastianPrzybylski/stackport
+[ci]: https://github.com/seprylabs/stackport/actions/workflows/ci.yml
+[ci-badge]: https://github.com/seprylabs/stackport/actions/workflows/ci.yml/badge.svg
+[releases]: https://github.com/seprylabs/stackport/releases
+[release-badge]: https://img.shields.io/github/v/release/seprylabs/stackport
 [license-badge]: https://img.shields.io/badge/license-AGPL--3.0-blue

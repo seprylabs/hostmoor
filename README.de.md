@@ -55,4 +55,4 @@ Entwicklung und Roadmap stehen im [englischen README](README.md).
 [GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`). Gebaut von [SPMedia](https://spmedia.de).
 
 <!-- Repo-Links: nur hier ändern, wenn das Repo umzieht -->
-[releases]: https://github.com/SebastianPrzybylski/stackport/releases
+[releases]: https://github.com/seprylabs/stackport/releases
