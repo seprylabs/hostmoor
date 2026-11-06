@@ -35,6 +35,8 @@ Die Apps sind nicht signiert, dein System warnt deshalb einmal:
 - **Windows:** SmartScreen meldet „Der Computer wurde durch Windows geschützt“. „Weitere Informationen“ → „Trotzdem ausführen“ wählen.
 - **Linux:** das AppImage ausführbar machen (`chmod +x StackPort_*.AppImage`) oder das Paket installieren.
 
+Zu jedem Release gehört eine `SHA256SUMS.txt`. Zum Prüfen eines Downloads im Download-Ordner `shasum -a 256 -c SHA256SUMS.txt --ignore-missing` (macOS) oder `sha256sum -c SHA256SUMS.txt --ignore-missing` (Linux) ausführen.
+
 StackPort nutzt den `ssh`-Client des Systems, unter Windows den OpenSSH-Client von Windows 10 und 11.
 
 ## Sicherheit und Datenschutz

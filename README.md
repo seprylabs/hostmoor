@@ -52,6 +52,8 @@ The apps are not code-signed, so your system will warn once:
 - **Windows:** SmartScreen shows “Windows protected your PC”. Choose “More info” → “Run anyway”.
 - **Linux:** make the AppImage executable (`chmod +x StackPort_*.AppImage`) or install the package.
 
+Each release includes `SHA256SUMS.txt`. To verify a download, run `shasum -a 256 -c SHA256SUMS.txt --ignore-missing` (macOS) or `sha256sum -c SHA256SUMS.txt --ignore-missing` (Linux) in the download folder.
+
 StackPort uses the `ssh` client of your system. On Windows this is the OpenSSH client that ships with Windows 10 and 11.
 
 ## Security and privacy
