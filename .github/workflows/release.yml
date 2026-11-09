@@ -76,7 +76,9 @@ jobs:
             To verify a download, compare it with `SHA256SUMS.txt`:
             `shasum -a 256 -c SHA256SUMS.txt --ignore-missing` (macOS) or `sha256sum -c SHA256SUMS.txt --ignore-missing` (Linux).
           releaseDraft: false
-          prerelease: false
+          # Tags with a pre-release part (v1.0.0-1) become pre-releases, which the
+          # updater ignores because it only reads the latest regular release
+          prerelease: ${{ contains(github.ref_name, '-') }}
           args: ${{ matrix.args }}
           # latest.json: Windows updates use the per-user NSIS installer instead of the .msi
           updaterJsonPreferNsis: true
