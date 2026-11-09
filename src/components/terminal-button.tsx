@@ -16,7 +16,7 @@ import {
 import { listTerminals, openTerminal } from "@/lib/api";
 import type { TerminalApp } from "@/types";
 
-const TERMINAL_KEY = "stackport-terminal";
+const TERMINAL_KEY = "hostmoor-terminal";
 /** Systemstandard: unter macOS die App, die im Finder für .command-Dateien eingestellt ist,
  *  unter Linux x-terminal-emulator; Windows kennt nur diesen */
 const DEFAULT = "default";

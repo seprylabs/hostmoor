@@ -26,12 +26,12 @@ pub fn run() {
         .setup(|app| {
             // System language until the UI sends the user's choice
             i18n::set(None);
-            // macOS: ~/Library/Application Support/com.seprylabs.stackport/stackport.db
-            // Windows: %APPDATA%\com.seprylabs.stackport\stackport.db
-            // Linux: ~/.local/share/com.seprylabs.stackport/stackport.db
+            // macOS: ~/Library/Application Support/com.seprylabs.hostmoor/hostmoor.db
+            // Windows: %APPDATA%\com.seprylabs.hostmoor\hostmoor.db
+            // Linux: ~/.local/share/com.seprylabs.hostmoor/hostmoor.db
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
-            app.manage(db::Db::open(&dir.join("stackport.db"))?);
+            app.manage(db::Db::open(&dir.join("hostmoor.db"))?);
             app.manage(deploy::Running::default());
             app.manage(ci_watch::CiWatch::default());
             ci_watch::start(app.handle().clone());

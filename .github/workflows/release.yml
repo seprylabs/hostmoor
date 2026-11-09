@@ -1,4 +1,4 @@
-# On every tag (e.g. v0.3.0) builds StackPort for macOS, Windows and Linux
+# On every tag (e.g. v0.3.0) builds Hostmoor for macOS, Windows and Linux
 # and attaches the installers to a GitHub release.
 name: Release
 
@@ -65,11 +65,11 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: StackPort ${{ github.ref_name }}
+          releaseName: Hostmoor ${{ github.ref_name }}
           releaseBody: |
             The apps are not code-signed, so your system warns once:
 
-            - **macOS:** after installing, run once in Terminal: `xattr -cr /Applications/StackPort.app`
+            - **macOS:** after installing, run once in Terminal: `xattr -cr /Applications/Hostmoor.app`
             - **Windows:** SmartScreen warns about an unknown publisher. Choose “More info” → “Run anyway”.
             - **Linux:** make the AppImage executable (`chmod +x`) or install the .deb / .rpm.
 

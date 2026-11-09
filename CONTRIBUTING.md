@@ -1,6 +1,6 @@
-# Contributing to StackPort
+# Contributing to Hostmoor
 
-Thanks for your interest in StackPort! Bug reports, ideas and pull requests are all welcome.
+Thanks for your interest in Hostmoor! Bug reports, ideas and pull requests are all welcome.
 
 By taking part you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md). Please report security issues privately as described in [SECURITY.md](SECURITY.md), not in a public issue.
 
@@ -59,4 +59,4 @@ Notable changes go into [CHANGELOG.md](CHANGELOG.md) under "Unreleased".
 
 ## License
 
-StackPort is licensed under the [AGPL-3.0](LICENSE). By submitting a pull request, you agree that your contribution is licensed under the same license.
+Hostmoor is licensed under the [AGPL-3.0](LICENSE). By submitting a pull request, you agree that your contribution is licensed under the same license.

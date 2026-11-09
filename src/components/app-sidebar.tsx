@@ -65,7 +65,7 @@ import type { Customer, EntityKind, Project, Selection, Server } from "@/types";
 
 type GroupBy = "customer" | "server";
 
-const COLLAPSED_KEY = "stackport-collapsed-customers";
+const COLLAPSED_KEY = "hostmoor-collapsed-customers";
 
 function loadCollapsed(): Set<string> {
   try {
