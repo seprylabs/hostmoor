@@ -1,6 +1,6 @@
 [package]
 name = "stackport"
-version = "1.0.0-2"
+version = "1.0.0"
 description = "Server- und Projektübersicht für Laravel- und WordPress-Entwickler"
 authors = ["StackPort contributors"]
 license = "AGPL-3.0-only"
