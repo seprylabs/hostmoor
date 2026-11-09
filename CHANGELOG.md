@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- "Check for updates" failed with "Command plugin:app|version not allowed by ACL" when StackPort was already up to date.
+
 ## [1.0.0] - 2026-11-09
 
 First public release.
