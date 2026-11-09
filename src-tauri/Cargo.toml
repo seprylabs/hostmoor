@@ -2,7 +2,7 @@
 name = "stackport"
 version = "0.2.0"
 description = "Server- und Projektübersicht für Laravel- und WordPress-Entwickler"
-authors = ["spmedia"]
+authors = ["StackPort contributors"]
 license = "AGPL-3.0-only"
 edition = "2024"
 

@@ -91,7 +91,7 @@ cd src-tauri && cargo test
 
 Without Tauri the UI also runs in the browser (`npm run dev`, http://localhost:1420); data is then kept in localStorage instead of SQLite.
 
-The database `stackport.db` lives in the app data folder `de.spmedia.stackport`: `~/Library/Application Support/` on macOS, `%APPDATA%` on Windows, `~/.local/share/` on Linux. Schema migrations are in [`db.rs`](src-tauri/src/db.rs) and run on startup.
+The database `stackport.db` lives in the app data folder `com.seprylabs.stackport`: `~/Library/Application Support/` on macOS, `%APPDATA%` on Windows, `~/.local/share/` on Linux. Schema migrations are in [`db.rs`](src-tauri/src/db.rs) and run on startup.
 
 ```
 src/                    React UI (React 19, TypeScript, Tailwind CSS 4, shadcn/ui)
@@ -112,7 +112,7 @@ Bug reports, ideas and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBU
 
 ## License
 
-StackPort is licensed under the [GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`). Built by [SPMedia](https://spmedia.de).
+StackPort is licensed under the [GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`).
 
 Check the licenses of dependencies:
 
