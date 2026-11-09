@@ -79,7 +79,8 @@ jobs:
           # Tags with a pre-release part (v1.0.0-1) become pre-releases, which the
           # updater ignores because it only reads the latest regular release
           prerelease: ${{ contains(github.ref_name, '-') }}
-          args: ${{ matrix.args }}
+          # RPM rejects a hyphen in the version, so test tags (v1.0.0-1) skip it on Linux
+          args: ${{ matrix.args }}${{ matrix.name == 'Linux' && contains(github.ref_name, '-') && ' --bundles appimage,deb' || '' }}
           # latest.json: Windows updates use the per-user NSIS installer instead of the .msi
           updaterJsonPreferNsis: true
 
