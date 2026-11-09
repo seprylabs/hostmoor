@@ -15,8 +15,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Decides whether code changed. Documentation-only changes (Markdown, docs/,
+  # LICENSE, issue templates) skip the build and audit jobs below.
+  changes:
+    name: Änderungen erkennen
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - id: diff
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          # Unknown base (e.g. first push): treat everything as code
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git diff --name-only "$BASE" HEAD
+          if git diff --name-only "$BASE" HEAD \
+            | grep -Ev '\.md$|^docs/|^LICENSE$|^\.github/ISSUE_TEMPLATE/' | grep -q .; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
   check:
     name: Prüfen (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -61,6 +92,8 @@ jobs:
 
   audit:
     name: Sicherheitslücken in Abhängigkeiten
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -76,3 +109,19 @@ jobs:
           tool: cargo-audit
 
       - run: cargo audit --file src-tauri/Cargo.lock
+
+  # Single check to require in branch protection: green when all jobs passed
+  # or were skipped for documentation-only changes, red otherwise.
+  result:
+    name: CI-Ergebnis
+    if: always()
+    needs: [changes, check, audit]
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          for r in $RESULTS; do
+            case "$r" in success|skipped) ;; *) exit 1 ;; esac
+          done
