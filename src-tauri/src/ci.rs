@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
-const KEYCHAIN_SERVICE: &str = "de.spmedia.stackport.ci";
+const KEYCHAIN_SERVICE: &str = "com.seprylabs.stackport.ci";
 const RUNS_PER_PAGE: u32 = 10;
 const USER_AGENT: &str = concat!("StackPort/", env!("CARGO_PKG_VERSION"));
 

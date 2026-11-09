@@ -53,7 +53,7 @@ Entwicklung und Roadmap stehen im [englischen README](README.md).
 
 ## Lizenz
 
-[GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`). Gebaut von [SPMedia](https://spmedia.de).
+[GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`).
 
 <!-- Repo-Links: nur hier ändern, wenn das Repo umzieht -->
 [releases]: https://github.com/seprylabs/stackport/releases
