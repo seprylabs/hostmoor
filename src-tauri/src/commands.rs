@@ -13,7 +13,9 @@ use crate::terminal;
 
 type CmdResult<T> = Result<T, String>;
 
-const BACKUP_APP: &str = "StackPort";
+const BACKUP_APP: &str = "Hostmoor";
+/// Backups written before the rename to Hostmoor
+const LEGACY_BACKUP_APP: &str = "StackPort";
 const BACKUP_FORMAT_VERSION: u32 = 1;
 
 fn err(e: impl std::fmt::Display) -> String {
@@ -72,20 +74,20 @@ pub fn import_backup(db: State<Db>, path: PathBuf) -> CmdResult<Snapshot> {
     let raw = std::fs::read_to_string(&path).map_err(err)?;
     let backup: Backup = serde_json::from_str(&raw).map_err(|e| {
         tr!(
-            "Not a valid StackPort backup: {e}",
-            "Keine gültige StackPort-Sicherung: {e}"
+            "Not a valid Hostmoor backup: {e}",
+            "Keine gültige Hostmoor-Sicherung: {e}"
         )
     })?;
-    if backup.app != BACKUP_APP {
+    if backup.app != BACKUP_APP && backup.app != LEGACY_BACKUP_APP {
         return Err(tr!(
-            "The file is not a StackPort backup.",
-            "Die Datei ist keine StackPort-Sicherung."
+            "The file is not a Hostmoor backup.",
+            "Die Datei ist keine Hostmoor-Sicherung."
         ));
     }
     if backup.format_version > BACKUP_FORMAT_VERSION {
         return Err(tr!(
-            "The backup comes from a newer StackPort version.",
-            "Die Sicherung stammt aus einer neueren StackPort-Version."
+            "The backup comes from a newer Hostmoor version.",
+            "Die Sicherung stammt aus einer neueren Hostmoor-Version."
         ));
     }
     db.replace_all(&backup.data).map_err(err)?;

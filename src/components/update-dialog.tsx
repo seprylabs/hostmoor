@@ -17,7 +17,7 @@ import type { Updater } from "@/hooks/use-updater";
 import { openExternal } from "@/lib/api";
 
 // Change together with the updater endpoint in tauri.conf.json when the repository moves
-const RELEASES_URL = "https://github.com/seprylabs/stackport/releases";
+const RELEASES_URL = "https://github.com/seprylabs/hostmoor/releases";
 
 /** Asks before installing an update found by useUpdater */
 export function UpdateDialog({ updater }: { updater: Updater }) {

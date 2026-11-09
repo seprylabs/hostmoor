@@ -37,7 +37,7 @@
     "serverDeleteConsequence_one": "{{count}} Projekt bleibt erhalten, ist dann aber keinem Server mehr zugeordnet.",
     "serverDeleteConsequence_other": "{{count}} Projekte bleiben erhalten, sind dann aber keinem Server mehr zugeordnet.",
     "welcome": {
-      "title": "Willkommen bei StackPort",
+      "title": "Willkommen bei Hostmoor",
       "text": "Leg los mit deinem ersten Kunden oder Server.",
       "addCustomer": "Kunde anlegen",
       "addServer": "Server anlegen"
@@ -196,7 +196,7 @@
       "checkedAt": "Stand: {{time}}",
       "checkedAtStale": "Stand: {{time}} · evtl. veraltet",
       "neverChecked": "Noch nie geprüft",
-      "noData": "Für diesen Server liegen noch keine Daten vor. Mit „{{action}}“ liest StackPort PHP, Node, Kapazität usw. aus. Auf dem Server wird dabei nichts verändert.",
+      "noData": "Für diesen Server liegen noch keine Daten vor. Mit „{{action}}“ liest Hostmoor PHP, Node, Kapazität usw. aus. Auf dem Server wird dabei nichts verändert.",
       "capacity": "Kapazität",
       "cpuValue_one": "{{count}} Kern · Last {{load}}",
       "cpuValue_other": "{{count}} Kerne · Last {{load}}",
@@ -224,7 +224,7 @@
       "howToFix": "So behebst du es",
       "saved": "Gespeichert",
       "apply": "Übernehmen",
-      "selfRun": "Die Befehle führst du selbst im Terminal aus. Auf dem Server verändert StackPort nichts.",
+      "selfRun": "Die Befehle führst du selbst im Terminal aus. Auf dem Server verändert Hostmoor nichts.",
       "sshMessage": "Meldung von ssh"
     },
     "commandLine": {
@@ -345,7 +345,7 @@
       "repoUrlNotRecognized": "Die Repo-URL „{{url}}“ wurde nicht erkannt. Erwartet wird z. B. git@github.com:firma/projekt.git oder https://gitlab.com/gruppe/projekt.",
       "noRepoUrl": "Trag beim Projekt die Repo-URL ein, dann erscheinen hier die letzten Läufe.",
       "tokenRejected": "Der hinterlegte Token für {{host}} wird abgelehnt oder hat keinen Zugriff auf dieses Repo.",
-      "tokenMissing": "Das Repo ist privat oder nicht erreichbar. Hinterlege einen Token für {{host}}, damit StackPort die Läufe lesen darf.",
+      "tokenMissing": "Das Repo ist privat oder nicht erreichbar. Hinterlege einen Token für {{host}}, damit Hostmoor die Läufe lesen darf.",
       "noRuns": "Noch keine Läufe."
     },
     "runList": {
@@ -358,9 +358,9 @@
     },
     "token": {
       "title": "Token für {{host}}",
-      "description": "Der Token wird in der {{store}} gespeichert, nicht in der StackPort-Datenbank und nicht im Backup. Er gilt für alle Projekte auf {{host}}.",
+      "description": "Der Token wird in der {{store}} gespeichert, nicht in der Hostmoor-Datenbank und nicht im Backup. Er gilt für alle Projekte auf {{host}}.",
       "helpGithub": "Empfohlen: ein „Fine-grained token“ mit „Actions: Read-only“ für die gewünschten Repos. Gehört das Repo einer Organisation, muss sie als Resource owner gewählt sein, und der Token darf nicht auf Freigabe warten („Pending“). Alternativ geht ein „Token (classic)“ mit dem Scope repo, der darf aber deutlich mehr.",
-      "helpGitlab": "Auf {{host}} einen „Personal access token“ mit dem Scope read_api anlegen. Mehr braucht StackPort nicht.",
+      "helpGitlab": "Auf {{host}} einen „Personal access token“ mit dem Scope read_api anlegen. Mehr braucht Hostmoor nicht.",
       "openTokenPage": "Token-Seite öffnen",
       "placeholderReplace": "Neuen Token einfügen, um den alten zu ersetzen",
       "placeholder": "Token einfügen",
@@ -423,7 +423,7 @@
     "staticSite": "Statische Seite"
   },
   "api": {
-    "backupFilter": "StackPort-Sicherung",
+    "backupFilter": "Hostmoor-Sicherung",
     "importBrowserOnly": "Import ist nur in der App möglich, nicht im Browser.",
     "connectionTestBrowserOnly": "Der Verbindungstest ist nur in der App möglich, nicht im Browser.",
     "deployBrowserOnly": "Deploys sind nur in der App möglich, nicht im Browser.",
@@ -434,13 +434,13 @@
   "update": {
     "check": "Nach Updates suchen",
     "checking": "Suche nach Updates …",
-    "title": "StackPort {{version}} ist verfügbar",
-    "description": "Du nutzt Version {{current}}. Das Update wird heruntergeladen und installiert, danach startet StackPort neu.",
+    "title": "Hostmoor {{version}} ist verfügbar",
+    "description": "Du nutzt Version {{current}}. Das Update wird heruntergeladen und installiert, danach startet Hostmoor neu.",
     "releaseNotes": "Release-Notes",
     "later": "Später",
     "install": "Installieren und neu starten",
     "installing": "Update wird installiert …",
-    "upToDate": "StackPort {{version}} ist aktuell",
+    "upToDate": "Hostmoor {{version}} ist aktuell",
     "checkFailed": "Suche nach Updates fehlgeschlagen",
     "installFailed": "Update konnte nicht installiert werden",
     "browserOnly": "Updates gibt es nur in der Desktop-App"

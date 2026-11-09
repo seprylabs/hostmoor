@@ -5,7 +5,7 @@ import type { CheckOutcome, CiResult, ProjectCi, ConnectionResult, Deploy, LastD
 
 // Im Browser (npm run dev ohne Tauri) landen die Daten im localStorage,
 // damit sich die Oberfläche auch ohne Rust-Backend ausprobieren lässt.
-const BROWSER_KEY = "stackport-dev-data";
+const BROWSER_KEY = "hostmoor-dev-data";
 
 function browserLoad(): Snapshot {
   try {
@@ -88,7 +88,7 @@ export async function setFavorite(kind: EntityKind, id: string, favorite: boolea
 }
 
 function backupFileName() {
-  return `stackport-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  return `hostmoor-backup-${new Date().toISOString().slice(0, 10)}.json`;
 }
 
 // Funktion statt Konstante, damit der Name erst beim Aufruf übersetzt wird
@@ -98,7 +98,7 @@ const backupFilter = () => [{ name: i18n.t("api.backupFilter"), extensions: ["js
 export async function exportBackup(): Promise<boolean> {
   const exportedAt = new Date().toISOString();
   if (!isTauri()) {
-    const data = { app: "StackPort", formatVersion: 1, exportedAt, ...browserLoad() };
+    const data = { app: "Hostmoor", formatVersion: 1, exportedAt, ...browserLoad() };
     const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
     const a = Object.assign(document.createElement("a"), { href: url, download: backupFileName() });
     a.click();

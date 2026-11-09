@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-const WIDTH_KEY = "stackport-sidebar-width";
+const WIDTH_KEY = "hostmoor-sidebar-width";
 const DEFAULT_WIDTH = 256;
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 480;

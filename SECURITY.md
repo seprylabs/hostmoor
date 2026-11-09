@@ -1,11 +1,11 @@
 # Security
 
-StackPort has SSH and deploy access to your servers, so we take security issues seriously.
+Hostmoor has SSH and deploy access to your servers, so we take security issues seriously.
 
 ## Reporting a vulnerability
 
 Please **don't open a public issue**. Report vulnerabilities privately via
-["Report a vulnerability"](https://github.com/seprylabs/stackport/security/advisories/new)
+["Report a vulnerability"](https://github.com/seprylabs/hostmoor/security/advisories/new)
 (GitHub Private Vulnerability Reporting).
 
 Helpful details:
@@ -45,5 +45,5 @@ Security fixes are only provided for the latest version.
   from any OS code signing) and verified against the public key in `tauri.conf.json`; a bundle
   with a missing or wrong signature is rejected.
 - **`macOSPrivateApi`** is enabled because the transparent window with the sidebar effect needs it.
-  StackPort is not meant for the App Store anyway: its sandbox doesn't allow access to `~/.ssh`
+  Hostmoor is not meant for the App Store anyway: its sandbox doesn't allow access to `~/.ssh`
   and the system `ssh`.

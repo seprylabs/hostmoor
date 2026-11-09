@@ -1,5 +1,5 @@
 name: Bug report
-description: Something in StackPort doesn't work as expected
+description: Something in Hostmoor doesn't work as expected
 labels: [bug]
 body:
   - type: markdown
@@ -26,7 +26,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: StackPort version
+      label: Hostmoor version
       placeholder: e.g. 0.2.0
     validations:
       required: true

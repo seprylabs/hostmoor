@@ -37,7 +37,7 @@
     "serverDeleteConsequence_one": "{{count}} project is kept but will no longer be assigned to a server.",
     "serverDeleteConsequence_other": "{{count}} projects are kept but will no longer be assigned to a server.",
     "welcome": {
-      "title": "Welcome to StackPort",
+      "title": "Welcome to Hostmoor",
       "text": "Get started by adding your first customer or server.",
       "addCustomer": "Add customer",
       "addServer": "Add server"
@@ -196,7 +196,7 @@
       "checkedAt": "Checked {{time}}",
       "checkedAtStale": "Checked {{time}} · may be outdated",
       "neverChecked": "Never checked",
-      "noData": "No data for this server yet. Click “{{action}}” and StackPort reads PHP, Node, capacity and more. Nothing on the server is changed.",
+      "noData": "No data for this server yet. Click “{{action}}” and Hostmoor reads PHP, Node, capacity and more. Nothing on the server is changed.",
       "capacity": "Capacity",
       "cpuValue_one": "{{count}} core · load {{load}}",
       "cpuValue_other": "{{count}} cores · load {{load}}",
@@ -224,7 +224,7 @@
       "howToFix": "How to fix it",
       "saved": "Saved",
       "apply": "Use",
-      "selfRun": "You run these commands yourself in Terminal. StackPort doesn’t change anything on the server.",
+      "selfRun": "You run these commands yourself in Terminal. Hostmoor doesn’t change anything on the server.",
       "sshMessage": "Message from ssh"
     },
     "commandLine": {
@@ -345,7 +345,7 @@
       "repoUrlNotRecognized": "Couldn't recognize the repo URL “{{url}}”. Use a format like git@github.com:company/project.git or https://gitlab.com/group/project.",
       "noRepoUrl": "Add a repo URL to the project to see its latest runs here.",
       "tokenRejected": "The saved token for {{host}} was rejected or has no access to this repo.",
-      "tokenMissing": "This repo is private or unreachable. Add a token for {{host}} so StackPort can read its runs.",
+      "tokenMissing": "This repo is private or unreachable. Add a token for {{host}} so Hostmoor can read its runs.",
       "noRuns": "No runs yet."
     },
     "runList": {
@@ -358,9 +358,9 @@
     },
     "token": {
       "title": "Token for {{host}}",
-      "description": "The token is stored in the {{store}}, not in the StackPort database or in backups. It applies to all projects on {{host}}.",
+      "description": "The token is stored in the {{store}}, not in the Hostmoor database or in backups. It applies to all projects on {{host}}.",
       "helpGithub": "Recommended: a fine-grained token with “Actions: Read-only” access to the repos you need. If an organization owns the repo, select it as the resource owner, and make sure the token isn't pending approval. A classic token with the repo scope also works, but grants much broader access.",
-      "helpGitlab": "Create a personal access token on {{host}} with the read_api scope. That's all StackPort needs.",
+      "helpGitlab": "Create a personal access token on {{host}} with the read_api scope. That's all Hostmoor needs.",
       "openTokenPage": "Open token page",
       "placeholderReplace": "Paste a new token to replace the current one",
       "placeholder": "Paste token",
@@ -423,7 +423,7 @@
     "staticSite": "Static site"
   },
   "api": {
-    "backupFilter": "StackPort backup",
+    "backupFilter": "Hostmoor backup",
     "importBrowserOnly": "Importing only works in the app, not in the browser.",
     "connectionTestBrowserOnly": "The connection test only works in the app, not in the browser.",
     "deployBrowserOnly": "Deploys only work in the app, not in the browser.",
@@ -434,13 +434,13 @@
   "update": {
     "check": "Check for updates",
     "checking": "Checking for updates …",
-    "title": "StackPort {{version}} is available",
-    "description": "You are using version {{current}}. The update is downloaded and installed, then StackPort restarts.",
+    "title": "Hostmoor {{version}} is available",
+    "description": "You are using version {{current}}. The update is downloaded and installed, then Hostmoor restarts.",
     "releaseNotes": "Release notes",
     "later": "Later",
     "install": "Install and restart",
     "installing": "Installing update …",
-    "upToDate": "StackPort {{version}} is up to date",
+    "upToDate": "Hostmoor {{version}} is up to date",
     "checkFailed": "Couldn't check for updates",
     "installFailed": "Couldn't install the update",
     "browserOnly": "Updates are only available in the desktop app"

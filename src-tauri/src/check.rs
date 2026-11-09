@@ -185,13 +185,13 @@ impl<'a> Lines<'a> {
 
 pub fn parse(stdout: &str, checked_at: String) -> Result<ServerFacts, String> {
     let lines = Lines(stdout.lines().filter_map(|l| l.split_once('=')).collect());
-    if lines.get("stackport-check").is_none() {
+    if lines.get("hostmoor-check").is_none() {
         return Err(tr!(
             "The server did not run the check script. Does it use a standard shell (sh)?",
             "Der Server hat das Prüfskript nicht ausgeführt. Läuft dort eine Standard-Shell (sh)?"
         ));
     }
-    if lines.get("stackport-check-end").is_none() {
+    if lines.get("hostmoor-check-end").is_none() {
         return Err(tr!(
             "The check was aborted on the server.",
             "Die Prüfung wurde auf dem Server vorzeitig abgebrochen."
@@ -341,7 +341,7 @@ mod tests {
     use super::*;
 
     const SAMPLE: &str = "\
-stackport-check=1
+hostmoor-check=1
 os_name=Ubuntu
 os_version=24.04
 os_pretty=Ubuntu 24.04.1 LTS
@@ -371,7 +371,7 @@ wpcli=WP-CLI 2.11.0
 nginx=nginx version: nginx/1.24.0 (Ubuntu)
 mysql=/usr/sbin/mysqld  Ver 8.0.39-0ubuntu0.24.04.2 for Linux on x86_64 ((Ubuntu))
 redis=Redis server v=7.0.15 sha=00000000:0 malloc=jemalloc-5.3.0 bits=64 build=62c7a5d52c72f4cd
-stackport-check-end=1
+hostmoor-check-end=1
 ";
 
     #[test]
@@ -422,10 +422,10 @@ stackport-check-end=1
 
     #[test]
     fn detects_mariadb_apache_and_missing_tools() {
-        let out = "stackport-check=1\nos_name=Debian GNU/Linux\nos_version=12\n\
+        let out = "hostmoor-check=1\nos_name=Debian GNU/Linux\nos_version=12\n\
             apache=[core:warn] AH00111: Config variable ${APACHE_RUN_DIR} is not defined Server version: Apache/2.4.62 (Debian) Server built: 2024\n\
             mysql=mysqld  Ver 10.11.6-MariaDB-0+deb12u1 for debian-linux-gnu on x86_64\n\
-            stackport-check-end=1\n";
+            hostmoor-check-end=1\n";
         let facts = parse(out, String::new()).unwrap();
         assert_eq!(facts.webserver.unwrap().version, "2.4.62");
         assert_eq!(
@@ -438,7 +438,7 @@ stackport-check-end=1
         assert!(facts.php.is_none());
         // Ohne versionierte Ordner zählt zumindest die CLI-Version
         let only_cli = parse(
-            "stackport-check=1\nphp_version=8.4.27\nstackport-check-end=1\n",
+            "hostmoor-check=1\nphp_version=8.4.27\nhostmoor-check-end=1\n",
             String::new(),
         )
         .unwrap();
@@ -449,7 +449,7 @@ stackport-check-end=1
 
     #[test]
     fn mysql_client_only() {
-        let out = "stackport-check=1\nmysql_client=mysql  Ver 15.1 Distrib 10.6.16-MariaDB, for debian-linux-gnu\nstackport-check-end=1\n";
+        let out = "hostmoor-check=1\nmysql_client=mysql  Ver 15.1 Distrib 10.6.16-MariaDB, for debian-linux-gnu\nhostmoor-check-end=1\n";
         let db = parse(out, String::new()).unwrap().database.unwrap();
         assert_eq!(db.name, "MariaDB-Client");
         assert_eq!(db.version, "10.6.16");
@@ -458,7 +458,7 @@ stackport-check-end=1
     #[test]
     fn rejects_incomplete_output() {
         assert!(parse("Welcome to Ubuntu", String::new()).is_err());
-        assert!(parse("stackport-check=1\nos_name=Ubuntu\n", String::new()).is_err());
+        assert!(parse("hostmoor-check=1\nos_name=Ubuntu\n", String::new()).is_err());
     }
 
     #[test]

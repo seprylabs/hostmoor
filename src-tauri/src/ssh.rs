@@ -15,7 +15,7 @@ use crate::models::Server;
 pub const HARD_TIMEOUT: Duration = Duration::from_secs(25);
 const CONNECT_TIMEOUT_SECS: u32 = 8;
 /// Wird vom Server zurückgegeben, wenn Anmeldung und Befehlsausführung klappen
-const OK_MARKER: &str = "stackport-ok";
+const OK_MARKER: &str = "hostmoor-ok";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -297,10 +297,10 @@ pub fn open_terminal(
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or_default();
-    let path = std::env::temp_dir().join(format!("stackport-{stamp}.command"));
+    let path = std::env::temp_dir().join(format!("hostmoor-{stamp}.command"));
     let script = format!(
         "#!/bin/sh\nrm -f \"$0\"\nprintf '%s\\n\\n' {}\nexec {command}\n",
-        shell_quote(&format!("StackPort: {} ({})", server.name, server.host)),
+        shell_quote(&format!("Hostmoor: {} ({})", server.name, server.host)),
     );
     // Create instead of overwrite: follows no planted symlink,
     // and only you can read and run the file from the start

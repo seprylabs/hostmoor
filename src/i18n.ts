@@ -15,7 +15,7 @@ export const resources = {
   de: { translation: de satisfies typeof en },
 };
 
-const SETTING_KEY = "stackport-language";
+const SETTING_KEY = "hostmoor-language";
 
 export function languageSetting(): LanguageSetting {
   const value = localStorage.getItem(SETTING_KEY);

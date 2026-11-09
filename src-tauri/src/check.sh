@@ -1,4 +1,4 @@
-# StackPort Server-Check: liest nur, verändert nichts.
+# Hostmoor Server-Check: liest nur, verändert nichts.
 # Gibt Zeilen "schlüssel=wert" aus; ausgewertet wird in check.rs.
 # Achtung: keine einfachen Anführungszeichen verwenden (wird per sh -c übergeben).
 
@@ -18,7 +18,7 @@ probe() {
   [ -n "$out" ] && printf "%s=%s\n" "$key" "$out"
 }
 
-echo "stackport-check=1"
+echo "hostmoor-check=1"
 
 if [ -r /etc/os-release ]; then
   . /etc/os-release
@@ -79,4 +79,4 @@ probe postgres psql --version
 probe redis redis-server --version
 probe redis_client redis-cli --version
 
-echo "stackport-check-end=1"
+echo "hostmoor-check-end=1"

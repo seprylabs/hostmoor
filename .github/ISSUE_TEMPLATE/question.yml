@@ -1,5 +1,5 @@
 name: Question
-description: Ask how something in StackPort works
+description: Ask how something in Hostmoor works
 labels: [question]
 body:
   - type: markdown
@@ -14,5 +14,5 @@ body:
   - type: input
     id: context
     attributes:
-      label: StackPort version and operating system
+      label: Hostmoor version and operating system
       placeholder: e.g. 0.2.0 on Windows 11

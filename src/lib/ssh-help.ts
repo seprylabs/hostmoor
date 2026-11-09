@@ -54,7 +54,7 @@ function suggestedKeyPath(server: Server) {
 
 /** Kommentar im öffentlichen Key, damit man ihn auf dem Server wiedererkennt */
 function keyComment(server: Server) {
-  const comment = `${server.name || server.host} (StackPort)`;
+  const comment = `${server.name || server.host} (Hostmoor)`;
   // PowerShell escapes ' by doubling it, POSIX shells by closing and reopening the quote
   return `'${comment.replace(/'/g, platform === "windows" ? "''" : `'\\''`)}'`;
 }

@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "StackPort",
-  "version": "1.0.1",
-  "identifier": "com.seprylabs.stackport",
+  "productName": "Hostmoor",
+  "version": "1.1.0",
+  "identifier": "com.seprylabs.hostmoor",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "StackPort",
+        "title": "Hostmoor",
         "width": 1200,
         "height": 780,
         "minWidth": 900,
@@ -50,15 +50,15 @@
     ],
     "category": "DeveloperTool",
     "shortDescription": "Server- und Projektübersicht für Laravel und WordPress",
-    "copyright": "© 2026 StackPort contributors",
+    "copyright": "© 2026 Hostmoor contributors",
     "createUpdaterArtifacts": true
   },
-  "mainBinaryName": "StackPort",
+  "mainBinaryName": "Hostmoor",
   "plugins": {
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlFRjQ2QUQ0QTU2Njk2MkEKUldRcWxtYWwxR3Iwbm02dU9CL0x3dDlnNzhwVWhEVVVrUG1kYVh2eVlURHdlYStjSEFNejNPbzkK",
       "endpoints": [
-        "https://github.com/seprylabs/stackport/releases/latest/download/latest.json"
+        "https://github.com/seprylabs/hostmoor/releases/latest/download/latest.json"
       ],
       "windows": {
         "installMode": "passive"
