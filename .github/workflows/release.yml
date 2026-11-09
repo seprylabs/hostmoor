@@ -84,12 +84,35 @@ jobs:
           # latest.json: Windows updates use the per-user NSIS installer instead of the .msi
           updaterJsonPreferNsis: true
 
-  # Runs once all installers are uploaded and adds a checksum file to the release
+  # Runs once all installers are uploaded: fixes the updater links in latest.json
+  # and adds a checksum file to the release
   checksums:
     name: SHA256 checksums
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Point latest.json at regular download links
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          # tauri-action writes api.github.com asset URLs into latest.json. Anonymous
+          # requests to the API are limited to 60 per hour and IP and then fail with
+          # 403, so the updater uses the github.com download links instead.
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" > release.json
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern latest.json
+          jq --slurpfile r release.json \
+            '($r[0].assets | map({(.url): .browser_download_url}) | add) as $links
+             | .platforms |= map_values(.url = ($links[.url] // .url))' \
+            latest.json > latest.fixed.json
+          if grep -q 'api.github.com' latest.fixed.json; then
+            echo "latest.json still contains API URLs" >&2
+            exit 1
+          fi
+          mv latest.fixed.json latest.json
+          jq '.platforms | map_values(.url)' latest.json
+          gh release upload "$TAG" latest.json --repo "$GITHUB_REPOSITORY" --clobber
+
       - name: Add SHA256SUMS.txt to the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
