@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-09
+
+### Fixed
+
+- "Check for updates" failed with "Command plugin:app|version not allowed by ACL" when StackPort was already up to date.
+
 ## [1.0.0] - 2026-11-09
 
 First public release.
@@ -25,5 +31,6 @@ First public release.
 - Open-source license: AGPL-3.0.
 - In-app updates: StackPort checks for new versions at startup and from the sidebar menu, and installs signed updates after you confirm.
 
-[Unreleased]: https://github.com/seprylabs/stackport/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/seprylabs/stackport/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/seprylabs/stackport/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/seprylabs/stackport/releases/tag/v1.0.0

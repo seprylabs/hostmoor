@@ -38,7 +38,8 @@ Security fixes are only provided for the latest version.
   Secret Service on Linux), never in the database or in backups.
 - **User interface:** A strict Content Security Policy only allows the app's own scripts and no
   connections except to the app itself. Tauri permissions are limited to events, window dragging,
-  file dialogs, opening `https://` links, the updater and restarting the app after an update.
+  file dialogs, opening `https://` links, reading the app version, the updater and restarting the
+  app after an update.
 - **Updates:** The app downloads `latest.json` from GitHub Releases and installs an update only
   after the user confirms. Every update bundle is signed with the project's updater key (separate
   from any OS code signing) and verified against the public key in `tauri.conf.json`; a bundle
