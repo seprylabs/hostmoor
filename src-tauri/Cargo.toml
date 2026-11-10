@@ -1,6 +1,6 @@
 [package]
 name = "hostmoor"
-version = "1.1.0"
+version = "1.2.0"
 description = "Server- und Projektübersicht für Laravel- und WordPress-Entwickler"
 authors = ["Hostmoor contributors"]
 license = "AGPL-3.0-only"

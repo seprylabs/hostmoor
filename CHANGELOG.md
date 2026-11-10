@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-10
+
 ### Added
 
 - SSL certificate watch: Hostmoor checks the certificate of every project domain every 6 hours and on demand, shows expiry, issuer and HTTP status in the project, marks expiring or invalid certificates in the sidebar and sends a notification 14 and 3 days before expiry.
@@ -44,7 +46,8 @@ First public release.
 - Open-source license: AGPL-3.0.
 - In-app updates: StackPort checks for new versions at startup and from the sidebar menu, and installs signed updates after you confirm.
 
-[Unreleased]: https://github.com/seprylabs/hostmoor/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/seprylabs/hostmoor/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/seprylabs/hostmoor/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/seprylabs/hostmoor/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/seprylabs/hostmoor/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/seprylabs/hostmoor/releases/tag/v1.0.0
