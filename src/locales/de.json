@@ -429,7 +429,8 @@
     "deployBrowserOnly": "Deploys sind nur in der App möglich, nicht im Browser.",
     "ciBrowserOnly": "Pipelines lassen sich nur in der App laden, nicht im Browser.",
     "terminalBrowserOnly": "Das Terminal lässt sich nur aus der App öffnen, nicht im Browser.",
-    "serverCheckBrowserOnly": "Der Server-Check ist nur in der App möglich, nicht im Browser."
+    "serverCheckBrowserOnly": "Der Server-Check ist nur in der App möglich, nicht im Browser.",
+    "siteBrowserOnly": "Zertifikate lassen sich nur in der App prüfen, nicht im Browser."
   },
   "update": {
     "check": "Nach Updates suchen",
@@ -444,5 +445,36 @@
     "checkFailed": "Suche nach Updates fehlgeschlagen",
     "installFailed": "Update konnte nicht installiert werden",
     "browserOnly": "Updates gibt es nur in der Desktop-App"
+  },
+  "site": {
+    "title": "SSL & Domain",
+    "checkNow": "Jetzt prüfen",
+    "checkFailed": "Zertifikat konnte nicht geprüft werden",
+    "noDomain": "Hinterlege eine Domain im Projekt, um ihr SSL-Zertifikat zu überwachen.",
+    "addDomain": "Domain hinterlegen",
+    "notChecked": "Noch nicht geprüft.",
+    "domain": "Domain",
+    "certificate": "Zertifikat",
+    "issuer": "Aussteller",
+    "http": "HTTP",
+    "checked": "Geprüft",
+    "validUntil": "Gültig bis {{date}}",
+    "expiresIn_one": "läuft in {{count}} Tag ab",
+    "expiresIn_other": "läuft in {{count}} Tagen ab",
+    "expiresToday": "läuft heute ab",
+    "unreachable": "Nicht erreichbar: {{error}}",
+    "autoCheck": "Wird alle 6 Stunden geprüft. 14 und 3 Tage vor Ablauf kommt eine Mitteilung.",
+    "problem": {
+      "expired": "Abgelaufen am {{date}}",
+      "notYetValid": "Noch nicht gültig",
+      "wrongName": "Passt nicht zur Domain",
+      "revoked": "Widerrufen",
+      "untrusted": "Wird von deinem System nicht als vertrauenswürdig erkannt"
+    },
+    "icon": {
+      "warn_one": "Zertifikat läuft in {{count}} Tag ab",
+      "warn_other": "Zertifikat läuft in {{count}} Tagen ab",
+      "critical": "Problem mit dem Zertifikat: {{domain}}"
+    }
   }
 }

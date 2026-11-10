@@ -429,7 +429,8 @@
     "deployBrowserOnly": "Deploys only work in the app, not in the browser.",
     "ciBrowserOnly": "Pipelines can only be loaded in the app, not in the browser.",
     "terminalBrowserOnly": "The terminal can only be opened from the app, not from the browser.",
-    "serverCheckBrowserOnly": "The server check only works in the app, not in the browser."
+    "serverCheckBrowserOnly": "The server check only works in the app, not in the browser.",
+    "siteBrowserOnly": "Certificates can only be checked in the app, not in the browser."
   },
   "update": {
     "check": "Check for updates",
@@ -444,5 +445,36 @@
     "checkFailed": "Couldn't check for updates",
     "installFailed": "Couldn't install the update",
     "browserOnly": "Updates are only available in the desktop app"
+  },
+  "site": {
+    "title": "SSL & domain",
+    "checkNow": "Check now",
+    "checkFailed": "Couldn't check the certificate",
+    "noDomain": "Add a domain to the project to watch its SSL certificate.",
+    "addDomain": "Add domain",
+    "notChecked": "Not checked yet.",
+    "domain": "Domain",
+    "certificate": "Certificate",
+    "issuer": "Issuer",
+    "http": "HTTP",
+    "checked": "Checked",
+    "validUntil": "Valid until {{date}}",
+    "expiresIn_one": "expires in {{count}} day",
+    "expiresIn_other": "expires in {{count}} days",
+    "expiresToday": "expires today",
+    "unreachable": "Not reachable: {{error}}",
+    "autoCheck": "Checked every 6 hours. You get a notification 14 and 3 days before expiry.",
+    "problem": {
+      "expired": "Expired on {{date}}",
+      "notYetValid": "Not valid yet",
+      "wrongName": "Doesn't match the domain",
+      "revoked": "Revoked",
+      "untrusted": "Not trusted by your system"
+    },
+    "icon": {
+      "warn_one": "Certificate expires in {{count}} day",
+      "warn_other": "Certificate expires in {{count}} days",
+      "critical": "Certificate problem: {{domain}}"
+    }
   }
 }

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- SSL certificate watch: Hostmoor checks the certificate of every project domain every 6 hours and on demand, shows expiry, issuer and HTTP status in the project, marks expiring or invalid certificates in the sidebar and sends a notification 14 and 3 days before expiry.
+
 ## [1.1.0] - 2026-11-09
 
 ### Changed

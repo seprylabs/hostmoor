@@ -8,6 +8,7 @@ use crate::ci_watch::{CiWatch, ProjectCi};
 use crate::db::{Db, Table};
 use crate::deploy;
 use crate::models::{Backup, Customer, Deploy, LastDeploy, Project, Server, Snapshot};
+use crate::site_watch::{self, SiteStatus, SiteWatch};
 use crate::ssh::{self, ConnectionResult};
 use crate::terminal;
 
@@ -38,10 +39,16 @@ pub fn save_server(db: State<Db>, server: Server) -> CmdResult<()> {
 }
 
 #[tauri::command]
-pub fn save_project(db: State<Db>, watch: State<CiWatch>, project: Project) -> CmdResult<()> {
+pub fn save_project(
+    db: State<Db>,
+    watch: State<CiWatch>,
+    sites: State<SiteWatch>,
+    project: Project,
+) -> CmdResult<()> {
     db.save_project(&project).map_err(err)?;
-    // Repo-URL könnte sich geändert haben
+    // Repo-URL oder Domain könnte sich geändert haben
     watch.refresh();
+    sites.refresh();
     Ok(())
 }
 
@@ -187,6 +194,18 @@ pub fn set_ci_token(watch: State<CiWatch>, host: String, token: Option<String>) 
 #[tauri::command]
 pub fn ci_overview(watch: State<CiWatch>) -> Vec<ProjectCi> {
     watch.overview()
+}
+
+/// Latest certificate and reachability results of all project domains
+#[tauri::command]
+pub fn site_overview(sites: State<SiteWatch>) -> Vec<SiteStatus> {
+    sites.overview()
+}
+
+/// Checks the domain of one project right away
+#[tauri::command]
+pub async fn check_site(app: AppHandle, project_id: String) -> CmdResult<SiteStatus> {
+    site_watch::check_project(&app, &project_id).await
 }
 
 /// Öffnet das Terminal mit einer SSH-Sitzung, optional direkt im Projektordner

@@ -9,6 +9,7 @@ mod commands;
 mod db;
 mod deploy;
 mod models;
+mod site_watch;
 mod ssh;
 mod terminal;
 
@@ -35,6 +36,8 @@ pub fn run() {
             app.manage(deploy::Running::default());
             app.manage(ci_watch::CiWatch::default());
             ci_watch::start(app.handle().clone());
+            app.manage(site_watch::SiteWatch::default());
+            site_watch::start(app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -59,6 +62,8 @@ pub fn run() {
             commands::set_ci_token,
             commands::ci_overview,
             commands::set_language,
+            commands::site_overview,
+            commands::check_site,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
