@@ -58,10 +58,7 @@ struct FinishedEvent<'a> {
 pub fn remote_command(dir: &str, script: &str) -> String {
     let body = format!("PS4=\"\\$ \"\nset -ex\n{script}\n");
     let quoted = ssh::shell_quote(&body);
-    let target = match dir.strip_prefix("~/") {
-        Some(rest) => format!("~/{}", ssh::shell_quote(rest)),
-        None => ssh::shell_quote(dir),
-    };
+    let target = ssh::quote_path(dir);
     format!(
         "cd {target} && if command -v bash >/dev/null 2>&1; then exec bash -lc {quoted}; else exec sh -lc {quoted}; fi"
     )
@@ -205,7 +202,7 @@ pub fn cancel(app: &AppHandle, project_id: &str) -> bool {
 }
 
 /// Liest einen Ausgabestrom zeilenweise (auch bei ungültigem UTF-8)
-fn forward(stream: impl AsyncRead + Unpin + Send + 'static, tx: mpsc::UnboundedSender<String>) {
+pub fn forward(stream: impl AsyncRead + Unpin + Send + 'static, tx: mpsc::UnboundedSender<String>) {
     tauri::async_runtime::spawn(async move {
         let mut reader = BufReader::new(stream);
         let mut buf = Vec::new();

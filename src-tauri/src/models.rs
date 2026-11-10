@@ -46,6 +46,10 @@ pub struct Project {
     /// Wird nur über die Deploy-Ansicht geändert, nicht über das Projekt-Formular
     #[serde(default)]
     pub deploy_script: Option<String>,
+    /// Log files on the server, one per line; relative paths start in `path`.
+    /// Only changed from the log viewer, not from the project form
+    #[serde(default)]
+    pub log_paths: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

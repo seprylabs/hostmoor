@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CiPanel } from "@/components/ci-panel";
 import { DeployPanel } from "@/components/deploy-panel";
+import { LogPanel } from "@/components/log-panel";
 import { SitePanel } from "@/components/site-panel";
 import { DetailActions } from "@/components/detail-actions";
 import { TerminalButton } from "@/components/terminal-button";
@@ -23,6 +24,7 @@ interface Props {
   /** Neuen Server anlegen und direkt diesem Projekt zuordnen */
   onCreateServer: () => void;
   onSaveDeployScript: (script: string | null) => Promise<boolean>;
+  onSaveLogPaths: (paths: string | null) => Promise<boolean>;
   onToggleFavorite: () => void;
   onDelete: () => void;
 }
@@ -35,6 +37,7 @@ export function ProjectDetail({
   onEdit,
   onCreateServer,
   onSaveDeployScript,
+  onSaveLogPaths,
   onToggleFavorite,
   onDelete,
 }: Props) {
@@ -137,6 +140,8 @@ export function ProjectDetail({
       </div>
 
       <DeployPanel project={project} server={server} onEditProject={onEdit} onSaveScript={onSaveDeployScript} />
+
+      <LogPanel project={project} server={server} onEditProject={onEdit} onSavePaths={onSaveLogPaths} />
 
       {project.notes && <NotesCard notes={project.notes} />}
     </div>

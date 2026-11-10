@@ -139,6 +139,50 @@ export async function setDeployScript(projectId: string, script: string | null):
   });
 }
 
+export async function setLogPaths(projectId: string, paths: string | null): Promise<void> {
+  if (isTauri()) return invoke("set_log_paths", { id: projectId, paths });
+  browserUpdate((d) => {
+    const project = d.projects.find((p) => p.id === projectId);
+    if (project) project.logPaths = paths?.trim() ? paths : null;
+  });
+}
+
+/** Last lines of a log file on the project's server */
+export async function readLog(projectId: string, file: string, lines: number): Promise<string> {
+  if (!isTauri()) throw new Error(i18n.t("api.logsBrowserOnly"));
+  return invoke<string>("read_log", { projectId, file, lines });
+}
+
+export interface LogLinesEvent {
+  streamId: string;
+  lines: string[];
+  ended: boolean;
+  reason?: string | null;
+}
+
+/** Follows a log file; new lines arrive via `handler` until `stopLog` or the connection ends */
+export async function followLog(
+  projectId: string,
+  file: string,
+  handler: (event: LogLinesEvent) => void,
+): Promise<{ streamId: string; stop: () => void }> {
+  if (!isTauri()) throw new Error(i18n.t("api.logsBrowserOnly"));
+  const { listen } = await import("@tauri-apps/api/event");
+  const streamId = crypto.randomUUID();
+  const off = await listen<LogLinesEvent>("log-lines", (e) => {
+    if (e.payload.streamId !== streamId) return;
+    handler(e.payload);
+    if (e.payload.ended) off();
+  });
+  try {
+    await invoke("follow_log", { projectId, file, streamId });
+  } catch (e) {
+    off();
+    throw e;
+  }
+  return { streamId, stop: () => void invoke("stop_log", { streamId }) };
+}
+
 export async function listDeploys(projectId: string): Promise<Deploy[]> {
   if (!isTauri()) return [];
   return invoke<Deploy[]>("list_deploys", { projectId });
