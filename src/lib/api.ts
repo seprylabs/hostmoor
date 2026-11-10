@@ -1,7 +1,7 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import i18n from "i18next";
 
-import type { CheckOutcome, CiResult, ProjectCi, ConnectionResult, SiteStatus, Deploy, LastDeploy, Customer, EntityKind, Project, Server, Snapshot, TerminalApp } from "@/types";
+import type { CheckOutcome, ConfigHost, CiResult, ProjectCi, ConnectionResult, SiteStatus, Deploy, LastDeploy, Customer, EntityKind, Project, Server, Snapshot, TerminalApp } from "@/types";
 
 // Im Browser (npm run dev ohne Tauri) landen die Daten im localStorage,
 // damit sich die Oberfläche auch ohne Rust-Backend ausprobieren lässt.
@@ -123,6 +123,12 @@ export async function pickBackupFile(): Promise<string | null> {
 /** Ersetzt alle Daten durch das Backup */
 export async function importBackup(path: string): Promise<void> {
   await invoke("import_backup", { path });
+}
+
+/** Hosts from ~/.ssh/config for the import; the file is only read */
+export async function readSshConfig(): Promise<ConfigHost[]> {
+  if (!isTauri()) throw new Error(i18n.t("api.sshConfigBrowserOnly"));
+  return invoke<ConfigHost[]>("read_ssh_config");
 }
 
 /** Prüft per SSH, ob die Anmeldung am Server klappt */

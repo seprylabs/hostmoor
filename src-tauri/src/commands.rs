@@ -11,6 +11,7 @@ use crate::logs;
 use crate::models::{Backup, Customer, Deploy, LastDeploy, Project, Server, Snapshot};
 use crate::site_watch::{self, SiteStatus, SiteWatch};
 use crate::ssh::{self, ConnectionResult};
+use crate::ssh_config::{self, ConfigHost};
 use crate::terminal;
 
 type CmdResult<T> = Result<T, String>;
@@ -37,6 +38,32 @@ pub fn save_customer(db: State<Db>, customer: Customer) -> CmdResult<()> {
 #[tauri::command]
 pub fn save_server(db: State<Db>, server: Server) -> CmdResult<()> {
     db.save_server(&server).map_err(err)
+}
+
+/// Hosts from ~/.ssh/config for the import; only reads the file.
+/// Hosts that Hostmoor could not connect to safely (odd characters) are left out.
+#[tauri::command]
+pub fn read_ssh_config() -> Vec<ConfigHost> {
+    ssh_config::read_default()
+        .into_iter()
+        .filter(|h| {
+            ssh::validate(&Server {
+                id: String::new(),
+                name: h.alias.clone(),
+                provider: "other".into(),
+                host: h.host.clone(),
+                port: h.port,
+                ssh_user: h.user.clone(),
+                ssh_key_path: h.identity_file.clone(),
+                proxy_jump: h.proxy_jump.clone(),
+                customer_id: None,
+                notes: None,
+                favorite: false,
+                facts: None,
+            })
+            .is_ok()
+        })
+        .collect()
 }
 
 #[tauri::command]

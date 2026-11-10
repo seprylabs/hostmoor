@@ -61,6 +61,9 @@ const MIGRATIONS: &[&str] = &[
     r#"
     ALTER TABLE projects ADD COLUMN log_paths TEXT;
 "#,
+    r#"
+    ALTER TABLE servers ADD COLUMN proxy_jump TEXT;
+"#,
 ];
 
 /// So viele Deploys pro Projekt bleiben im Verlauf
@@ -117,7 +120,7 @@ impl Db {
 
         let servers = conn
             .prepare(
-                "SELECT id, name, provider, host, port, ssh_user, ssh_key_path, customer_id, notes, facts_json, favorite
+                "SELECT id, name, provider, host, port, ssh_user, ssh_key_path, customer_id, notes, facts_json, favorite, proxy_jump
                  FROM servers ORDER BY name COLLATE NOCASE",
             )?
             .query_map([], |r| {
@@ -130,6 +133,7 @@ impl Db {
                     port: r.get(4)?,
                     ssh_user: r.get(5)?,
                     ssh_key_path: r.get(6)?,
+                    proxy_jump: r.get(11)?,
                     customer_id: r.get(7)?,
                     notes: r.get(8)?,
                     favorite: r.get(10)?,
@@ -345,15 +349,15 @@ fn upsert_customer(conn: &Connection, c: &Customer) -> rusqlite::Result<()> {
 
 fn upsert_server(conn: &Connection, s: &Server) -> rusqlite::Result<()> {
     conn.execute(
-        "INSERT INTO servers (id, name, provider, host, port, ssh_user, ssh_key_path, customer_id, notes)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+        "INSERT INTO servers (id, name, provider, host, port, ssh_user, ssh_key_path, customer_id, notes, proxy_jump)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
          ON CONFLICT(id) DO UPDATE SET
             name = excluded.name, provider = excluded.provider, host = excluded.host,
             port = excluded.port, ssh_user = excluded.ssh_user, ssh_key_path = excluded.ssh_key_path,
-            customer_id = excluded.customer_id, notes = excluded.notes",
+            customer_id = excluded.customer_id, notes = excluded.notes, proxy_jump = excluded.proxy_jump",
         params![
             s.id, s.name, s.provider, s.host, s.port, s.ssh_user, s.ssh_key_path, s.customer_id,
-            s.notes
+            s.notes, s.proxy_jump
         ],
     )?;
     Ok(())
@@ -415,6 +419,7 @@ mod tests {
             port: 22,
             ssh_user: Some("deploy".into()),
             ssh_key_path: Some("~/.ssh/test_key".into()),
+            proxy_jump: Some("deploy@bastion:2222".into()),
             customer_id: customer_id.map(Into::into),
             notes: None,
             favorite: false,
@@ -597,6 +602,10 @@ mod tests {
         assert_eq!(snap.customers[0].id, "c1");
         assert!(snap.projects[0].favorite);
         assert_eq!(snap.servers[0].facts.as_ref().unwrap()["node"], "22");
+        assert_eq!(
+            snap.servers[0].proxy_jump.as_deref(),
+            Some("deploy@bastion:2222")
+        );
     }
 
     #[test]

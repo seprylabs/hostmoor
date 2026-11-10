@@ -31,12 +31,24 @@ export interface Server {
   sshUser?: string | null;
   /** Nur der Pfad zum Key; die App liest die Datei nie */
   sshKeyPath?: string | null;
+  /** Jump host(s) for ssh -J, e.g. bastion or user@bastion:2222 */
+  proxyJump?: string | null;
   /** Kunde, dem der Server gehört. Leer = eigener Server */
   customerId?: string | null;
   notes?: string | null;
   favorite?: boolean;
   /** Wird ausschließlich vom SSH-Check gesetzt */
   facts?: ServerFacts | null;
+}
+
+/** A host from ~/.ssh/config, offered for import */
+export interface ConfigHost {
+  alias: string;
+  host: string;
+  port: number;
+  user: string | null;
+  identityFile: string | null;
+  proxyJump: string | null;
 }
 
 export interface Project {
