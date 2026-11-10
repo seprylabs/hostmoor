@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Import servers from `~/.ssh/config`: Hostmoor lists the hosts from your SSH config, including `Include` files and `Host *` defaults, marks servers you already have and git hosts such as github.com, and adds the ones you pick. The file is only read, never changed.
+- Jump hosts: a server can have a jump host (`ProxyJump`). Checks, deploys, logs and the terminal connect through it with `ssh -J`, and the connection help includes it in its commands.
+
 ## [1.2.0] - 2026-11-10
 
 ### Added

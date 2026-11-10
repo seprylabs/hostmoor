@@ -86,7 +86,32 @@ pub fn validate(server: &Server) -> Result<(), String> {
             ));
         }
     }
+    if let Some(jump) = &server.proxy_jump {
+        // One or more [user@]host[:port] hops, separated by commas
+        let ok_jump = jump.split(',').all(|hop| {
+            !hop.is_empty()
+                && !hop.starts_with('-')
+                && hop.chars().all(|c| {
+                    c.is_ascii_alphanumeric()
+                        || matches!(c, '.' | '-' | '_' | '@' | ':' | '[' | ']')
+                })
+        });
+        if !ok_jump {
+            return Err(tr!(
+                "Invalid jump host: “{jump}”",
+                "Ungültiger Jump-Host: „{jump}“"
+            ));
+        }
+    }
     Ok(())
+}
+
+/// `-J` for servers that are only reachable through a jump host
+fn jump_args(server: &Server, args: &mut Vec<String>) {
+    if let Some(jump) = &server.proxy_jump {
+        args.push("-J".into());
+        args.push(jump.clone());
+    }
 }
 
 /// Argumente für `ssh`, ohne den auszuführenden Befehl
@@ -103,6 +128,7 @@ pub fn ssh_args(server: &Server) -> Vec<String> {
         "-p".into(),
         server.port.to_string(),
     ];
+    jump_args(server, &mut args);
     if let Some(key) = &server.ssh_key_path {
         args.push("-i".into());
         args.push(expand_home(key).to_string_lossy().into_owned());
@@ -250,6 +276,7 @@ fn interactive_args(server: &Server, dir: Option<&str>) -> Result<Vec<String>, S
     }
     args.push("-p".into());
     args.push(server.port.to_string());
+    jump_args(server, &mut args);
     if let Some(key) = &server.ssh_key_path {
         args.push("-i".into());
         args.push(expand_home(key).to_string_lossy().into_owned());
@@ -383,6 +410,7 @@ mod tests {
             port: 2222,
             ssh_user: Some("deploy".into()),
             ssh_key_path: Some("~/.ssh/test_key".into()),
+            proxy_jump: None,
             customer_id: None,
             notes: None,
             favorite: false,
@@ -420,6 +448,34 @@ mod tests {
         s.ssh_user = Some("-oFoo".into());
         assert!(validate(&s).is_err());
         assert!(validate(&server()).is_ok());
+        for jump in [
+            "-oProxyCommand=evil",
+            "bastion,-oFoo",
+            "a b",
+            "ssh://bastion",
+            "",
+        ] {
+            let mut s = server();
+            s.proxy_jump = Some(jump.into());
+            assert!(validate(&s).is_err(), "{jump}");
+        }
+        let mut s = server();
+        s.proxy_jump = Some("bastion,ops@[2001:db8::1]:2222".into());
+        assert!(validate(&s).is_ok());
+    }
+
+    #[test]
+    fn jump_host_goes_before_target() {
+        let mut s = server();
+        s.proxy_jump = Some("ops@bastion:2200".into());
+        let args = ssh_args(&s).join(" ");
+        assert!(args.contains("-J ops@bastion:2200 "), "{args}");
+        assert!(args.ends_with("-- deploy@203.0.113.10"));
+        let cmd = interactive_command(&s, None).unwrap();
+        assert!(
+            cmd.starts_with("ssh -p 2222 -J ops@bastion:2200 -i "),
+            "{cmd}"
+        );
     }
 
     #[test]

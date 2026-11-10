@@ -29,6 +29,8 @@ Formerly StackPort. Moving from StackPort? See the [changelog](CHANGELOG.md#110-
 - **Deploys** per project: templates for Laravel and WordPress, confirmation before every run, live output, cancel, history of the last 20 deploys, system notification when done
 - **GitHub Actions and GitLab pipelines** per project (including self-hosted GitLab), polled in the background with a notification on start, success and failure
 - **SSL certificate watch** per project domain: expiry date, issuer and HTTP status, checked every 6 hours with a notification 14 and 3 days before expiry or when the certificate is invalid
+- **Import from `~/.ssh/config`**: pick hosts from your SSH config (including `Include` files) and add them as servers; existing servers are detected, the file is only read
+- **Jump hosts** (`ProxyJump`): servers behind a bastion work for checks, deploys, logs and the terminal
 - **Log viewer** per project: read Laravel, WordPress, nginx or PHP logs over SSH, filter by warnings and errors, search, and follow new lines live; read-only, nothing is changed on the server
 - **Terminal button**: opens an SSH session in your terminal (Terminal, iTerm2, Ghostty, WezTerm, GNOME Terminal, Konsole, Windows Terminal …), for projects right in the project folder
 - **Backup** of all data as JSON, export and restore
@@ -103,6 +105,7 @@ src/                    React UI (React 19, TypeScript, Tailwind CSS 4, shadcn/u
 src-tauri/src/
   db.rs                 SQLite, migrations
   ssh.rs                system ssh, error detection
+  ssh_config.rs         reads ~/.ssh/config for the import
   check.rs, check.sh    server check
   deploy.rs             deploys with live output
   logs.rs               read and follow log files

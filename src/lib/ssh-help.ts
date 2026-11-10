@@ -59,14 +59,16 @@ function keyComment(server: Server) {
   return `'${comment.replace(/'/g, platform === "windows" ? "''" : `'\\''`)}'`;
 }
 
-function portFlag(server: Server) {
-  return server.port !== 22 ? ` -p ${server.port}` : "";
+/** Port and jump host for ssh and ssh-copy-id; ssh-copy-id has no -J, but takes -o */
+function connectFlags(server: Server) {
+  const port = server.port !== 22 ? ` -p ${server.port}` : "";
+  return server.proxyJump ? `${port} -o ProxyJump=${server.proxyJump}` : port;
 }
 
 export function connectionHelp(status: ConnectionStatus, server: Server): ConnectionHelp {
   const key = server.sshKeyPath ?? (status === "authFailed" ? suggestedKeyPath(server) : DEFAULT_KEY);
   const keyFlag = server.sshKeyPath ? ` -i ${shellPath(server.sshKeyPath)}` : "";
-  const sshCommand = `ssh${keyFlag}${portFlag(server)} ${destination(server)}`;
+  const sshCommand = `ssh${keyFlag}${connectFlags(server)} ${destination(server)}`;
   const user = server.sshUser;
 
   const confirmHost: HelpStep = {
@@ -130,8 +132,8 @@ export function connectionHelp(status: ConnectionStatus, server: Server): Connec
           // Windows has no ssh-copy-id; pipe the key into authorized_keys on the server instead
           command:
             platform === "windows"
-              ? `Get-Content ${shellPath(`${key}.pub`)} | ssh${portFlag(server)} ${destination(server)} "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"`
-              : `ssh-copy-id -i ${shellPath(`${key}.pub`)}${portFlag(server)} ${destination(server)}`,
+              ? `Get-Content ${shellPath(`${key}.pub`)} | ssh${connectFlags(server)} ${destination(server)} "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"`
+              : `ssh-copy-id -i ${shellPath(`${key}.pub`)}${connectFlags(server)} ${destination(server)}`,
         },
         {
           text: i18n.t(platform === "linux" ? "sshHelp.authFailed.showPublicKey" : "sshHelp.authFailed.pbcopy"),

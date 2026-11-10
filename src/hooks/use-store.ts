@@ -53,6 +53,11 @@ export function useStore() {
     loading,
     saveCustomer: (c: Customer) => mutate(() => api.saveCustomer(c), i18n.t("store.customerSaved")),
     saveServer: (s: Server) => mutate(() => api.saveServer(s), i18n.t("store.serverSaved")),
+    /** Saves several new servers at once, e.g. from ~/.ssh/config */
+    importServers: (servers: Server[]) =>
+      mutate(async () => {
+        for (const s of servers) await api.saveServer(s);
+      }, i18n.t("store.serversImported", { count: servers.length })),
     saveProject: (p: Project) => mutate(() => api.saveProject(p), i18n.t("store.projectSaved")),
     remove: (kind: EntityKind, id: string) => mutate(() => api.deleteEntity(kind, id), i18n.t("store.deleted")),
     setFavorite: (kind: EntityKind, id: string, favorite: boolean) =>

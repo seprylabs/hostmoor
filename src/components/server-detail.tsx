@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Clock, KeyRound, Loader2, Plus, RefreshCw, Server as ServerIcon, Terminal } from "lucide-react";
+import { Clock, KeyRound, Loader2, Plus, RefreshCw, Route, Server as ServerIcon, Terminal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -46,7 +46,7 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
   const stale = facts ? ageInDays(facts.checkedAt) > STALE_AFTER_DAYS : false;
 
   // Ergebnis gilt nur für die aktuellen Zugangsdaten; nach dem Bearbeiten verfällt es
-  const connectionKey = `${server.host}|${server.port}|${server.sshUser}|${server.sshKeyPath}`;
+  const connectionKey = `${server.host}|${server.port}|${server.sshUser}|${server.sshKeyPath}|${server.proxyJump}`;
   const [connection, setConnection] = useState<{ key: string; result: ConnectionResult | null; server: Server }>({
     key: connectionKey,
     result: null,
@@ -70,7 +70,7 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
   const saveKeyPath = async (path: string) => {
     const saved = await onSaveKeyPath(path);
     if (saved) {
-      setConnection((c) => ({ ...c, key: `${server.host}|${server.port}|${server.sshUser}|${path}` }));
+      setConnection((c) => ({ ...c, key: `${server.host}|${server.port}|${server.sshUser}|${path}|${server.proxyJump}` }));
     }
     return saved;
   };
@@ -106,6 +106,11 @@ export function ServerDetail({ server, customer, projects, onSelect, onCheck, on
             <span className="flex items-center gap-1 font-mono">
               <Terminal className="size-3.5" /> {sshTarget(server)}
             </span>
+            {server.proxyJump && (
+              <span className="flex items-center gap-1 font-mono">
+                <Route className="size-3.5" /> {t("server.detail.via", { jump: server.proxyJump })}
+              </span>
+            )}
             {server.sshKeyPath && (
               <span className="flex items-center gap-1 font-mono">
                 <KeyRound className="size-3.5" /> {server.sshKeyPath}

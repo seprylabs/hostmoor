@@ -26,6 +26,7 @@ export function ServerForm({ initial, defaultCustomerId, customers, onSubmit, on
     port: String(initial?.port ?? 22),
     sshUser: initial?.sshUser ?? "",
     sshKeyPath: initial?.sshKeyPath ?? "",
+    proxyJump: initial?.proxyJump ?? "",
     customerId: initial ? (initial.customerId ?? null) : (defaultCustomerId ?? null),
     notes: initial?.notes ?? "",
   });
@@ -46,6 +47,7 @@ export function ServerForm({ initial, defaultCustomerId, customers, onSubmit, on
           port,
           sshUser: clean(draft.sshUser),
           sshKeyPath: clean(draft.sshKeyPath),
+          proxyJump: clean(draft.proxyJump),
           customerId: draft.customerId,
           notes: clean(draft.notes),
         })
@@ -118,6 +120,17 @@ export function ServerForm({ initial, defaultCustomerId, customers, onSubmit, on
           <FieldDescription>
             <Trans i18nKey="forms.server.sshKeyHint" components={{ code: <code /> }} />
           </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="server-jump">{t("forms.server.proxyJump")}</FieldLabel>
+          <Input
+            id="server-jump"
+            value={draft.proxyJump}
+            onChange={(e) => set("proxyJump", e.target.value)}
+            placeholder={t("forms.server.proxyJumpPlaceholder")}
+            className="font-mono"
+          />
+          <FieldDescription>{t("forms.server.proxyJumpHint")}</FieldDescription>
         </Field>
         <Field>
           <FieldLabel htmlFor="server-customer">{t("forms.server.owner")}</FieldLabel>

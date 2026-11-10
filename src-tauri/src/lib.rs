@@ -12,6 +12,7 @@ mod logs;
 mod models;
 mod site_watch;
 mod ssh;
+mod ssh_config;
 mod terminal;
 
 use tauri::Manager;
@@ -46,6 +47,7 @@ pub fn run() {
             commands::load_all,
             commands::save_customer,
             commands::save_server,
+            commands::read_ssh_config,
             commands::save_project,
             commands::delete_entity,
             commands::set_favorite,

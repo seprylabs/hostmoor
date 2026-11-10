@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Building2, MousePointerClick, Server as ServerIcon } from "lucide-react";
+import { Building2, FileInput, MousePointerClick, Server as ServerIcon } from "lucide-react";
 
 import {
   AlertDialog,
@@ -25,6 +25,7 @@ import { CustomerDetail } from "@/components/customer-detail";
 import { EntityDialog, type EditorState } from "@/components/entity-dialog";
 import { ProjectDetail } from "@/components/project-detail";
 import { ServerDetail } from "@/components/server-detail";
+import { SshImportDialog } from "@/components/ssh-import-dialog";
 import { UpdateDialog } from "@/components/update-dialog";
 import { useStore } from "@/hooks/use-store";
 import { useUpdater } from "@/hooks/use-updater";
@@ -41,6 +42,7 @@ function App() {
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [deleteRequest, setDeleteRequest] = useState<DeleteRequest | null>(null);
   const [importPath, setImportPath] = useState<string | null>(null);
+  const [sshImportOpen, setSshImportOpen] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(loadSidebarWidth);
 
   const chooseBackup = async () => {
@@ -83,6 +85,7 @@ function App() {
           selection={selection}
           onSelect={setSelection}
           onCreate={(kind) => setEditor({ kind })}
+          onImportSshConfig={() => setSshImportOpen(true)}
           onExport={store.exportBackup}
           onImport={chooseBackup}
           onCheckAll={store.checkAllServers}
@@ -185,6 +188,9 @@ function App() {
                         <Button variant="outline" onClick={() => setEditor({ kind: "server" })}>
                           <ServerIcon /> {t("app.welcome.addServer")}
                         </Button>
+                        <Button variant="outline" onClick={() => setSshImportOpen(true)}>
+                          <FileInput /> {t("app.welcome.importSshConfig")}
+                        </Button>
                       </div>
                     </>
                   ) : (
@@ -220,6 +226,12 @@ function App() {
           }
           setSelection({ kind, id });
         }}
+      />
+      <SshImportDialog
+        open={sshImportOpen}
+        servers={servers}
+        onClose={() => setSshImportOpen(false)}
+        onImport={store.importServers}
       />
       <ConfirmDelete request={deleteRequest} onCancel={() => setDeleteRequest(null)} onConfirm={confirmDelete} />
       <AlertDialog open={importPath !== null} onOpenChange={(open) => !open && setImportPath(null)}>

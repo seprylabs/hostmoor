@@ -40,7 +40,8 @@
       "title": "Willkommen bei Hostmoor",
       "text": "Leg los mit deinem ersten Kunden oder Server.",
       "addCustomer": "Kunde anlegen",
-      "addServer": "Server anlegen"
+      "addServer": "Server anlegen",
+      "importSshConfig": "Aus SSH-Konfiguration importieren"
     },
     "selectHint": "Wähle links einen Kunden, ein Projekt oder einen Server aus.",
     "restore": {
@@ -84,7 +85,8 @@
     "resizer": {
       "label": "Breite der Sidebar",
       "title": "Ziehen zum Anpassen, Doppelklick setzt zurück"
-    }
+    },
+    "importSshConfig": "Aus SSH-Konfiguration importieren…"
   },
   "store": {
     "loadFailed": "Daten konnten nicht geladen werden",
@@ -109,7 +111,9 @@
     "serverChecked": "Server geprüft",
     "checkFailed": "Prüfung fehlgeschlagen",
     "backupRestored": "Backup wiederhergestellt",
-    "logPathsSaved": "Log-Dateien gespeichert"
+    "logPathsSaved": "Log-Dateien gespeichert",
+    "serversImported_one": "{{count}} Server importiert",
+    "serversImported_other": "{{count}} Server importiert"
   },
   "entityDialog": {
     "newCustomer": "Neuer Kunde",
@@ -161,7 +165,10 @@
       "sshKeyHint": "Es wird nur der Pfad gespeichert. Die App öffnet die Key-Datei nie; sie wird später nur an <code>ssh -i</code> übergeben. Leer lassen, um den Standard-Key bzw. den SSH-Agent zu nutzen.",
       "owner": "Gehört zu",
       "ownServer": "Eigener Server",
-      "notesPlaceholder": "Tarif, Besonderheiten, Zugänge zum Panel …"
+      "notesPlaceholder": "Tarif, Besonderheiten, Zugänge zum Panel …",
+      "proxyJump": "Jump-Host",
+      "proxyJumpPlaceholder": "z. B. bastion oder ops@bastion:2222",
+      "proxyJumpHint": "Nur nötig, wenn der Server nur über einen anderen Host erreichbar ist. Wird an ssh -J übergeben; ein Name aus ~/.ssh/config geht auch. Leer lassen für eine direkte Verbindung."
     }
   },
   "customer": {
@@ -212,7 +219,8 @@
       "devTools": "Entwickler-Tools",
       "projects": "Projekte auf diesem Server",
       "addProject": "Projekt",
-      "noProjects": "Noch keine Projekte zugeordnet."
+      "noProjects": "Noch keine Projekte zugeordnet.",
+      "via": "über {{jump}}"
     }
   },
   "connection": {
@@ -432,7 +440,8 @@
     "terminalBrowserOnly": "Das Terminal lässt sich nur aus der App öffnen, nicht im Browser.",
     "serverCheckBrowserOnly": "Der Server-Check ist nur in der App möglich, nicht im Browser.",
     "siteBrowserOnly": "Zertifikate lassen sich nur in der App prüfen, nicht im Browser.",
-    "logsBrowserOnly": "Logs lassen sich nur in der App lesen, nicht im Browser."
+    "logsBrowserOnly": "Logs lassen sich nur in der App lesen, nicht im Browser.",
+    "sshConfigBrowserOnly": "Die SSH-Konfiguration kann nur in der App gelesen werden, nicht im Browser."
   },
   "update": {
     "check": "Nach Updates suchen",
@@ -500,5 +509,16 @@
       "warning": "Warnungen",
       "error": "Fehler"
     }
+  },
+  "sshImport": {
+    "title": "Server aus der SSH-Konfiguration importieren",
+    "description": "Hostmoor liest <code>~/.ssh/config</code> und die darin eingebundenen Dateien. Die Datei wird nie verändert, Key-Dateien werden nicht geöffnet.",
+    "empty": "Keine Hosts in <code>~/.ssh/config</code> gefunden.",
+    "exists": "Schon angelegt",
+    "gitHost": "Git-Host",
+    "selectAll": "Alle auswählen",
+    "selectNone": "Keine auswählen",
+    "import_one": "{{count}} Server importieren",
+    "import_other": "{{count}} Server importieren"
   }
 }

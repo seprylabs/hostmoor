@@ -8,6 +8,7 @@ import {
   CircleArrowUp,
   CircleDashed,
   Download,
+  FileInput,
   Ellipsis,
   Globe,
   Languages,
@@ -86,6 +87,7 @@ interface Props {
   selection: Selection | null;
   onSelect: (selection: Selection) => void;
   onCreate: (kind: EntityKind) => void;
+  onImportSshConfig: () => void;
   onExport: () => void;
   onImport: () => void;
   onCheckAll: () => void;
@@ -102,6 +104,7 @@ export function AppSidebar({
   selection,
   onSelect,
   onCreate,
+  onImportSshConfig,
   onExport,
   onImport,
   onCheckAll,
@@ -207,6 +210,9 @@ export function AppSidebar({
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => onCreate("server")}>
                 <ServerIcon /> {t("sidebar.newServer")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={onImportSshConfig}>
+                <FileInput /> {t("sidebar.importSshConfig")}
               </DropdownMenuItem>
               <DropdownMenuItem disabled={customers.length === 0} onSelect={() => onCreate("project")}>
                 <Globe /> {t("sidebar.newProject")}

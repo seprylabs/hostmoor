@@ -21,6 +21,9 @@ pub struct Server {
     pub ssh_user: Option<String>,
     /// Nur der Pfad zum Key; die Datei wird von der App nie gelesen
     pub ssh_key_path: Option<String>,
+    /// Jump host(s) for `ssh -J`, e.g. `bastion` or `user@bastion:2222`
+    #[serde(default)]
+    pub proxy_jump: Option<String>,
     pub customer_id: Option<String>,
     pub notes: Option<String>,
     #[serde(default)]
