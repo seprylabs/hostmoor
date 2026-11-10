@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CiPanel } from "@/components/ci-panel";
 import { DeployPanel } from "@/components/deploy-panel";
+import { SitePanel } from "@/components/site-panel";
 import { DetailActions } from "@/components/detail-actions";
 import { TerminalButton } from "@/components/terminal-button";
 import { FactRow, NotesCard } from "@/components/fact";
@@ -132,6 +133,7 @@ export function ProjectDetail({
         </Card>
 
         <CiPanel project={project} onEditProject={onEdit} />
+        <SitePanel project={project} onEditProject={onEdit} />
       </div>
 
       <DeployPanel project={project} server={server} onEditProject={onEdit} onSaveScript={onSaveDeployScript} />

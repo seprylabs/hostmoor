@@ -180,3 +180,23 @@ export interface TerminalApp {
   id: string;
   name: string;
 }
+
+/** Certificate and reachability check of a project domain */
+export type SiteLevel = "ok" | "warn" | "critical" | "unknown";
+export type CertProblem = "expired" | "notYetValid" | "wrongName" | "revoked" | "untrusted";
+
+export interface SiteStatus {
+  projectId: string;
+  domain: string;
+  /** Unix milliseconds */
+  checkedAt: number;
+  level: SiteLevel;
+  certificate?: {
+    /** Unix seconds */
+    expiresAt: number;
+    issuer?: string | null;
+    problem?: CertProblem | null;
+  } | null;
+  http?: { status: number; millis: number } | null;
+  error?: string | null;
+}

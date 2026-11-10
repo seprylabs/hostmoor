@@ -17,6 +17,7 @@ Früher StackPort. Wie du deine Daten aus StackPort mitnimmst, steht im [Changel
 - **Verbindungstest mit Einrichtungshilfe**: Hostmoor erkennt die Ursache (unbekannter Host, Key abgelehnt, falsche Rechte, Firewall …) und zeigt die passenden Befehle für dein System
 - **Deploys** pro Projekt: Vorlagen für Laravel und WordPress, Bestätigung vor jedem Start, Live-Ausgabe, Abbrechen, Verlauf der letzten 20 Deploys, Systemmitteilung am Ende
 - **GitHub Actions und GitLab-Pipelines** pro Projekt (auch selbst gehostetes GitLab), im Hintergrund abgefragt, mit Mitteilung bei Start, Erfolg und Fehlschlag
+- **SSL-Zertifikate im Blick** je Projekt-Domain: Ablaufdatum, Aussteller und HTTP-Status, alle 6 Stunden geprüft, mit Mitteilung 14 und 3 Tage vor Ablauf oder bei ungültigem Zertifikat
 - **Terminal-Knopf**: öffnet eine SSH-Sitzung in deinem Terminal, bei Projekten direkt im Projektordner
 - **Backup** aller Daten als JSON, Export und Wiederherstellung
 

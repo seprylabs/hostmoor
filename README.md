@@ -28,6 +28,7 @@ Formerly StackPort. Moving from StackPort? See the [changelog](CHANGELOG.md#110-
 - **Connection test with setup help**: Hostmoor recognizes the cause (unknown host, key not accepted, wrong permissions, firewall …) and shows the commands to fix it for your system
 - **Deploys** per project: templates for Laravel and WordPress, confirmation before every run, live output, cancel, history of the last 20 deploys, system notification when done
 - **GitHub Actions and GitLab pipelines** per project (including self-hosted GitLab), polled in the background with a notification on start, success and failure
+- **SSL certificate watch** per project domain: expiry date, issuer and HTTP status, checked every 6 hours with a notification 14 and 3 days before expiry or when the certificate is invalid
 - **Terminal button**: opens an SSH session in your terminal (Terminal, iTerm2, Ghostty, WezTerm, GNOME Terminal, Konsole, Windows Terminal …), for projects right in the project folder
 - **Backup** of all data as JSON, export and restore
 
@@ -62,7 +63,7 @@ Hostmoor uses the `ssh` client of your system. On Windows this is the OpenSSH cl
 
 Hostmoor has SSH and deploy access to your servers, so it is built to need as little trust as possible:
 
-- **Local only.** All data stays in a SQLite database on your computer. No account, no cloud, no telemetry. The only network requests go to your servers (via `ssh`), to the GitHub or GitLab API for pipelines, and to GitHub Releases to check for updates.
+- **Local only.** All data stays in a SQLite database on your computer. No account, no cloud, no telemetry. The only network requests go to your servers (via `ssh`), to the GitHub or GitLab API for pipelines, to your project domains (HTTPS) for the certificate check, and to GitHub Releases to check for updates.
 - **Signed updates, installed only when you agree.** Hostmoor checks for a new version at startup and asks before installing it. Updates are verified against a public key built into the app, so a tampered download is rejected.
 - **SSH keys are never read.** Hostmoor stores only the *path* to a key and passes it to `ssh -i`. Passphrases stay in your SSH agent or keychain.
 - **No silent host trust.** Checks and deploys run with `BatchMode=yes` and `StrictHostKeyChecking=yes`. New or changed host keys are never accepted automatically.

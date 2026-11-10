@@ -1,7 +1,7 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import i18n from "i18next";
 
-import type { CheckOutcome, CiResult, ProjectCi, ConnectionResult, Deploy, LastDeploy, Customer, EntityKind, Project, Server, Snapshot, TerminalApp } from "@/types";
+import type { CheckOutcome, CiResult, ProjectCi, ConnectionResult, SiteStatus, Deploy, LastDeploy, Customer, EntityKind, Project, Server, Snapshot, TerminalApp } from "@/types";
 
 // Im Browser (npm run dev ohne Tauri) landen die Daten im localStorage,
 // damit sich die Oberfläche auch ohne Rust-Backend ausprobieren lässt.
@@ -199,6 +199,25 @@ export async function onCiUpdate(handler: (overview: ProjectCi[]) => void): Prom
   if (!isTauri()) return () => {};
   const { listen } = await import("@tauri-apps/api/event");
   return listen<ProjectCi[]>("ci-update", (e) => handler(e.payload));
+}
+
+/** Latest certificate checks of all project domains */
+export async function siteOverview(): Promise<SiteStatus[]> {
+  if (!isTauri()) return [];
+  return invoke<SiteStatus[]>("site_overview");
+}
+
+/** Subscribes to new certificate check results; returns a function to unsubscribe */
+export async function onSiteUpdate(handler: (overview: SiteStatus[]) => void): Promise<() => void> {
+  if (!isTauri()) return () => {};
+  const { listen } = await import("@tauri-apps/api/event");
+  return listen<SiteStatus[]>("site-update", (e) => handler(e.payload));
+}
+
+/** Checks the certificate of one project domain right away */
+export async function checkSite(projectId: string): Promise<SiteStatus> {
+  if (!isTauri()) throw new Error(i18n.t("api.siteBrowserOnly"));
+  return invoke<SiteStatus>("check_site", { projectId });
 }
 
 /** Speichert den Token im Schlüsselbund des Systems; null entfernt ihn */

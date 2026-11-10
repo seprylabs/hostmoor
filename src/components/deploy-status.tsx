@@ -1,6 +1,7 @@
 import { CircleAlert, CircleX, Loader2, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { SiteStatusIcon } from "@/components/site-panel";
 import { useProjectCi } from "@/hooks/use-ci-overview";
 import { useDeployStatus } from "@/hooks/use-live-deploys";
 import { formatRelative } from "@/lib/format";
@@ -59,6 +60,7 @@ export function CiStatusIcon({ projectId, className }: { projectId: string; clas
 export function ProjectStatusIcons({ projectId, className }: { projectId: string; className?: string }) {
   return (
     <span className={cn("flex shrink-0 items-center gap-1", className)}>
+      <SiteStatusIcon projectId={projectId} />
       <CiStatusIcon projectId={projectId} />
       <DeployStatusIcon projectId={projectId} />
     </span>
