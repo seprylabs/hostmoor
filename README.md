@@ -77,7 +77,6 @@ Hostmoor does not provision servers. It is the overview and toolbox for servers 
 
 ## Roadmap
 
-- Homebrew, winget and Flathub/AUR packages
 - Rollback for deploys, more deploy templates
 
 ## Development
