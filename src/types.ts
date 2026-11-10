@@ -53,6 +53,8 @@ export interface Project {
   favorite?: boolean;
   /** Wird nur in der Deploy-Ansicht bearbeitet */
   deployScript?: string | null;
+  /** Log files on the server, one per line; only edited in the log viewer */
+  logPaths?: string | null;
 }
 
 export type DeployStatus = "running" | "success" | "failed" | "cancelled" | "interrupted";

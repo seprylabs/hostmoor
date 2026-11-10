@@ -69,6 +69,8 @@ export function useStore() {
     },
     setDeployScript: (projectId: string, script: string | null) =>
       mutate(() => api.setDeployScript(projectId, script), i18n.t("store.deployScriptSaved")),
+    setLogPaths: (projectId: string, paths: string | null) =>
+      mutate(() => api.setLogPaths(projectId, paths), i18n.t("store.logPathsSaved")),
     checkAll,
     /** Prüft alle Server nacheinander (wenige parallel) und fasst das Ergebnis zusammen */
     checkAllServers: async () => {

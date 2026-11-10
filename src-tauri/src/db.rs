@@ -58,6 +58,9 @@ const MIGRATIONS: &[&str] = &[
     );
     CREATE INDEX deploys_by_project ON deploys(project_id, started_at);
 "#,
+    r#"
+    ALTER TABLE projects ADD COLUMN log_paths TEXT;
+"#,
 ];
 
 /// So viele Deploys pro Projekt bleiben im Verlauf
@@ -137,7 +140,7 @@ impl Db {
 
         let projects = conn
             .prepare(
-                "SELECT id, name, customer_id, server_id, stack, domain, path, repo_url, notes, favorite, deploy_script
+                "SELECT id, name, customer_id, server_id, stack, domain, path, repo_url, notes, favorite, deploy_script, log_paths
                  FROM projects ORDER BY name COLLATE NOCASE",
             )?
             .query_map([], |r| {
@@ -153,6 +156,7 @@ impl Db {
                     notes: r.get(8)?,
                     favorite: r.get(9)?,
                     deploy_script: r.get(10)?,
+                    log_paths: r.get(11)?,
                 })
             })?
             .collect::<Result<_, _>>()?;
@@ -184,6 +188,14 @@ impl Db {
             params![facts.to_string(), server_id],
         )?;
         Ok(changed > 0)
+    }
+
+    pub fn set_log_paths(&self, project_id: &str, paths: Option<&str>) -> rusqlite::Result<()> {
+        self.conn().execute(
+            "UPDATE projects SET log_paths = ?1 WHERE id = ?2",
+            params![paths, project_id],
+        )?;
+        Ok(())
     }
 
     pub fn set_deploy_script(
@@ -298,8 +310,8 @@ impl Db {
         for p in &data.projects {
             upsert_project(&tx, p)?;
             tx.execute(
-                "UPDATE projects SET favorite = ?1, deploy_script = ?2 WHERE id = ?3",
-                params![p.favorite, p.deploy_script, p.id],
+                "UPDATE projects SET favorite = ?1, deploy_script = ?2, log_paths = ?3 WHERE id = ?4",
+                params![p.favorite, p.deploy_script, p.log_paths, p.id],
             )?;
         }
         tx.commit()
@@ -423,6 +435,7 @@ mod tests {
             notes: None,
             favorite: false,
             deploy_script: None,
+            log_paths: None,
         }
     }
 
@@ -440,19 +453,23 @@ mod tests {
     }
 
     #[test]
-    fn deploy_script_survives_project_save_and_backup() {
+    fn deploy_script_and_log_paths_survive_project_save_and_backup() {
         let db = Db::open_in_memory().unwrap();
         db.save_customer(&customer("c1")).unwrap();
         db.save_project(&project("p1", "c1", None)).unwrap();
         db.set_deploy_script("p1", Some("git pull")).unwrap();
+        db.set_log_paths("p1", Some("storage/logs/laravel.log"))
+            .unwrap();
         // Speichern über das Formular (ohne Skript) darf es nicht löschen
         db.save_project(&project("p1", "c1", None)).unwrap();
         let snap = db.snapshot().unwrap();
         assert_eq!(snap.projects[0].deploy_script.as_deref(), Some("git pull"));
         db.replace_all(&snap).unwrap();
+        let restored = &db.snapshot().unwrap().projects[0];
+        assert_eq!(restored.deploy_script.as_deref(), Some("git pull"));
         assert_eq!(
-            db.snapshot().unwrap().projects[0].deploy_script.as_deref(),
-            Some("git pull")
+            restored.log_paths.as_deref(),
+            Some("storage/logs/laravel.log")
         );
     }
 

@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - SSL certificate watch: Hostmoor checks the certificate of every project domain every 6 hours and on demand, shows expiry, issuer and HTTP status in the project, marks expiring or invalid certificates in the sidebar and sends a notification 14 and 3 days before expiry.
+- Log viewer: each project can list log files on its server (Laravel and WordPress paths are suggested). Hostmoor reads the last 500 lines over SSH, groups stack traces with their entry, filters by warnings and errors, searches, and can follow new lines live. It only reads; nothing on the server is changed.
 
 ## [1.1.0] - 2026-11-09
 

@@ -166,6 +166,7 @@ function App() {
                     setEditor({ kind: "server", defaultCustomerId: project.customerId, assignTo: project })
                   }
                   onSaveDeployScript={(script) => store.setDeployScript(project.id, script)}
+                  onSaveLogPaths={(paths) => store.setLogPaths(project.id, paths)}
                   onToggleFavorite={() => store.setFavorite("project", project.id, !project.favorite)}
                   onDelete={() => setDeleteRequest({ kind: "project", id: project.id, name: project.name })}
                 />

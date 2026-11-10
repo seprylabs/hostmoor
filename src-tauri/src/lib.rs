@@ -8,6 +8,7 @@ mod ci_watch;
 mod commands;
 mod db;
 mod deploy;
+mod logs;
 mod models;
 mod site_watch;
 mod ssh;
@@ -34,6 +35,7 @@ pub fn run() {
             std::fs::create_dir_all(&dir)?;
             app.manage(db::Db::open(&dir.join("hostmoor.db"))?);
             app.manage(deploy::Running::default());
+            app.manage(logs::Following::default());
             app.manage(ci_watch::CiWatch::default());
             ci_watch::start(app.handle().clone());
             app.manage(site_watch::SiteWatch::default());
@@ -64,6 +66,10 @@ pub fn run() {
             commands::set_language,
             commands::site_overview,
             commands::check_site,
+            commands::set_log_paths,
+            commands::read_log,
+            commands::follow_log,
+            commands::stop_log,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

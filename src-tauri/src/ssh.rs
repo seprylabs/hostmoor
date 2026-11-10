@@ -214,6 +214,14 @@ pub fn shell_quote(s: &str) -> String {
     format!("'{}'", s.replace('\'', "'\\''"))
 }
 
+/// Quotes a path for the remote shell but keeps a leading `~/`, so it still means the home directory
+pub fn quote_path(path: &str) -> String {
+    match path.strip_prefix("~/") {
+        Some(rest) => format!("~/{}", shell_quote(rest)),
+        None => shell_quote(path),
+    }
+}
+
 /// Nur quoten, wenn nötig, damit der Befehl im Terminal lesbar bleibt
 // Windows starts ssh.exe with an argument list instead
 #[cfg_attr(windows, allow(dead_code))]

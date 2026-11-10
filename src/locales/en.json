@@ -108,7 +108,8 @@
     "noConnectionHint": "See “Connection” for details and help.",
     "serverChecked": "Server checked",
     "checkFailed": "Check failed",
-    "backupRestored": "Backup restored"
+    "backupRestored": "Backup restored",
+    "logPathsSaved": "Log files saved"
   },
   "entityDialog": {
     "newCustomer": "New customer",
@@ -430,7 +431,8 @@
     "ciBrowserOnly": "Pipelines can only be loaded in the app, not in the browser.",
     "terminalBrowserOnly": "The terminal can only be opened from the app, not from the browser.",
     "serverCheckBrowserOnly": "The server check only works in the app, not in the browser.",
-    "siteBrowserOnly": "Certificates can only be checked in the app, not in the browser."
+    "siteBrowserOnly": "Certificates can only be checked in the app, not in the browser.",
+    "logsBrowserOnly": "Logs can only be read in the app, not in the browser."
   },
   "update": {
     "check": "Check for updates",
@@ -475,6 +477,28 @@
       "warn_one": "Certificate expires in {{count}} day",
       "warn_other": "Certificate expires in {{count}} days",
       "critical": "Certificate problem: {{domain}}"
+    }
+  },
+  "logs": {
+    "title": "Logs",
+    "editPaths": "Log files",
+    "follow": "Follow",
+    "stopFollowing": "Stop",
+    "followFailed": "Couldn't follow the log",
+    "followEnded": "Following the log stopped",
+    "missingServer": "Assign a server to the project to read its logs.",
+    "missingPath": "Add the project's path on the server; relative log paths start there.",
+    "noPaths": "No log files yet. Add the paths of the logs you want to read.",
+    "pathsHelp": "One file per line. Relative paths start in the project folder <code>{{path}}</code>, absolute ones like /var/log/nginx/error.log need read access for the SSH user.",
+    "search": "Search…",
+    "count": "{{shown}} of {{count}} entries",
+    "empty": "The log file is empty.",
+    "noMatches": "No entries match the filter.",
+    "readOnly": "Shows the last {{count}} lines. Hostmoor only reads the file, it never changes or empties it.",
+    "filter": {
+      "all": "All",
+      "warning": "Warnings",
+      "error": "Errors"
     }
   }
 }

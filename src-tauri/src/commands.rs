@@ -7,6 +7,7 @@ use crate::ci::{self, CiResult};
 use crate::ci_watch::{CiWatch, ProjectCi};
 use crate::db::{Db, Table};
 use crate::deploy;
+use crate::logs;
 use crate::models::{Backup, Customer, Deploy, LastDeploy, Project, Server, Snapshot};
 use crate::site_watch::{self, SiteStatus, SiteWatch};
 use crate::ssh::{self, ConnectionResult};
@@ -121,6 +122,61 @@ pub async fn test_connection(db: State<'_, Db>, id: String) -> CmdResult<Connect
 pub fn set_deploy_script(db: State<Db>, id: String, script: Option<String>) -> CmdResult<()> {
     let script = script.filter(|s| !s.trim().is_empty());
     db.set_deploy_script(&id, script.as_deref()).map_err(err)
+}
+
+/// Log files of a project, one per line; empty resets to the suggestion for the stack
+#[tauri::command]
+pub fn set_log_paths(db: State<Db>, id: String, paths: Option<String>) -> CmdResult<()> {
+    let paths = paths.filter(|s| !s.trim().is_empty());
+    db.set_log_paths(&id, paths.as_deref()).map_err(err)
+}
+
+fn project_and_server(db: &Db, project_id: &str) -> CmdResult<(Project, Server)> {
+    let project = db
+        .snapshot()
+        .map_err(err)?
+        .projects
+        .into_iter()
+        .find(|p| p.id == project_id)
+        .ok_or_else(|| tr!("Project not found", "Projekt nicht gefunden"))?;
+    let server_id = project.server_id.clone().ok_or_else(|| {
+        tr!(
+            "No server is assigned to this project.",
+            "Diesem Projekt ist kein Server zugeordnet."
+        )
+    })?;
+    let server = find_server(db, &server_id)?;
+    Ok((project, server))
+}
+
+/// Last lines of a log file on the project's server
+#[tauri::command]
+pub async fn read_log(
+    db: State<'_, Db>,
+    project_id: String,
+    file: String,
+    lines: u32,
+) -> CmdResult<String> {
+    let (project, server) = project_and_server(&db, &project_id)?;
+    logs::read(&project, &server, &file, lines).await
+}
+
+/// Follows a log file; new lines arrive as `log-lines` events
+#[tauri::command]
+pub fn follow_log(
+    app: AppHandle,
+    db: State<Db>,
+    project_id: String,
+    file: String,
+    stream_id: String,
+) -> CmdResult<()> {
+    let (project, server) = project_and_server(&db, &project_id)?;
+    logs::follow(&app, &project, &server, &file, stream_id)
+}
+
+#[tauri::command]
+pub fn stop_log(app: AppHandle, stream_id: String) -> bool {
+    logs::stop(&app, &stream_id)
 }
 
 #[tauri::command]

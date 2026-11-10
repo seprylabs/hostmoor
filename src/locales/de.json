@@ -108,7 +108,8 @@
     "noConnectionHint": "Details und Hilfe stehen unter „Verbindung“.",
     "serverChecked": "Server geprüft",
     "checkFailed": "Prüfung fehlgeschlagen",
-    "backupRestored": "Backup wiederhergestellt"
+    "backupRestored": "Backup wiederhergestellt",
+    "logPathsSaved": "Log-Dateien gespeichert"
   },
   "entityDialog": {
     "newCustomer": "Neuer Kunde",
@@ -430,7 +431,8 @@
     "ciBrowserOnly": "Pipelines lassen sich nur in der App laden, nicht im Browser.",
     "terminalBrowserOnly": "Das Terminal lässt sich nur aus der App öffnen, nicht im Browser.",
     "serverCheckBrowserOnly": "Der Server-Check ist nur in der App möglich, nicht im Browser.",
-    "siteBrowserOnly": "Zertifikate lassen sich nur in der App prüfen, nicht im Browser."
+    "siteBrowserOnly": "Zertifikate lassen sich nur in der App prüfen, nicht im Browser.",
+    "logsBrowserOnly": "Logs lassen sich nur in der App lesen, nicht im Browser."
   },
   "update": {
     "check": "Nach Updates suchen",
@@ -475,6 +477,28 @@
       "warn_one": "Zertifikat läuft in {{count}} Tag ab",
       "warn_other": "Zertifikat läuft in {{count}} Tagen ab",
       "critical": "Problem mit dem Zertifikat: {{domain}}"
+    }
+  },
+  "logs": {
+    "title": "Logs",
+    "editPaths": "Log-Dateien",
+    "follow": "Mitlesen",
+    "stopFollowing": "Stopp",
+    "followFailed": "Log konnte nicht mitgelesen werden",
+    "followEnded": "Mitlesen des Logs beendet",
+    "missingServer": "Ordne dem Projekt einen Server zu, um seine Logs zu lesen.",
+    "missingPath": "Trag den Pfad des Projekts auf dem Server ein; relative Log-Pfade beginnen dort.",
+    "noPaths": "Noch keine Log-Dateien. Trag die Pfade der Logs ein, die du lesen willst.",
+    "pathsHelp": "Eine Datei pro Zeile. Relative Pfade beginnen im Projektordner <code>{{path}}</code>, absolute wie /var/log/nginx/error.log brauchen Leserechte für den SSH-Benutzer.",
+    "search": "Suchen…",
+    "count": "{{shown}} von {{count}} Einträgen",
+    "empty": "Die Log-Datei ist leer.",
+    "noMatches": "Keine Einträge passen zum Filter.",
+    "readOnly": "Zeigt die letzten {{count}} Zeilen. Hostmoor liest die Datei nur, es ändert oder leert sie nie.",
+    "filter": {
+      "all": "Alle",
+      "warning": "Warnungen",
+      "error": "Fehler"
     }
   }
 }
